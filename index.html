@@ -183,6 +183,7 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .card-letter.d{color:#6a90d4}.card-letter.e{color:#b06ad4}.card-letter.f{color:#d4d06a}
 .card-letter.g{color:#d46aaa}.card-letter.h{color:#6ad4d4}.card-letter.i{color:#d4906a}
 .card-letter.j{color:#9a8fd4}.card-letter.k{color:#d46a6a}.card-letter.l{color:#88e060}
+.card-letter.m{color:#e8a050}.card-letter.n{color:#50b8e8}.card-letter.o{color:#e86888}
 .tip{max-width:960px;margin:28px auto 0;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 20px}
 .tip-title{font-size:.75rem;font-weight:700;color:#58a6ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
 .tip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
@@ -195,8 +196,8 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 <!-- ═══ HEADER ═══ -->
 <div class="header">
   <div class="subtitle">Apologetics Simulator</div>
-  <h1>12 Conversation Trees</h1>
-  <p>Practice real conversations. Each person carries a paper — click anyone to receive it and start their conversation.</p>
+  <h1>Practice the Hard Conversations</h1>
+  <p>Real objections. Real responses. Each person carries a question — click anyone to receive it and start their conversation.</p>
   <div class="hint">↓ Click a person walking by to receive their paper ↓</div>
 </div>
 
@@ -343,6 +344,13 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
     <a class="card depth-9" href="tree-l-game.html"><div class="tier-bar"></div><div class="card-letter l">L</div><div class="card-title">I'm Buddhist</div><div class="card-objection">"Buddhism gives me inner peace — I don't need a personal God."</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">God has a plan for you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div></div></div></a>
   </div>
 
+  <div style="max-width:960px;margin:22px auto 10px"><div class="section-label">The Problem of Evil · 9 Tiers</div></div>
+  <div class="grid">
+    <a class="card depth-9" href="tree-m-game.html"><div class="tier-bar"></div><div class="card-letter m">M</div><div class="card-title">Why Is There Evil?</div><div class="card-objection">"If God is real and good, He would stop it."</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-9" href="tree-n-game.html"><div class="tier-bar"></div><div class="card-letter n">N</div><div class="card-title">Why Does God Allow Suffering?</div><div class="card-objection">"An all-powerful God could end it. He doesn't."</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">God has a plan for you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div></div></div></a>
+    <a class="card depth-9" href="tree-o-game.html"><div class="tier-bar"></div><div class="card-letter o">O</div><div class="card-title">Children Born Sick</div><div class="card-objection">"Why are innocent children born with cancer or Down syndrome?"</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">Have you heard the Good News?</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div></div></div></a>
+  </div>
+
   <div class="tip">
     <div class="tip-title">How to Use</div>
     <div class="tip-grid">
@@ -371,6 +379,9 @@ const TREES = [
   {letter:'J',emoji:'🙄',title:'Christians Are Hypocrites',sub:'"They preach love and live judgment."',                           file:'tree-j-game.html',color:'#9a8fd4'},
   {letter:'K',emoji:'🤲',title:"I'm Muslim",              sub:'"Jesus was a prophet — Christians made him into God."',            file:'tree-k-game.html',color:'#d46a6a'},
   {letter:'L',emoji:'😌',title:"I'm Buddhist",            sub:'"Buddhism gives me inner peace — I don\'t need a personal God."',  file:'tree-l-game.html',color:'#88e060'},
+  {letter:'M',emoji:'😠',title:'Why Is There Evil?',       sub:'"If God is real and good, He would stop it."',                     file:'tree-m-game.html',color:'#e8a050'},
+  {letter:'N',emoji:'😔',title:'Why Does God Allow Suffering?',sub:'"An all-powerful God could end it. He doesn\'t."',             file:'tree-n-game.html',color:'#50b8e8'},
+  {letter:'O',emoji:'🥺',title:'Children Born Sick',       sub:'"Why are innocent children born with cancer or Down syndrome?"',   file:'tree-o-game.html',color:'#e86888'},
 ];
 
 // Walker config: back lane (B), mid lane (M), front lane (F)
@@ -388,6 +399,9 @@ const WALKER_CFG = [
   {t:9, sz:18, dur:26, dly:7,  bot:50},  // J front
   {t:10,sz:20, dur:22, dly:3,  bot:50},  // K front
   {t:11,sz:17, dur:28, dly:9,  bot:50},  // L front
+  {t:12,sz:13, dur:38, dly:5,  bot:86},  // M back
+  {t:13,sz:15, dur:33, dly:11, bot:68},  // N mid
+  {t:14,sz:18, dur:25, dly:15, bot:50},  // O front
 ];
 
 // ── BUILD STARS ────────────────────────────────────────────────────────────

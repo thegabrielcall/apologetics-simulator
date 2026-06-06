@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tree M — Why Is There Evil?</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',serif}
+#app{display:flex;flex-direction:column;height:100vh;max-width:760px;margin:0 auto;padding:0 16px}
+#header{padding:14px 0 10px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#back-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+#back-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#game-title{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',monospace;color:#666;text-align:center}
+#restart-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s}
+#restart-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#tier-track{display:flex;gap:4px;align-items:center}
+.tier-dot{width:22px;height:4px;border-radius:2px;background:#1c1c28;transition:background .4s}
+.tier-dot.active{background:#e8c97a}
+.tier-dot.done{background:#6ad49088}
+.outcome-dot{width:28px;background:#1c1c28}
+.outcome-dot.active{background:#b06ad4}
+#tier-label{font-size:0.6rem;font-family:'Courier New',monospace;color:#555;margin-left:8px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+#chat-area{flex:1;overflow-y:auto;padding:12px 0 8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+#chat-area::-webkit-scrollbar{width:3px}
+#chat-area::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:2px}
+.bubble-wrap{display:flex;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.bubble-wrap.visible{opacity:1;transform:none}
+.bubble-wrap.you-wrap{justify-content:flex-start}
+.bubble-wrap.them-wrap{justify-content:flex-end}
+.bubble{max-width:68%;padding:11px 15px;border-radius:12px;font-size:0.82rem;line-height:1.6}
+.you-wrap .bubble{border-top-left-radius:3px}
+.them-wrap .bubble{border-top-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tier-pip{display:inline-block;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-bottom:6px;border:1px solid;opacity:.8}
+.tp1{color:#6ab8d4;border-color:#6ab8d440;background:#6ab8d412}
+.tp2{color:#d46a6a;border-color:#d46a6a40;background:#d46a6a12}
+.tp3{color:#6ad490;border-color:#6ad49040;background:#6ad49012}
+.tp4{color:#d4a86a;border-color:#d4a86a40;background:#d4a86a12}
+.tp5{color:#6a90d4;border-color:#6a90d440;background:#6a90d412}
+.tp6{color:#b06ad4;border-color:#b06ad440;background:#b06ad412}
+.tp7{color:#d4d06a;border-color:#d4d06a40;background:#d4d06a12}
+.typing-wrap{display:flex;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.typing-wrap.visible{opacity:1}
+.typing{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:10px;border-top-right-radius:3px;padding:10px 16px;display:flex;gap:5px;align-items:center}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#555;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+#choices-panel{flex-shrink:0;padding:10px 0 16px}
+#choices-prompt{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:8px}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .2s;position:relative;overflow:hidden}
+.choice-btn:hover{border-color:#6a90d455;background:#151528}
+.choice-label{font-size:0.78rem;color:#ccc;line-height:1.4;margin-bottom:4px}
+.choice-sub{font-size:0.68rem;color:#555;font-style:italic;line-height:1.3}
+.choice-btn.selected{pointer-events:none}
+.choice-btn.selected.tag-best{border-color:#6ad490;background:#1a2e1a}
+.choice-btn.selected.tag-good{border-color:#6ab8d4;background:#1a2a30}
+.choice-btn.selected.tag-risky{border-color:#d4a86a;background:#2e271a}
+.choice-btn.selected.tag-wrong{border-color:#d46a6a;background:#2e1a1a}
+.choice-btn.unselected{opacity:.3;pointer-events:none}
+.tag-flash{display:none;position:absolute;top:8px;right:8px;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid}
+.choice-btn.selected .tag-flash{display:block}
+.tag-best .tag-flash{color:#6ad490;border-color:#6ad49050;background:#6ad49015}
+.tag-good .tag-flash{color:#6ab8d4;border-color:#6ab8d450;background:#6ab8d415}
+.tag-risky .tag-flash{color:#d4a86a;border-color:#d4a86a50;background:#d4a86a15}
+.tag-wrong .tag-flash{color:#d46a6a;border-color:#d46a6a50;background:#d46a6a15}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0b0b14;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;z-index:100;max-width:760px;margin:0 auto}
+#outcome-screen.show{display:flex}
+.outcome-icon{font-size:3rem;margin-bottom:20px;animation:fadeUp .6s ease}
+.outcome-title{font-size:1.4rem;color:#e8c97a;margin-bottom:12px;text-align:center;animation:fadeUp .6s .1s ease both}
+.outcome-quote{max-width:560px;font-size:0.88rem;line-height:1.7;color:#ccc;margin-bottom:20px;animation:fadeUp .6s .2s ease both;border-left:3px solid #333;padding-left:16px}
+.outcome-note{font-size:0.72rem;font-style:italic;color:#666;margin-bottom:32px;text-align:center;animation:fadeUp .6s .3s ease both}
+.outcome-path{font-size:0.6rem;font-family:'Courier New',monospace;letter-spacing:0.08em;text-transform:uppercase;color:#444;margin-bottom:28px;text-align:center;animation:fadeUp .6s .35s ease both}
+.outcome-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s .4s ease both}
+.outcome-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:8px;padding:10px 22px;font-family:'Courier New',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;color:#888;transition:all .2s;text-decoration:none;display:inline-block}
+.outcome-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+.outcome-btn.primary{border-color:#6ad49055;color:#6ad490}
+.outcome-btn.primary:hover{border-color:#6ad490;background:#1a2e1a}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.src{display:block;font-size:0.56rem;font-family:'Courier New',monospace;background:#ffffff08;border:1px solid #ffffff18;border-radius:3px;padding:2px 6px;margin-top:8px;color:#888}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree M · "Why Is There Evil?"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn primary" onclick="closeOutcome()">← Read conversation</button>
+    <a class="outcome-btn" href="index.html">⊞ All Trees</a>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-1','tb-2'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp1','tp2'];
+const MAX_TIERS=9;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Jesus loves you.",next:'t2_auto'},
+
+  t2_auto:{type:'say',speaker:'them',tier:2,text:"If God exists, why is there so much evil in the world? A God who is truly all-powerful and good would stop it. The fact that He doesn't — either He can't, or He doesn't care.",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'The moral argument',sub:'"Calling it evil requires a standard — where does that come from?"',tag:'best',next:'t4_best',
+     youText:"That question actually points toward God rather than away. Think about it — the word 'evil' requires a standard of good. Where does that standard come from? If the universe is just atoms and energy, nothing is truly evil — things just happen. The fact that evil outrages you means you believe there's a way things ought to be. That moral law implies a Moral Lawgiver.",src:'📖 C.S. Lewis, Mere Christianity'},
+    {label:'The free will response',sub:'"Most evil comes from human choices — not God."',tag:'good',next:'t4_good',
+     youText:"Most of the evil in the world comes from human choices — war, cruelty, exploitation. God could eliminate that by eliminating free will. But a robot can't love. He created beings capable of genuine love, which means capable of its opposite. Evil is the shadow side of freedom."},
+    {label:'Ask what specifically they mean',sub:'"Natural disasters or what people do to each other?"',tag:'risky',next:'t4_risky',
+     youText:"That question kept me up for a long time too. When you say evil — are you thinking about natural disasters, or the things people do to each other?"},
+    {label:'God has reasons we can\'t understand',sub:'"His ways are higher than ours."',tag:'wrong',next:'outcome_deflected',
+     youText:"God allows things we can't fully understand because He has a plan bigger than we can see."},
+  ]},
+
+  t4_best:{type:'say',speaker:'them',tier:4,text:"But moral standards could come from evolution — cooperation helps survival. You don't need God for that.",next:'t5_main_pick'},
+  t4_good:{type:'say',speaker:'them',tier:4,text:"Then why doesn't God at least stop the worst of it? Genocide. Children dying of disease. That's not a freedom problem — that's a cruelty problem.",next:'t5_main_pick'},
+  t4_risky:{type:'say',speaker:'them',tier:4,text:"Both. Children dying of disease. Genocides. People doing unspeakable things to each other. If God is watching that and doing nothing — that's not love.",next:'t5_risky_pick'},
+
+  t5_main_pick:{type:'pick',tier:5,prompt:'They pushed back. What do you say?',choices:[
+    {label:'Evolution gives description, not obligation',sub:'"Helpful to the species" ≠ "morally required."',tag:'best',next:'t6_main',
+     youText:"Evolution explains why cooperation benefits survival — but it can't explain why we're morally obligated to cooperate. 'Helpful to the species' and 'you must not do this' are completely different claims. We don't condemn a lion for killing a gazelle — we instinctively know nature isn't bound by morality. But we put humans on trial for murder. That distinction requires a moral law above nature.",src:'📖 Francis Collins, The Language of God'},
+    {label:'God entered suffering — He didn\'t stay above it',sub:'"The cross is God absorbing evil, not ignoring it."',tag:'good',next:'t6_main',
+     youText:"Here's what makes Christianity different from every other answer to your question: God didn't watch from a distance. He entered the evil. Jesus wept at Lazarus's grave. He cried out in Gethsemane. He was betrayed, tortured, abandoned. The cross isn't God ignoring evil — it's God absorbing it at the deepest possible level."},
+    {label:'Acknowledge the weight honestly',sub:'"I\'m not going to give you a formula for genocide."',tag:'risky',next:'t6_soft',
+     youText:"Genocide and children dying — I'm not going to hand you a formula for that. The weight of it is real. But I want to show you how the Christian answer is different from what you might expect."},
+    {label:'Point them to scripture passages',sub:'"Romans 8 addresses this directly."',tag:'wrong',next:'outcome_away_cold',
+     youText:"Romans 8 actually addresses this — suffering is part of a larger redemptive picture if you read it in context."},
+  ]},
+
+  t5_risky_pick:{type:'pick',tier:5,prompt:'They named real suffering. Respond carefully.',choices:[
+    {label:'God Himself experienced it',sub:'"He didn\'t design suffering from a safe distance."',tag:'best',next:'t6_main',
+     youText:"I want you to notice something about the God you're questioning. He didn't design suffering from a comfortable distance and walk away. He entered it. Jesus experienced betrayal, agony, and abandonment. Whatever suffering you're pointing at — God has been inside it. That doesn't erase it, but it changes what it means."},
+    {label:'The moral argument — evil implies a standard',sub:'"Your outrage is itself evidence of something beyond nature."',tag:'good',next:'t6_main',
+     youText:"The fact that you're outraged by genocide and children dying — that outrage is actually important. You're not just saying 'I dislike this.' You're saying 'this is wrong.' That distinction matters. Wrong implies a standard. A standard implies something above nature that defines it. That points toward God, not away."},
+    {label:'Sit with them in it first',sub:'"Before argument — presence."',tag:'risky',next:'outcome_away_soft',
+     youText:"I'm not going to argue you past those things. Genocide and dying children — that's not a debate topic. I just want to say: I think those things are evil too. And I think the fact that we both know they're evil matters more than most people realize."},
+    {label:'Pivot to the resurrection as the answer',sub:'"God\'s response to death is resurrection."',tag:'wrong',next:'outcome_away_cold',
+     youText:"God's answer to all of that is the resurrection — death and evil are defeated, just not yet fully revealed."},
+  ]},
+
+  t6_main:{type:'say',speaker:'them',tier:6,text:"Okay — but if God is all-powerful, why didn't He make a world with free will AND less suffering? Why this specific amount? It feels arbitrary.",next:'t7_pick'},
+  t6_soft:{type:'say',speaker:'them',tier:6,text:"Different. How is it different? Every religious person I've talked to just says trust the plan.",next:'t7_soft_pick'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'The deepest version of the objection. Hold your ground.',choices:[
+    {label:'Virtue requires resistance',sub:'"Courage, compassion, forgiveness — none exist in a painless world."',tag:'best',next:'t8_main',
+     youText:"C.S. Lewis wrestled with this directly. His conclusion: a world with any genuine freedom at all creates conditions for moral growth. Courage can't exist without danger. Compassion can't exist without suffering. Forgiveness can't exist without offense. Strip away all resistance and you strip away the possibility of becoming someone. This may be the only kind of world where real human character can develop.",src:'📖 C.S. Lewis, The Problem of Pain'},
+    {label:'God\'s answer is redemption, not removal',sub:'"Suffering isn\'t the last word — the resurrection is."',tag:'good',next:'t8_main',
+     youText:"God's response to evil isn't to erase suffering from above — it's to enter it from within and redeem it. The resurrection is the claim that suffering is not the final word. Every evil will one day be answered — not swept under a rug, but fully and finally addressed."},
+    {label:'Honest uncertainty with a solid anchor',sub:'"I don\'t know the exact amount — but I know He didn\'t stay distant."',tag:'risky',next:'t8_soft',
+     youText:"I'll be honest — I don't know why He allowed this specific amount. That's a real question without a tidy answer. But I do know He didn't stay distant from it. The cross is God's statement that He takes evil seriously enough to absorb it personally."},
+    {label:'Press back on their standard',sub:'"How much suffering would be acceptable to you?"',tag:'wrong',next:'outcome_pushed',
+     youText:"I'd ask you — what amount of suffering would make you believe? How much less would be enough?"},
+  ]},
+
+  t7_soft_pick:{type:'pick',tier:7,prompt:'They\'ve heard only platitudes. Give them something real.',choices:[
+    {label:'The cross as God\'s statement against evil',sub:'"He didn\'t stay above it and manage it — He entered it."',tag:'best',next:'t8_main',
+     youText:"Here's what's different: the Christian God doesn't manage suffering from above with a plan. He entered it from within. Jesus on the cross wasn't executing a tidy program — He was experiencing abandonment, agony, and death. The resurrection is the claim that even that was not the end. That's not 'trust the plan.' That's God putting His own life on the line."},
+    {label:'The moral argument as foundation',sub:'"Evil is real — which means goodness is real — which means God is plausible."',tag:'good',next:'t8_main',
+     youText:"Here's where I'd start: the fact that you're calling these things evil — genuinely evil, not just unfortunate — that distinction matters. 'Wrong' implies a standard above human preference. That standard is exactly what theists point to when we talk about God."},
+    {label:'Ask what they were told before',sub:'"What answer have you gotten that felt most hollow?"',tag:'risky',next:'outcome_away_soft',
+     youText:"What's the answer that felt most hollow to you? I want to know what I'm working against."},
+    {label:'Give them a book recommendation',sub:'"C.S. Lewis wrote the book on this — literally."',tag:'wrong',next:'outcome_away_cold',
+     youText:"C.S. Lewis wrote 'The Problem of Pain' — he was an atheist who used this exact argument, then changed his mind. Worth reading."},
+  ]},
+
+  t8_main:{type:'say',speaker:'them',tier:8,text:"I've never heard anyone put it that way. I've always assumed Christians just said 'God works in mysterious ways' and moved on. This is... actually a real answer.",next:'t9_pick'},
+  t8_soft:{type:'say',speaker:'them',tier:8,text:"I appreciate you being honest about not knowing. Most people get defensive. So what is the anchor? What makes you still believe despite not having all the answers?",next:'t9_anchor_pick'},
+
+  t9_pick:{type:'pick',tier:9,prompt:'Something shifted. Choose your closing.',choices:[
+    {label:'Invite honest investigation',sub:'"Lewis started where you are. Follow the evidence all the way."',tag:'best',next:'outcome_open'},
+    {label:'Leave the door open gracefully',sub:'"The question you\'re asking is the right one — keep asking it."',tag:'good',next:'outcome_away'},
+    {label:'Personal witness',sub:'"This question was a wall for me too — until it wasn\'t."',tag:'good',next:'outcome_seed'},
+    {label:'Press for a commitment',sub:'"So does this change things for you?"',tag:'wrong',next:'outcome_pushed'},
+  ]},
+
+  t9_anchor_pick:{type:'pick',tier:9,prompt:'They want to know your anchor. Be honest.',choices:[
+    {label:'The resurrection — a verifiable claim',sub:'"If it happened, everything changes. If it didn\'t, I\'m wrong."',tag:'best',next:'outcome_open'},
+    {label:'The manuscript evidence and historical Jesus',sub:'"I started with the historical case, not the feeling."',tag:'good',next:'outcome_away'},
+    {label:'Personal transformation you\'ve witnessed',sub:'"I\'ve seen what it does to people."',tag:'risky',next:'outcome_seed'},
+    {label:'It\'s just what you were raised with',sub:'"I\'ve always believed — I can\'t imagine otherwise."',tag:'wrong',next:'outcome_pushed'},
+  ]},
+
+  outcome_open:{type:'outcome',outcome:'open',icon:'🙏',title:'They Open',
+    quote:'"I never thought of it as moral law implying a Lawgiver. That\'s — that\'s actually a real argument. I need to look into this properly. Where would you start?"',
+    note:'The outrage at evil becomes the first step toward God. That\'s the irony Lewis found too.',path:'Best Route · T9 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'🚶',title:'They Leave — Thinking',
+    quote:'"I\'ve been assuming Christians didn\'t have real answers. That was unfair of me. I need to think about this."',
+    note:'They leave with a question they didn\'t arrive with. That\'s the goal.',path:'Good Route · T9'},
+  outcome_seed:{type:'outcome',outcome:'seed',icon:'🌱',title:'A Seed Planted',
+    quote:'"I still don\'t know what I believe. But I can\'t dismiss this as quickly as I thought I could."',
+    note:'Honest uncertainty is more valuable than forced agreement. The seed is in.',path:'Gentle Route'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌫️',title:'Present, Not Persuaded',
+    quote:'"I appreciate that you didn\'t just argue at me. Most people do."',
+    note:'Presence before argument. They\'ll remember this conversation. It\'s not wasted.',path:'Soft Route'},
+  outcome_away_cold:{type:'outcome',outcome:'cold',icon:'🌫️',title:'They Step Back',
+    quote:'"Thanks. I\'ll look it up."',
+    note:'Too abstract, too soon. Lead with presence and the moral argument before citing texts.',path:'Ended early'},
+  outcome_deflected:{type:'outcome',outcome:'deflected',icon:'🚪',title:'Deflected',
+    quote:'"Right. The plan. Got it."',
+    note:'Platitudes close conversations. Never substitute mystery for engagement — they\'ve heard "God\'s ways are higher" before.',path:'Ended early'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'They Felt Cornered',
+    quote:'"I said I\'d think about it. Don\'t push me."',
+    note:'You were close. Hold the door open — don\'t pull them through it.',path:'Near miss'},
+};
+
+let pathTaken=[];
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className='tier-dot';d.id='dot-'+i;t.appendChild(d);
+  }
+  const sep=document.createElement('div');
+  sep.style.cssText='width:1px;height:12px;background:#2a2a3a;margin:0 2px';
+  t.appendChild(sep);
+  const od=document.createElement('div');
+  od.className='tier-dot outcome-dot';od.id='dot-out';t.appendChild(od);
+  const lbl=document.createElement('div');
+  lbl.id='tier-label';t.appendChild(lbl);
+  updateTrack(1);
+}
+
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.getElementById('dot-'+i);
+    if(!d)continue;
+    d.className='tier-dot'+(i<tier?' done':i===tier?' active':'');
+  }
+  const lbl=document.getElementById('tier-label');
+  if(lbl)lbl.textContent=tier<=MAX_TIERS?`Tier ${tier} / ${MAX_TIERS}`:'Outcome';
+}
+
+function addBubble(speaker,text,tier,src){
+  const chat=document.getElementById('chat-area');
+  const wrap=document.createElement('div');
+  wrap.className=`bubble-wrap ${speaker==='you'?'you-wrap':'them-wrap'}`;
+  const bub=document.createElement('div');
+  const tc=TIER_COLORS[tier]||'tb-1';
+  bub.className=`bubble ${tc}`;
+  const pip=document.createElement('span');
+  pip.className=`tier-pip ${TIER_PIP[tier]||'tp1'}`;
+  pip.textContent=`T${tier} · ${speaker==='you'?'You':'Them'}`;
+  bub.appendChild(pip);
+  bub.appendChild(document.createElement('br'));
+  bub.appendChild(document.createTextNode(text));
+  if(src){const s=document.createElement('span');s.className='src';s.textContent=src;bub.appendChild(s);}
+  wrap.appendChild(bub);chat.appendChild(wrap);
+  requestAnimationFrame(()=>wrap.classList.add('visible'));
+  setTimeout(()=>{chat.scrollTop=chat.scrollHeight;},50);
+}
+
+function showTyping(){
+  const chat=document.getElementById('chat-area');
+  const w=document.createElement('div');
+  w.className='typing-wrap';w.id='typer';
+  w.innerHTML='<div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  chat.appendChild(w);
+  requestAnimationFrame(()=>w.classList.add('visible'));
+  chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(){const e=document.getElementById('typer');if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);}}
+
+function showChoices(node){
+  document.getElementById('choices-prompt').textContent=node.prompt||'Choose...';
+  const grid=document.getElementById('choices-grid');
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div><span class="tag-flash">${c.tag||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('choices-panel').style.visibility='visible';
+}
+function hideChoices(){
+  document.getElementById('choices-panel').style.visibility='hidden';
+  document.getElementById('choices-grid').innerHTML='';
+  document.getElementById('choices-prompt').textContent='';
+}
+
+async function pick(node,choice,idx){
+  document.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    if(i===idx){b.classList.add('selected',`tag-${choice.tag||'good'}`)}else{b.classList.add('unselected')}
+  });
+  if(choice.youText){
+    await sleep(300);
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    pathTaken.push({tier:node.tier,tag:choice.tag,label:choice.label});
+  }
+  await sleep(600);hideChoices();await sleep(200);
+  run(choice.next);
+}
+
+async function run(id){
+  if(!id)return;
+  const node=nodes[id];
+  if(!node){console.warn('Missing:',id);return;}
+  if(node.type==='say'){
+    updateTrack(node.tier);
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(800+node.text.length*7);
+      removeTyping();await sleep(100);
+    }
+    addBubble(node.speaker,node.text,node.tier);
+    await sleep(500);
+    if(node.next)run(node.next);
+  } else if(node.type==='pick'){
+    updateTrack(node.tier);
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(400);showOutcome(node);
+  }
+}
+
+function showOutcome(node){
+  updateTrack(MAX_TIERS+1);
+  const d=document.getElementById('dot-out');if(d)d.classList.add('active');
+  document.getElementById('out-icon').textContent=node.icon||'';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  const summary=pathTaken.map(p=>`T${p.tier}:${p.tag}`).join(' → ');
+  document.getElementById('out-path').textContent=(node.path||'')+(summary?' · '+summary:'');
+  document.getElementById('outcome-screen').classList.add('show');
+}
+function closeOutcome(){document.getElementById('outcome-screen').classList.remove('show');}
+function restartGame(){
+  document.getElementById('outcome-screen').classList.remove('show');
+  document.getElementById('chat-area').innerHTML='';
+  pathTaken=[];hideChoices();buildTrack();
+  sleep(300).then(()=>run('start'));
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+buildTrack();run('start');
+</script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tree N — Why Does God Allow Suffering?</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',serif}
+#app{display:flex;flex-direction:column;height:100vh;max-width:760px;margin:0 auto;padding:0 16px}
+#header{padding:14px 0 10px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#back-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+#back-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#game-title{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',monospace;color:#666;text-align:center}
+#restart-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s}
+#restart-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#tier-track{display:flex;gap:4px;align-items:center}
+.tier-dot{width:22px;height:4px;border-radius:2px;background:#1c1c28;transition:background .4s}
+.tier-dot.active{background:#e8c97a}
+.tier-dot.done{background:#6ad49088}
+.outcome-dot{width:28px;background:#1c1c28}
+.outcome-dot.active{background:#50b8e8}
+#tier-label{font-size:0.6rem;font-family:'Courier New',monospace;color:#555;margin-left:8px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+#chat-area{flex:1;overflow-y:auto;padding:12px 0 8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+#chat-area::-webkit-scrollbar{width:3px}
+#chat-area::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:2px}
+.bubble-wrap{display:flex;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.bubble-wrap.visible{opacity:1;transform:none}
+.bubble-wrap.you-wrap{justify-content:flex-start}
+.bubble-wrap.them-wrap{justify-content:flex-end}
+.bubble{max-width:68%;padding:11px 15px;border-radius:12px;font-size:0.82rem;line-height:1.6}
+.you-wrap .bubble{border-top-left-radius:3px}
+.them-wrap .bubble{border-top-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tier-pip{display:inline-block;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-bottom:6px;border:1px solid;opacity:.8}
+.tp1{color:#6ab8d4;border-color:#6ab8d440;background:#6ab8d412}
+.tp2{color:#d46a6a;border-color:#d46a6a40;background:#d46a6a12}
+.tp3{color:#6ad490;border-color:#6ad49040;background:#6ad49012}
+.tp4{color:#d4a86a;border-color:#d4a86a40;background:#d4a86a12}
+.tp5{color:#6a90d4;border-color:#6a90d440;background:#6a90d412}
+.tp6{color:#b06ad4;border-color:#b06ad440;background:#b06ad412}
+.tp7{color:#d4d06a;border-color:#d4d06a40;background:#d4d06a12}
+.typing-wrap{display:flex;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.typing-wrap.visible{opacity:1}
+.typing{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:10px;border-top-right-radius:3px;padding:10px 16px;display:flex;gap:5px;align-items:center}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#555;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+#choices-panel{flex-shrink:0;padding:10px 0 16px}
+#choices-prompt{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:8px}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .2s;position:relative;overflow:hidden}
+.choice-btn:hover{border-color:#6a90d455;background:#151528}
+.choice-label{font-size:0.78rem;color:#ccc;line-height:1.4;margin-bottom:4px}
+.choice-sub{font-size:0.68rem;color:#555;font-style:italic;line-height:1.3}
+.choice-btn.selected{pointer-events:none}
+.choice-btn.selected.tag-best{border-color:#6ad490;background:#1a2e1a}
+.choice-btn.selected.tag-good{border-color:#6ab8d4;background:#1a2a30}
+.choice-btn.selected.tag-risky{border-color:#d4a86a;background:#2e271a}
+.choice-btn.selected.tag-wrong{border-color:#d46a6a;background:#2e1a1a}
+.choice-btn.unselected{opacity:.3;pointer-events:none}
+.tag-flash{display:none;position:absolute;top:8px;right:8px;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid}
+.choice-btn.selected .tag-flash{display:block}
+.tag-best .tag-flash{color:#6ad490;border-color:#6ad49050;background:#6ad49015}
+.tag-good .tag-flash{color:#6ab8d4;border-color:#6ab8d450;background:#6ab8d415}
+.tag-risky .tag-flash{color:#d4a86a;border-color:#d4a86a50;background:#d4a86a15}
+.tag-wrong .tag-flash{color:#d46a6a;border-color:#d46a6a50;background:#d46a6a15}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0b0b14;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;z-index:100;max-width:760px;margin:0 auto}
+#outcome-screen.show{display:flex}
+.outcome-icon{font-size:3rem;margin-bottom:20px;animation:fadeUp .6s ease}
+.outcome-title{font-size:1.4rem;color:#e8c97a;margin-bottom:12px;text-align:center;animation:fadeUp .6s .1s ease both}
+.outcome-quote{max-width:560px;font-size:0.88rem;line-height:1.7;color:#ccc;margin-bottom:20px;animation:fadeUp .6s .2s ease both;border-left:3px solid #333;padding-left:16px}
+.outcome-note{font-size:0.72rem;font-style:italic;color:#666;margin-bottom:32px;text-align:center;animation:fadeUp .6s .3s ease both}
+.outcome-path{font-size:0.6rem;font-family:'Courier New',monospace;letter-spacing:0.08em;text-transform:uppercase;color:#444;margin-bottom:28px;text-align:center;animation:fadeUp .6s .35s ease both}
+.outcome-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s .4s ease both}
+.outcome-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:8px;padding:10px 22px;font-family:'Courier New',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;color:#888;transition:all .2s;text-decoration:none;display:inline-block}
+.outcome-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+.outcome-btn.primary{border-color:#6ad49055;color:#6ad490}
+.outcome-btn.primary:hover{border-color:#6ad490;background:#1a2e1a}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.src{display:block;font-size:0.56rem;font-family:'Courier New',monospace;background:#ffffff08;border:1px solid #ffffff18;border-radius:3px;padding:2px 6px;margin-top:8px;color:#888}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree N · "Why Does God Allow Suffering?"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn primary" onclick="closeOutcome()">← Read conversation</button>
+    <a class="outcome-btn" href="index.html">⊞ All Trees</a>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-1','tb-2'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp1','tp2'];
+const MAX_TIERS=9;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"God has a plan for you.",next:'t2_auto'},
+
+  t2_auto:{type:'say',speaker:'them',tier:2,text:"A plan. Right. If God is all-powerful, He could eliminate suffering entirely. He doesn't. So either He's not powerful enough, or He just doesn't care. Which is it?",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'God entered suffering — He didn\'t avoid it',sub:'"Jesus in Gethsemane. The cross. God has skin in this game."',tag:'best',next:'t4_best',
+     youText:"Here's what separates Christianity from every other religion on this question: our God didn't stay above the suffering and manage it remotely. He entered it. Jesus sweat blood in Gethsemane. He cried out 'My God, why have you forsaken me?' from the cross. Whatever suffering you're pointing to — God has been inside it. He's not a distant architect watching the building burn.",src:'📖 Matthew 27:46 · Mark 14:33–36'},
+    {label:'Suffering forms what comfort cannot',sub:'"Character, depth, compassion — none emerge from ease."',tag:'good',next:'t4_good',
+     youText:"C.S. Lewis asked the same question after his wife died. His answer: a world without any resistance would produce humans with no real character at all. Compassion only grows when there's suffering to respond to. Courage only forms under danger. The surgeon causes pain to heal. God may be doing something we can't fully see from inside it.",src:'📖 C.S. Lewis, A Grief Observed'},
+    {label:'Ask if they\'ve experienced personal suffering',sub:'"Is this philosophical, or is something real behind it?"',tag:'risky',next:'t4_risky',
+     youText:"I want to make sure I answer the real question. Is this philosophical for you, or is there something you've personally been through? Because those need different answers."},
+    {label:'God\'s timing is not our timing',sub:'"He will make all things new — just not yet."',tag:'wrong',next:'outcome_dismissed',
+     youText:"God's timing is different from ours. He will make all things right — we just don't always see it in our lifetime."},
+  ]},
+
+  t4_best:{type:'say',speaker:'them',tier:4,text:"So He suffered — and then what? The suffering on earth still exists. Jesus being in pain 2,000 years ago doesn't help the person dying of cancer today.",next:'t5_main_pick'},
+  t4_good:{type:'say',speaker:'them',tier:4,text:"But the surgeon knows the patient will heal. God knows the future — we don't. Why not just skip the pain and take us to the healed version directly?",next:'t5_main_pick'},
+  t4_risky:{type:'say',speaker:'them',tier:4,text:"Both, honestly. I've watched someone I love suffer for years and I kept being told God had a plan. That felt like a slap.",next:'t5_grief_pick'},
+
+  t5_main_pick:{type:'pick',tier:5,prompt:'They\'re pushing deeper. Stay grounded.',choices:[
+    {label:'The resurrection changes what suffering means',sub:'"It\'s not erased — it\'s redeemed. That\'s different."',tag:'best',next:'t6_main',
+     youText:"The resurrection isn't just a consolation prize. It's the claim that suffering is not the final word — that God doesn't just eliminate it from above, but redeems it from within. The crucifixion didn't make the pain less real. The resurrection made it mean something. Every wound carried into eternity is transformed, not erased.",src:'📖 Romans 8:18'},
+    {label:'The skipped version would skip us too',sub:'"Formed people can\'t be manufactured — they have to be grown."',tag:'good',next:'t6_main',
+     youText:"If God skipped straight to the healed version, He'd be skipping the people who were formed by the journey. You can't manufacture a person who has loved through loss, held onto faith under pressure, or served sacrificially through pain. Those people have to be grown. The process isn't a design flaw — it's the design."},
+    {label:'Name what Jesus actually promised',sub:'"He never promised no suffering — He promised presence in it."',tag:'risky',next:'t6_soft',
+     youText:"Jesus never promised a pain-free life. He said 'In this world you will have trouble.' What He promised was: 'I am with you always.' That's a different claim than the one most people think Christians are making."},
+    {label:'Point to heaven as the resolution',sub:'"All suffering will be redeemed in eternity."',tag:'wrong',next:'outcome_away_cold',
+     youText:"All of this suffering will be fully redeemed in eternity — God will wipe every tear, and what we go through now will seem small by comparison."},
+  ]},
+
+  t5_grief_pick:{type:'pick',tier:5,prompt:'They\'ve been hurt. Presence before argument.',choices:[
+    {label:'Acknowledge the wound first',sub:'"That\'s a real wound. Don\'t minimize it."',tag:'best',next:'t6_grief',
+     youText:"That's a real wound. Being handed a theological formula when you're watching someone you love suffer — that can do more damage than silence. I'm sorry that happened. Can I try to give you something more honest than that?"},
+    {label:'Separate bad religion from God',sub:'"The people who said that were wrong to say it."',tag:'good',next:'t6_grief',
+     youText:"The people who told you 'God has a plan' as a way to shut down your pain — they were wrong to say it that way. That's not what the Bible actually says to suffering people. Job's friends did the same thing, and God rebuked them for it."},
+    {label:'Ask who it was that suffered',sub:'"You don\'t have to share — I just want to understand."',tag:'risky',next:'outcome_presence',
+     youText:"You don't have to share anything. But I want to understand what you actually walked through before I say anything else."},
+    {label:'Explain why suffering exists theologically',sub:'"The fallen world explains why this happens."',tag:'wrong',next:'outcome_dismissed',
+     youText:"The world is fallen — suffering exists because of sin entering creation. That's the theological answer for why God allows it."},
+  ]},
+
+  t6_main:{type:'say',speaker:'them',tier:6,text:"Redeemed. Formed. I've heard those words. But right now, in the middle of the pain — what does any of that do for someone who's suffering today, not in eternity?",next:'t7_pick'},
+  t6_soft:{type:'say',speaker:'them',tier:6,text:"Presence. Okay. But I can't feel that presence. And most people who are suffering can't either. What's the point of a God who's there if you can't feel Him?",next:'t7_presence_pick'},
+  t6_grief:{type:'say',speaker:'them',tier:6,text:"Job's friends. I've never heard a Christian say that before. What did God actually say to Job when Job was in agony?",next:'t7_job_pick'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'They want something for today, not eternity. Stay real.',choices:[
+    {label:'The community of suffering — you\'re not alone in it',sub:'"The church is supposed to be the presence of God with skin on."',tag:'best',next:'t8_main',
+     youText:"The church at its best is meant to be the presence of God made visible — people who sit with the suffering, bring meals, stay at 2am. The answer to 'what does God do for someone suffering today' is supposed to be: His people show up. That's what the early church was. When that fails, it's a failure of the people — not the design.",src:'📖 1 Corinthians 12:26'},
+    {label:'Jesus wept — God\'s first response is grief, not explanation',sub:'"He didn\'t explain Lazarus\'s death. He wept."',tag:'good',next:'t8_main',
+     youText:"When Lazarus died and Mary was weeping, Jesus didn't open with an explanation. He wept. God's first response to suffering is grief, not theology. The explanations come — but they're not the first thing. That order matters more than most people realize."},
+    {label:'Honest acknowledgment that faith is hard here',sub:'"I won\'t pretend this is the easy part of Christianity."',tag:'risky',next:'t8_soft',
+     youText:"I won't pretend this is the easy part. Trusting God when the pain is real and the silence feels total — that's the hardest thing I know of. I'm not going to give you a sentence that resolves it."},
+    {label:'Cite the promise of Romans 8:28',sub:'"All things work together for good."',tag:'wrong',next:'outcome_dismissed',
+     youText:"Romans 8:28 promises that all things work together for good for those who love God. That's the anchor — even when we can't see it."},
+  ]},
+
+  t7_presence_pick:{type:'pick',tier:7,prompt:'They can\'t feel God\'s presence. Don\'t be glib.',choices:[
+    {label:'Jesus felt the same — "Why have you forsaken me?"',sub:'"That cry from the cross is in the Bible for a reason."',tag:'best',next:'t8_main',
+     youText:"Matthew 27:46 — Jesus on the cross cried out 'My God, my God, why have you forsaken me?' That's in the Bible. God didn't edit it out. The experience of being unable to feel God's presence is inside the Christian story — not outside it. Jesus went there first.",src:'📖 Matthew 27:46 · Psalm 22:1'},
+    {label:'Feelings follow facts — not the other way around',sub:'"The sun doesn\'t disappear because you can\'t see it through clouds."',tag:'good',next:'t8_main',
+     youText:"Feelings are real, but they're not always accurate. The sun doesn't cease to exist on a cloudy day. The question isn't 'do I feel God?' — it's 'is there good reason to believe He's there?' Those are different questions, and the evidence for the second doesn't change based on your emotional weather."},
+    {label:'Sit with that instead of answering it',sub:'"That\'s a real thing. I don\'t want to explain it away."',tag:'risky',next:'outcome_presence',
+     youText:"I don't want to explain that away. Not feeling God when you're desperate for Him is one of the loneliest experiences I know of. I'd rather sit in that with you than hand you a formula."},
+    {label:'Encourage them to pray through it',sub:'"Tell God exactly what you just told me."',tag:'wrong',next:'outcome_away_cold',
+     youText:"I'd encourage you to tell God exactly what you just told me. He can handle the honesty."},
+  ]},
+
+  t7_job_pick:{type:'pick',tier:7,prompt:'They\'re genuinely curious about Job. This is a doorway.',choices:[
+    {label:'God didn\'t explain — He showed up',sub:'"No apology. No answer. Just presence overwhelming."',tag:'best',next:'t8_main',
+     youText:"God's answer to Job is one of the strangest things in scripture. He doesn't explain the suffering. He doesn't apologize. He shows up in a whirlwind and speaks for four chapters about the vastness of creation — 'Where were you when I laid the foundations of the earth?' And Job's response? He's satisfied. Not because he got answers, but because God showed up and was actually there. Presence overwhelmed the need for explanation.",src:'📖 Job 38–42'},
+    {label:'Job\'s conclusion: the encounter matters more than the answer',sub:'"Job says \'now my eyes have seen you.\' That was enough."',tag:'good',next:'t8_main',
+     youText:"At the end of Job, he says: 'My ears had heard of you — but now my eyes have seen you.' He went through all that suffering and came out the other side saying the encounter with God was worth more than the explanation. That's not a blind statement — it's what changed after he actually met God, not just heard about Him."},
+    {label:'Invite them to read it together',sub:'"Job is the most honest book in the Bible about suffering."',tag:'risky',next:'outcome_away_soft',
+     youText:"Job is the most honest book in the Bible. No tidy answers, no easy resolution. If you've ever felt abandoned by God, Job goes there further than you probably have. It's worth reading."},
+    {label:'God restored everything Job lost at the end',sub:'"Job got double back — that\'s the happy ending."',tag:'wrong',next:'outcome_dismissed',
+     youText:"In the end God restored everything Job lost — double. It's a picture of how God redeems suffering with blessing."},
+  ]},
+
+  t8_main:{type:'say',speaker:'them',tier:8,text:"I didn't know Christians thought about this seriously. I assumed the answer was always just 'have faith.' This is different. Where did you learn to think about it this way?",next:'t9_pick'},
+  t8_soft:{type:'say',speaker:'them',tier:8,text:"I respect that you're not pretending. Most people give me talking points. So what keeps you believing when you're in the hard part?",next:'t9_anchor_pick'},
+
+  t9_pick:{type:'pick',tier:9,prompt:'They\'re genuinely interested. Choose your closing.',choices:[
+    {label:'Point them to Lewis and the historical case',sub:'"Start with the evidence — then the experience will follow or it won\'t."',tag:'best',next:'outcome_open'},
+    {label:'Invite them to keep the conversation going',sub:'"This deserves more than a sidewalk. Let\'s talk again."',tag:'good',next:'outcome_away'},
+    {label:'Share what the faith has done in your own suffering',sub:'"I can only speak to what it\'s done for me."',tag:'good',next:'outcome_seed'},
+    {label:'Invite them to church this Sunday',sub:'"Come and see — don\'t just take my word for it."',tag:'risky',next:'outcome_away_soft'},
+  ]},
+
+  t9_anchor_pick:{type:'pick',tier:9,prompt:'They want to know your anchor. Be real.',choices:[
+    {label:'The resurrection — a specific historical claim',sub:'"If it happened, suffering is not the final word. If it didn\'t, I\'m wrong."',tag:'best',next:'outcome_open'},
+    {label:'The character of Jesus in the Gospels',sub:'"I keep coming back to Him — not to the institution."',tag:'good',next:'outcome_away'},
+    {label:'What I\'ve seen suffering do in people of faith',sub:'"I\'ve watched people go through things that should destroy a person — and it didn\'t."',tag:'good',next:'outcome_seed'},
+    {label:'It\'s been in my family for generations',sub:'"I can\'t imagine walking away from it."',tag:'wrong',next:'outcome_away_cold'},
+  ]},
+
+  outcome_open:{type:'outcome',outcome:'open',icon:'🙏',title:'They Open',
+    quote:'"Job. The whirlwind. God showing up instead of explaining. I\'ve never read it like that. Maybe I\'ve been reading the wrong parts. Where do I start?"',
+    note:'Engaging the honest parts of scripture does more than polished answers. Let the text speak.',path:'Best Route · T9 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'🚶',title:'They Leave — Thinking',
+    quote:'"I came in wanting to argue. I\'m leaving with something I need to think about. That doesn\'t happen often."',
+    note:'The goal isn\'t to win — it\'s to leave them with a question worth sitting with.',path:'Good Route · T9'},
+  outcome_seed:{type:'outcome',outcome:'seed',icon:'🌱',title:'A Seed Planted',
+    quote:'"I still don\'t know what I believe. But I stopped assuming you didn\'t have real answers."',
+    note:'Changed assumptions are the soil. The seed is in.',path:'Gentle Route'},
+  outcome_presence:{type:'outcome',outcome:'presence',icon:'🕊️',title:'Present Without Words',
+    quote:'"You\'re the first person who didn\'t try to fix it. Thank you for that."',
+    note:'Sometimes the most powerful apologetic is silence with presence. Not every conversation ends with an argument — some end with a witness.',path:'Presence Route'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌫️',title:'Door Left Open',
+    quote:'"Maybe. I\'ll think about it."',
+    note:'Not every conversation closes. This one stayed open. That\'s enough.',path:'Soft Route'},
+  outcome_away_cold:{type:'outcome',outcome:'cold',icon:'🌫️',title:'They Step Back',
+    quote:'"Thanks. I\'ve heard that before."',
+    note:'Scriptural quotes without relationship land hollow. Presence and the specific argument come first.',path:'Ended early'},
+  outcome_dismissed:{type:'outcome',outcome:'dismissed',icon:'🚪',title:'Dismissed',
+    quote:'"Right. God\'s plan. I\'ve heard that my whole life."',
+    note:'Platitudes confirm their assumption that Christians don\'t engage honestly. Lead with the harder, realer answers.',path:'Ended early'},
+};
+
+let pathTaken=[];
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className='tier-dot';d.id='dot-'+i;t.appendChild(d);
+  }
+  const sep=document.createElement('div');
+  sep.style.cssText='width:1px;height:12px;background:#2a2a3a;margin:0 2px';
+  t.appendChild(sep);
+  const od=document.createElement('div');
+  od.className='tier-dot outcome-dot';od.id='dot-out';t.appendChild(od);
+  const lbl=document.createElement('div');
+  lbl.id='tier-label';t.appendChild(lbl);
+  updateTrack(1);
+}
+
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.getElementById('dot-'+i);
+    if(!d)continue;
+    d.className='tier-dot'+(i<tier?' done':i===tier?' active':'');
+  }
+  const lbl=document.getElementById('tier-label');
+  if(lbl)lbl.textContent=tier<=MAX_TIERS?`Tier ${tier} / ${MAX_TIERS}`:'Outcome';
+}
+
+function addBubble(speaker,text,tier,src){
+  const chat=document.getElementById('chat-area');
+  const wrap=document.createElement('div');
+  wrap.className=`bubble-wrap ${speaker==='you'?'you-wrap':'them-wrap'}`;
+  const bub=document.createElement('div');
+  const tc=TIER_COLORS[tier]||'tb-1';
+  bub.className=`bubble ${tc}`;
+  const pip=document.createElement('span');
+  pip.className=`tier-pip ${TIER_PIP[tier]||'tp1'}`;
+  pip.textContent=`T${tier} · ${speaker==='you'?'You':'Them'}`;
+  bub.appendChild(pip);
+  bub.appendChild(document.createElement('br'));
+  bub.appendChild(document.createTextNode(text));
+  if(src){const s=document.createElement('span');s.className='src';s.textContent=src;bub.appendChild(s);}
+  wrap.appendChild(bub);chat.appendChild(wrap);
+  requestAnimationFrame(()=>wrap.classList.add('visible'));
+  setTimeout(()=>{chat.scrollTop=chat.scrollHeight;},50);
+}
+
+function showTyping(){
+  const chat=document.getElementById('chat-area');
+  const w=document.createElement('div');
+  w.className='typing-wrap';w.id='typer';
+  w.innerHTML='<div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  chat.appendChild(w);
+  requestAnimationFrame(()=>w.classList.add('visible'));
+  chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(){const e=document.getElementById('typer');if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);}}
+
+function showChoices(node){
+  document.getElementById('choices-prompt').textContent=node.prompt||'Choose...';
+  const grid=document.getElementById('choices-grid');
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div><span class="tag-flash">${c.tag||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('choices-panel').style.visibility='visible';
+}
+function hideChoices(){
+  document.getElementById('choices-panel').style.visibility='hidden';
+  document.getElementById('choices-grid').innerHTML='';
+  document.getElementById('choices-prompt').textContent='';
+}
+
+async function pick(node,choice,idx){
+  document.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    if(i===idx){b.classList.add('selected',`tag-${choice.tag||'good'}`)}else{b.classList.add('unselected')}
+  });
+  if(choice.youText){
+    await sleep(300);
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    pathTaken.push({tier:node.tier,tag:choice.tag,label:choice.label});
+  }
+  await sleep(600);hideChoices();await sleep(200);
+  run(choice.next);
+}
+
+async function run(id){
+  if(!id)return;
+  const node=nodes[id];
+  if(!node){console.warn('Missing:',id);return;}
+  if(node.type==='say'){
+    updateTrack(node.tier);
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(800+node.text.length*7);
+      removeTyping();await sleep(100);
+    }
+    addBubble(node.speaker,node.text,node.tier);
+    await sleep(500);
+    if(node.next)run(node.next);
+  } else if(node.type==='pick'){
+    updateTrack(node.tier);
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(400);showOutcome(node);
+  }
+}
+
+function showOutcome(node){
+  updateTrack(MAX_TIERS+1);
+  const d=document.getElementById('dot-out');if(d)d.classList.add('active');
+  document.getElementById('out-icon').textContent=node.icon||'';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  const summary=pathTaken.map(p=>`T${p.tier}:${p.tag}`).join(' → ');
+  document.getElementById('out-path').textContent=(node.path||'')+(summary?' · '+summary:'');
+  document.getElementById('outcome-screen').classList.add('show');
+}
+function closeOutcome(){document.getElementById('outcome-screen').classList.remove('show');}
+function restartGame(){
+  document.getElementById('outcome-screen').classList.remove('show');
+  document.getElementById('chat-area').innerHTML='';
+  pathTaken=[];hideChoices();buildTrack();
+  sleep(300).then(()=>run('start'));
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+buildTrack();run('start');
+</script>
+</body>
+</html>

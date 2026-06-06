@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tree O — Children Born into Suffering</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',serif}
+#app{display:flex;flex-direction:column;height:100vh;max-width:760px;margin:0 auto;padding:0 16px}
+#header{padding:14px 0 10px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#back-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+#back-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#game-title{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',monospace;color:#666;text-align:center}
+#restart-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s}
+#restart-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#tier-track{display:flex;gap:4px;align-items:center}
+.tier-dot{width:22px;height:4px;border-radius:2px;background:#1c1c28;transition:background .4s}
+.tier-dot.active{background:#e8c97a}
+.tier-dot.done{background:#6ad49088}
+.outcome-dot{width:28px;background:#1c1c28}
+.outcome-dot.active{background:#e86888}
+#tier-label{font-size:0.6rem;font-family:'Courier New',monospace;color:#555;margin-left:8px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+#chat-area{flex:1;overflow-y:auto;padding:12px 0 8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+#chat-area::-webkit-scrollbar{width:3px}
+#chat-area::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:2px}
+.bubble-wrap{display:flex;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.bubble-wrap.visible{opacity:1;transform:none}
+.bubble-wrap.you-wrap{justify-content:flex-start}
+.bubble-wrap.them-wrap{justify-content:flex-end}
+.bubble{max-width:68%;padding:11px 15px;border-radius:12px;font-size:0.82rem;line-height:1.6}
+.you-wrap .bubble{border-top-left-radius:3px}
+.them-wrap .bubble{border-top-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tier-pip{display:inline-block;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-bottom:6px;border:1px solid;opacity:.8}
+.tp1{color:#6ab8d4;border-color:#6ab8d440;background:#6ab8d412}
+.tp2{color:#d46a6a;border-color:#d46a6a40;background:#d46a6a12}
+.tp3{color:#6ad490;border-color:#6ad49040;background:#6ad49012}
+.tp4{color:#d4a86a;border-color:#d4a86a40;background:#d4a86a12}
+.tp5{color:#6a90d4;border-color:#6a90d440;background:#6a90d412}
+.tp6{color:#b06ad4;border-color:#b06ad440;background:#b06ad412}
+.tp7{color:#d4d06a;border-color:#d4d06a40;background:#d4d06a12}
+.typing-wrap{display:flex;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.typing-wrap.visible{opacity:1}
+.typing{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:10px;border-top-right-radius:3px;padding:10px 16px;display:flex;gap:5px;align-items:center}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#555;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+#choices-panel{flex-shrink:0;padding:10px 0 16px}
+#choices-prompt{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:8px}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .2s;position:relative;overflow:hidden}
+.choice-btn:hover{border-color:#6a90d455;background:#151528}
+.choice-label{font-size:0.78rem;color:#ccc;line-height:1.4;margin-bottom:4px}
+.choice-sub{font-size:0.68rem;color:#555;font-style:italic;line-height:1.3}
+.choice-btn.selected{pointer-events:none}
+.choice-btn.selected.tag-best{border-color:#6ad490;background:#1a2e1a}
+.choice-btn.selected.tag-good{border-color:#6ab8d4;background:#1a2a30}
+.choice-btn.selected.tag-risky{border-color:#d4a86a;background:#2e271a}
+.choice-btn.selected.tag-wrong{border-color:#d46a6a;background:#2e1a1a}
+.choice-btn.unselected{opacity:.3;pointer-events:none}
+.tag-flash{display:none;position:absolute;top:8px;right:8px;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid}
+.choice-btn.selected .tag-flash{display:block}
+.tag-best .tag-flash{color:#6ad490;border-color:#6ad49050;background:#6ad49015}
+.tag-good .tag-flash{color:#6ab8d4;border-color:#6ab8d450;background:#6ab8d415}
+.tag-risky .tag-flash{color:#d4a86a;border-color:#d4a86a50;background:#d4a86a15}
+.tag-wrong .tag-flash{color:#d46a6a;border-color:#d46a6a50;background:#d46a6a15}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0b0b14;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;z-index:100;max-width:760px;margin:0 auto}
+#outcome-screen.show{display:flex}
+.outcome-icon{font-size:3rem;margin-bottom:20px;animation:fadeUp .6s ease}
+.outcome-title{font-size:1.4rem;color:#e8c97a;margin-bottom:12px;text-align:center;animation:fadeUp .6s .1s ease both}
+.outcome-quote{max-width:560px;font-size:0.88rem;line-height:1.7;color:#ccc;margin-bottom:20px;animation:fadeUp .6s .2s ease both;border-left:3px solid #333;padding-left:16px}
+.outcome-note{font-size:0.72rem;font-style:italic;color:#666;margin-bottom:32px;text-align:center;animation:fadeUp .6s .3s ease both}
+.outcome-path{font-size:0.6rem;font-family:'Courier New',monospace;letter-spacing:0.08em;text-transform:uppercase;color:#444;margin-bottom:28px;text-align:center;animation:fadeUp .6s .35s ease both}
+.outcome-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s .4s ease both}
+.outcome-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:8px;padding:10px 22px;font-family:'Courier New',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;color:#888;transition:all .2s;text-decoration:none;display:inline-block}
+.outcome-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+.outcome-btn.primary{border-color:#6ad49055;color:#6ad490}
+.outcome-btn.primary:hover{border-color:#6ad490;background:#1a2e1a}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.src{display:block;font-size:0.56rem;font-family:'Courier New',monospace;background:#ffffff08;border:1px solid #ffffff18;border-radius:3px;padding:2px 6px;margin-top:8px;color:#888}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree O · "Why Are Children Born Sick?"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn primary" onclick="closeOutcome()">← Read conversation</button>
+    <a class="outcome-btn" href="index.html">⊞ All Trees</a>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-1','tb-2'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp1','tp2'];
+const MAX_TIERS=9;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Have you heard the Good News?",next:'t2_auto'},
+
+  t2_auto:{type:'say',speaker:'them',tier:2,text:"Good News? If God is real and loving, why are children born with Down syndrome or cancer? They didn't do anything. What kind of good God lets that happen to an innocent child?",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'Challenge the hidden premise',sub:'"Down syndrome — are we sure that\'s a life of suffering?"',tag:'best',next:'t4_best',
+     youText:"I want to take your question seriously — it deserves that. But I'd gently push on one thing: when you say 'why would God allow Down syndrome,' are you assuming it's primarily a life of suffering? Studies consistently show that people with Down syndrome report higher levels of happiness and life satisfaction than the general population. The premise that their life is a tragedy may be ours — not theirs.",src:'📊 Skotko et al., AJMG 2011'},
+    {label:'The fallen world — this isn\'t how it was designed',sub:'"Genesis describes a different original state."',tag:'good',next:'t4_good',
+     youText:"The Christian answer isn't that God designed children to be born sick. Genesis describes an original state without disease or death — and a break in that order through human rebellion. We're living in a world that's been fractured from what God intended. That doesn't explain every specific case, but it matters for the framework: God isn't the architect of childhood cancer. It's what a broken creation produces.",src:'📖 Romans 8:20–22'},
+    {label:'Ask if this is personal',sub:'"Is there a child you\'re thinking about specifically?"',tag:'risky',next:'t4_risky',
+     youText:"Before I answer — is this personal for you? Are you thinking of someone specific? Because that changes how I want to respond."},
+    {label:'God has a special love for the vulnerable',sub:'"Jesus said the kingdom belongs to children."',tag:'wrong',next:'outcome_hollow',
+     youText:"Jesus had a special love for children — He said the kingdom of heaven belongs to them. God's heart is especially for the vulnerable."},
+  ]},
+
+  t4_best:{type:'say',speaker:'them',tier:4,text:"I've never thought about it that way. But what about children with cancer? That's not a quality of life question — they suffer and die.",next:'t5_main_pick'},
+  t4_good:{type:'say',speaker:'them',tier:4,text:"So you're blaming humans for childhood cancer? That feels like a stretch. A child didn't choose any of this.",next:'t5_fallen_pick'},
+  t4_risky:{type:'say',speaker:'them',tier:4,text:"Yes. My nephew has leukemia. He's seven. So don't give me theology — give me something real.",next:'t5_grief_pick'},
+
+  t5_main_pick:{type:'pick',tier:5,prompt:'They shifted to childhood cancer. Stay honest.',choices:[
+    {label:'Jesus healed — that shows God\'s actual position on illness',sub:'"Every healing in the Gospels is God saying: this is not what I want."',tag:'best',next:'t6_main',
+     youText:"Look at what Jesus actually did when He encountered sick people. He healed them — every time. He never said 'this is God's plan, learn to accept it.' He treated illness as something to be undone. Every healing in the Gospels is God making a statement: this is not the way things are supposed to be. The resurrection is the final healing — the promise that death and disease are not the last words.",src:'📖 Matthew 9:35 · Revelation 21:4'},
+    {label:'The fallen world includes biological disorder',sub:'"Genetic mutation is what a broken creation looks like at the cellular level."',tag:'good',next:'t6_main',
+     youText:"Genetic mutation and cellular disorder are what a fractured creation looks like at the microscopic level. This isn't God aiming at a specific child — it's what entropy and brokenness produce in a world that's come apart from its original design. God's response isn't to explain it — it's to enter it and begin restoring it."},
+    {label:'Honest acknowledgment — no formula covers this',sub:'"I\'m not going to hand you a sentence that resolves a dying child."',tag:'risky',next:'t6_soft',
+     youText:"I'm not going to hand you a sentence that resolves a dying child. I won't. That would be dishonest. What I can say is that the Christian claim is not that God is indifferent to it — the cross is evidence that He's not. But I won't pretend I have a clean answer for why that specific child."},
+    {label:'God can use suffering to draw people to Him',sub:'"Sometimes suffering is what opens hearts to God."',tag:'wrong',next:'outcome_hollow',
+     youText:"Sometimes God uses suffering to open people's hearts and draw them to Him. It can be a pathway to a deeper relationship."},
+  ]},
+
+  t5_fallen_pick:{type:'pick',tier:5,prompt:'They pushed back on the fallen world. Be precise.',choices:[
+    {label:'Clarify: not individual blame — systemic fracture',sub:'"Original sin is about broken creation, not a child\'s fault."',tag:'best',next:'t6_main',
+     youText:"Not blaming the child at all — that's exactly the point. Original sin in the Christian framework isn't individual punishment for individual choices. It's the description of a creation that fractured — and everything in it, including genetics, including biology, bearing the marks of that fracture. A child with cancer isn't being punished. They're living in a broken world. That distinction matters enormously.",src:'📖 Romans 5:12'},
+    {label:'Jesus never told a sick person they deserved it',sub:'"His disciples asked about the blind man — Jesus rejected that framing."',tag:'good',next:'t6_main',
+     youText:"His own disciples asked about a man born blind: 'Who sinned — him or his parents?' Jesus explicitly rejected that framing. He said neither. The Christian answer is not that sick children are being punished. Jesus went out of His way to make that clear.",src:'📖 John 9:1–3'},
+    {label:'Acknowledge the limitation of the framework',sub:'"No framework fully accounts for a sick child. That\'s honest."',tag:'risky',next:'t6_soft',
+     youText:"No theological framework fully accounts for a sick child in a way that feels adequate. That's honest. What I can say is that the framework matters for what you do next — whether suffering is random and meaningless, or broken and redeemable."},
+    {label:'God has a reason we can\'t see',sub:'"His ways are higher than ours."',tag:'wrong',next:'outcome_hollow',
+     youText:"God's ways are higher than ours — He has reasons we can't fully see from where we stand."},
+  ]},
+
+  t5_grief_pick:{type:'pick',tier:5,prompt:'A real child. Be present before you\'re an apologist.',choices:[
+    {label:'Stop and be with them first',sub:'"Seven years old. I\'m so sorry."',tag:'best',next:'t6_grief',
+     youText:"Seven years old. I'm so sorry. I'm not going to give you theology right now. That's not what you need and it's not what I'd want if it were me. I just want to say — I'm sorry your family is in this."},
+    {label:'Name what Jesus did when He saw grief',sub:'"When Jesus saw a mother who lost her son, He stopped and raised him."',tag:'good',next:'t6_grief',
+     youText:"When Jesus saw a widow who had lost her only son, He didn't keep walking. He stopped. He was moved with compassion. He raised the boy. I'm not going to promise you that for your nephew — but I want you to know that God's first response to a grieving family is not theology. It's to stop."},
+    {label:'Ask how your nephew is doing right now',sub:'"What stage is he at? How\'s the family holding up?"',tag:'risky',next:'outcome_presence',
+     youText:"What stage is he at? How is your family holding up?"},
+    {label:'Offer to pray for healing',sub:'"Can I pray for your nephew right now?"',tag:'risky',next:'outcome_prayer',
+     youText:"Can I pray for your nephew right now? Right here?"},
+  ]},
+
+  t6_main:{type:'say',speaker:'them',tier:6,text:"So Jesus healed people — and now He doesn't. We have the same childhood cancer rates we always had. If anything, we healed more of it through medicine than through prayer. What does that say?",next:'t7_pick'},
+  t6_soft:{type:'say',speaker:'them',tier:6,text:"I can respect honesty. So — if you don't have a clean answer, what do you have? Why believe at all?",next:'t7_why_pick'},
+  t6_grief:{type:'say',speaker:'them',tier:6,text:"Thank you for not launching into a lecture. Most people do. Can I ask you something? Do you actually believe God could heal him? Do you pray for it?",next:'t7_faith_pick'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'Medicine vs. prayer. A real challenge — meet it.',choices:[
+    {label:'Medicine is God working through human hands',sub:'"Christians founded hospitals. Healing has always been our project."',tag:'best',next:'t8_main',
+     youText:"Christians founded hospitals — that's not a coincidence. The institution of caring for sick strangers came directly out of the belief that every person bears God's image and deserves care. Medicine is one of the ways God works through human hands. The question isn't 'prayer or medicine' — it's 'do we believe healing is something God wants?' The entire history of Christian medicine says yes.",src:'📖 Matthew 25:36 · History of Hospitals'},
+    {label:'Jesus promised healing will be complete — just not yet',sub:'"Revelation 21 — no more death, no more pain."',tag:'good',next:'t8_main',
+     youText:"The healing Jesus did wasn't a policy He abandoned — it was a preview of what's coming. Revelation 21 says no more death, no more pain, no more disease. What He did in the Gospels was a foretaste. The full healing comes at the end of the story, not in the middle of it."},
+    {label:'Honest answer about why miracles seem rare now',sub:'"I don\'t know why healing miracles aren\'t more common. That\'s honest."',tag:'risky',next:'t8_soft',
+     youText:"I'll be honest — I don't know why healing miracles aren't more frequent. That's a real question I sit with. What I hold onto is the resurrection as the anchor: God has demonstrated that He can undo death. The rest of what I believe flows from that specific event, not from a track record of healing I can point to."},
+    {label:'Point to documented miracles and healing testimonies',sub:'"There are documented cases of unexplained medical recoveries."',tag:'wrong',next:'outcome_away_cold',
+     youText:"There are documented cases of unexplained medical recoveries that doctors can't account for. Miracles still happen — they're just not always front-page news."},
+  ]},
+
+  t7_why_pick:{type:'pick',tier:7,prompt:'They want to know your anchor. Give them the real one.',choices:[
+    {label:'The resurrection — a specific historical event',sub:'"If a dead man came back, then death isn\'t the last word for any child."',tag:'best',next:'t8_main',
+     youText:"The resurrection. Not a feeling, not a tradition, not a community — a specific historical event. If Jesus actually came back from the dead, then death is not the final word for any person, including children who die too young. That's the anchor. Everything else I believe depends on whether that one event happened.",src:'📖 1 Corinthians 15:14'},
+    {label:'The character of Jesus in the Gospels',sub:'"He never walked past a sick child. That\'s the God I\'m pointing to."',tag:'good',next:'t8_main',
+     youText:"When I read the Gospels, Jesus never walked past someone who was suffering and kept going. Never. He stopped every time. That's the character of the God I'm pointing to. It's not a distant architect — it's someone who got angry at disease and sorrow and did something about it."},
+    {label:'Community formed around something true',sub:'"The early church didn\'t die for a feeling."',tag:'risky',next:'t8_soft',
+     youText:"The early Christians were tortured and killed for the specific claim that Jesus rose from the dead. People don't die for what they know is a lie. Something happened that changed those people permanently. I believe it was what they said it was."},
+    {label:'Personal experience of answered prayer',sub:'"I\'ve seen God move in my own life."',tag:'wrong',next:'outcome_away_cold',
+     youText:"I've personally experienced God answering prayer in ways I can't explain. That's what keeps me believing when the hard questions don't have easy answers."},
+  ]},
+
+  t7_faith_pick:{type:'pick',tier:7,prompt:'They\'re asking if you actually believe. Be real.',choices:[
+    {label:'Yes — and I do pray for him. Regularly.',sub:'"Not because I have a guarantee — because I believe God hears."',tag:'best',next:'t8_grief',
+     youText:"Yes. I do pray for children in that situation — and if you'd let me, I'd pray for your nephew. Not because I have a promise of a specific outcome. Because I believe God hears, and because Jesus never turned away from a sick child. What He does with that prayer is His — but I believe He's listening."},
+    {label:'Yes — and I wrestle with not seeing more healing',sub:'"That tension doesn\'t make me stop praying."',tag:'good',next:'t8_grief',
+     youText:"Yes. And I wrestle with the fact that I don't see more healing than I do. That tension doesn't make me stop praying — it makes me pray with more honesty. I tell God I don't understand. I ask anyway."},
+    {label:'I believe He could — and I don\'t know why He sometimes doesn\'t',sub:'"That\'s the honest answer."',tag:'risky',next:'t8_soft',
+     youText:"I believe He could. I don't know why He doesn't always, and I'm not going to pretend otherwise. That's the honest answer. But I keep praying because I believe He's there and He cares — even when I can't trace the outcome."},
+    {label:'Healing is possible if there\'s enough faith',sub:'"Faith the size of a mustard seed can move mountains."',tag:'wrong',next:'outcome_harmful',
+     youText:"Jesus said faith the size of a mustard seed can move mountains. If your family is praying in faith, healing is possible."},
+  ]},
+
+  t8_main:{type:'say',speaker:'them',tier:8,text:"I came over here ready to argue. I didn't expect you to actually have thought about this. I still don't know what I believe — but this is different from every other conversation I've had with a Christian.",next:'t9_pick'},
+  t8_soft:{type:'say',speaker:'them',tier:8,text:"That's more honest than most people are. One more question — if you had a child who was dying, would your faith hold?",next:'t9_hard_pick'},
+  t8_grief:{type:'say',speaker:'them',tier:8,text:"Would you actually pray for him? Right now, with me?",next:'t9_prayer_pick'},
+
+  t9_pick:{type:'pick',tier:9,prompt:'Something shifted. Choose your closing.',choices:[
+    {label:'Invite them to keep following the question',sub:'"The Jesus of the Gospels is worth looking at directly."',tag:'best',next:'outcome_open'},
+    {label:'Leave the door open — no pressure',sub:'"The question you\'re asking is the right one."',tag:'good',next:'outcome_away'},
+    {label:'Offer a specific next step',sub:'"Read John — just the Gospel of John."',tag:'good',next:'outcome_seed'},
+    {label:'Ask if they\'d want to come to church',sub:'"You could see for yourself what the community is actually like."',tag:'risky',next:'outcome_away_soft'},
+  ]},
+
+  t9_hard_pick:{type:'pick',tier:9,prompt:'A hard personal question. Answer it honestly.',choices:[
+    {label:'I don\'t know — and that honesty is part of the faith',sub:'"Job asked the same thing. Jesus asked it on the cross."',tag:'best',next:'outcome_open'},
+    {label:'I believe it would — but I\'ve never been tested that way',sub:'"I won\'t claim more than I\'ve lived."',tag:'good',next:'outcome_away'},
+    {label:'I\'ve seen people\'s faith hold through that — and I\'ve seen it break',sub:'"Both are honest outcomes."',tag:'risky',next:'outcome_seed'},
+    {label:'Yes — I\'m certain my faith would hold',sub:'"God promises to sustain us in our deepest trials."',tag:'wrong',next:'outcome_away_cold'},
+  ]},
+
+  t9_prayer_pick:{type:'pick',tier:9,prompt:'They\'re asking you to pray. This is a sacred moment.',choices:[
+    {label:'Yes. Pray simply and honestly.',sub:'"God, we don\'t understand this — but we ask."',tag:'best',next:'outcome_prayer'},
+    {label:'Yes — ask their permission to put your hand on their shoulder',sub:'"Can I? I want to pray with you, not at you."',tag:'good',next:'outcome_prayer'},
+    {label:'Yes — but acknowledge you don\'t know the outcome',sub:'"I\'ll ask. What He does with it is His."',tag:'risky',next:'outcome_prayer'},
+    {label:'Walk them through a formula prayer',sub:'"Repeat after me..."',tag:'wrong',next:'outcome_away_cold'},
+  ]},
+
+  outcome_open:{type:'outcome',outcome:'open',icon:'🙏',title:'They Open',
+    quote:'"I\'ve been using children with cancer as the conversation-ender my whole life. I never thought anyone would actually engage it. Maybe I should look at this more carefully."',
+    note:'The hardest objections — honestly engaged — often become the most powerful doorways.',path:'Best Route · T9 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'🚶',title:'They Leave — Thinking',
+    quote:'"I still don\'t have answers. But I don\'t feel like you were dodging, either. That\'s rare."',
+    note:'Intellectual honesty creates trust. Trust creates the next conversation.',path:'Good Route · T9'},
+  outcome_seed:{type:'outcome',outcome:'seed',icon:'🌱',title:'A Seed Planted',
+    quote:'"My nephew\'s situation hasn\'t changed. But the way I think about it might have. A little."',
+    note:'Real people in real pain need real presence first. The seed went in anyway.',path:'Gentle Route'},
+  outcome_prayer:{type:'outcome',outcome:'prayer',icon:'🕊️',title:'You Prayed Together',
+    quote:'[A prayer for a seven-year-old boy with leukemia. No theology. Just asking.]',
+    note:'Sometimes the most powerful apologetic is kneeling with someone. This conversation isn\'t over.',path:'Prayer Route · T9'},
+  outcome_presence:{type:'outcome',outcome:'presence',icon:'🤝',title:'You Stayed Present',
+    quote:'"My nephew is struggling. My family is exhausted. Nobody from church has asked."',
+    note:'Presence is apologetics. You may have done more by asking than any argument would have.',path:'Presence Route'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌫️',title:'Door Left Open',
+    quote:'"Maybe. I\'ll think about it."',
+    note:'Soft landing. The question is in — that\'s enough for now.',path:'Soft Route'},
+  outcome_away_cold:{type:'outcome',outcome:'cold',icon:'🌫️',title:'They Step Back',
+    quote:'"Thanks. I\'ve heard most of this before."',
+    note:'Evidence or testimonies without engagement land hollow. The personal question was the real one.',path:'Ended early'},
+  outcome_hollow:{type:'outcome',outcome:'hollow',icon:'🚪',title:'It Felt Hollow',
+    quote:'"That\'s not an answer. That\'s a greeting card."',
+    note:'Spiritual platitudes feel dismissive to real pain. Engage the hardest version of the question first.',path:'Ended early'},
+  outcome_harmful:{type:'outcome',outcome:'harmful',icon:'⚠️',title:'Harmful Framing',
+    quote:'"So if he dies, it\'s because we didn\'t have enough faith? That\'s disgusting."',
+    note:'Never imply that insufficient faith causes illness. This framing wounds families and misrepresents scripture entirely.',path:'Harmful Route — avoid always'},
+};
+
+let pathTaken=[];
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className='tier-dot';d.id='dot-'+i;t.appendChild(d);
+  }
+  const sep=document.createElement('div');
+  sep.style.cssText='width:1px;height:12px;background:#2a2a3a;margin:0 2px';
+  t.appendChild(sep);
+  const od=document.createElement('div');
+  od.className='tier-dot outcome-dot';od.id='dot-out';t.appendChild(od);
+  const lbl=document.createElement('div');
+  lbl.id='tier-label';t.appendChild(lbl);
+  updateTrack(1);
+}
+
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.getElementById('dot-'+i);
+    if(!d)continue;
+    d.className='tier-dot'+(i<tier?' done':i===tier?' active':'');
+  }
+  const lbl=document.getElementById('tier-label');
+  if(lbl)lbl.textContent=tier<=MAX_TIERS?`Tier ${tier} / ${MAX_TIERS}`:'Outcome';
+}
+
+function addBubble(speaker,text,tier,src){
+  const chat=document.getElementById('chat-area');
+  const wrap=document.createElement('div');
+  wrap.className=`bubble-wrap ${speaker==='you'?'you-wrap':'them-wrap'}`;
+  const bub=document.createElement('div');
+  const tc=TIER_COLORS[tier]||'tb-1';
+  bub.className=`bubble ${tc}`;
+  const pip=document.createElement('span');
+  pip.className=`tier-pip ${TIER_PIP[tier]||'tp1'}`;
+  pip.textContent=`T${tier} · ${speaker==='you'?'You':'Them'}`;
+  bub.appendChild(pip);
+  bub.appendChild(document.createElement('br'));
+  bub.appendChild(document.createTextNode(text));
+  if(src){const s=document.createElement('span');s.className='src';s.textContent=src;bub.appendChild(s);}
+  wrap.appendChild(bub);chat.appendChild(wrap);
+  requestAnimationFrame(()=>wrap.classList.add('visible'));
+  setTimeout(()=>{chat.scrollTop=chat.scrollHeight;},50);
+}
+
+function showTyping(){
+  const chat=document.getElementById('chat-area');
+  const w=document.createElement('div');
+  w.className='typing-wrap';w.id='typer';
+  w.innerHTML='<div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  chat.appendChild(w);
+  requestAnimationFrame(()=>w.classList.add('visible'));
+  chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(){const e=document.getElementById('typer');if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);}}
+
+function showChoices(node){
+  document.getElementById('choices-prompt').textContent=node.prompt||'Choose...';
+  const grid=document.getElementById('choices-grid');
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div><span class="tag-flash">${c.tag||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('choices-panel').style.visibility='visible';
+}
+function hideChoices(){
+  document.getElementById('choices-panel').style.visibility='hidden';
+  document.getElementById('choices-grid').innerHTML='';
+  document.getElementById('choices-prompt').textContent='';
+}
+
+async function pick(node,choice,idx){
+  document.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    if(i===idx){b.classList.add('selected',`tag-${choice.tag||'good'}`)}else{b.classList.add('unselected')}
+  });
+  if(choice.youText){
+    await sleep(300);
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    pathTaken.push({tier:node.tier,tag:choice.tag,label:choice.label});
+  }
+  await sleep(600);hideChoices();await sleep(200);
+  run(choice.next);
+}
+
+async function run(id){
+  if(!id)return;
+  const node=nodes[id];
+  if(!node){console.warn('Missing:',id);return;}
+  if(node.type==='say'){
+    updateTrack(node.tier);
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(800+node.text.length*7);
+      removeTyping();await sleep(100);
+    }
+    addBubble(node.speaker,node.text,node.tier);
+    await sleep(500);
+    if(node.next)run(node.next);
+  } else if(node.type==='pick'){
+    updateTrack(node.tier);
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(400);showOutcome(node);
+  }
+}
+
+function showOutcome(node){
+  updateTrack(MAX_TIERS+1);
+  const d=document.getElementById('dot-out');if(d)d.classList.add('active');
+  document.getElementById('out-icon').textContent=node.icon||'';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  const summary=pathTaken.map(p=>`T${p.tier}:${p.tag}`).join(' → ');
+  document.getElementById('out-path').textContent=(node.path||'')+(summary?' · '+summary:'');
+  document.getElementById('outcome-screen').classList.add('show');
+}
+function closeOutcome(){document.getElementById('outcome-screen').classList.remove('show');}
+function restartGame(){
+  document.getElementById('outcome-screen').classList.remove('show');
+  document.getElementById('chat-area').innerHTML='';
+  pathTaken=[];hideChoices();buildTrack();
+  sleep(300).then(()=>run('start'));
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+buildTrack();run('start');
+</script>
+</body>
+</html>
