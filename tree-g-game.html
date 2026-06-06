@@ -457,10 +457,6 @@ const nodes = {
     text:"Maybe. I'd have to actually read it myself to know. I've only ever heard it interpreted for me by people with an agenda.",
     next:'outcome_away_a'
   },
-  t8a_ok:{ type:'say', speaker:'them', tier:8,
-    text:"I've never actually looked at the historical record for myself. I just lumped it all together. Maybe that's not fair to do.",
-    next:'t9a_ok_pick'
-  },
   t10a_ok:{ type:'say', speaker:'them', tier:10,
     text:"On my own terms... I've never done that. It was always the church's terms. Maybe that's the problem.",
     next:'outcome_away_a'
@@ -677,6 +673,10 @@ const nodes = {
         tag:'wrong', next:'outcome_away_cold',
         youText:"I can recommend some things that approach Jesus completely outside of the church context—" },
     ]
+  },
+  t4c_ok:{ type:'say', speaker:'them', tier:4,
+    text:"That's not what I expected to hear from a Christian. Usually people defend the institution. You're the first one who hasn't.",
+    next:'t5c_pick'
   },
   t4c_risky:{ type:'say', speaker:'them', tier:4,
     text:"Your experience was different. Mine wasn't. Fifteen years of watching damage will do that.",
@@ -1191,5 +1191,6 @@ buildTierTrack();
 processNode('start');
 </script>
 <script src="verse-popup.js"></script>
+<script src="prayer-offer.js"></script>
 </body>
 </html>

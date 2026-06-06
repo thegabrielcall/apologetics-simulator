@@ -202,6 +202,7 @@ const nodes={
   t8_best_say:{type:'say',speaker:'them',tier:8,text:"Not nirvana — glorification. The specific self, transformed. That's what I want. I've been accepting a framework that doesn't match what I actually hope for. That's honest and uncomfortable.",next:'t9_pick'},
   t8_good_say:{type:'say',speaker:'them',tier:8,text:"Read Mark as a historical document. 45 minutes. Apply the same standards I apply anywhere. I've given more time to examining Buddhist sutras I already agree with. This is fair.",next:'t9_pick'},
   t8_risky_say:{type:'say',speaker:'them',tier:8,text:"The gap is the door. Where the method runs out is where the question opens. I've been filling that gap with more practice. But what if the gap is pointing to something the practice can't reach?",next:'t9_pick'},
+  t8_wrong_say:{type:'say',speaker:'them',tier:8,text:"You're turning my practice into a setup for your conclusion. That's not a dialogue — that's a funnel. I'm not interested in being guided somewhere.",next:'outcome_away_cold'},
   t8_drew_best_say:{type:'say',speaker:'them',tier:8,text:"One text, one commitment. 15 minutes of honest attention. Not a conversion — an investigation. I do that for every tradition I take seriously. I should do it here.",next:'t9_pick'},
   t8_drew_good_say:{type:'say',speaker:'them',tier:8,text:"The stillness as a place to be met rather than achieved. That reframes everything. What if every meditation period has been preparation — and I've been waiting for something I didn't know to expect?",next:'t9_pick'},
   t9_pick:{type:'pick',tier:9,prompt:'How do you close?',choices:[
@@ -213,6 +214,7 @@ const nodes={
   outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'An Investigation Opened',quote:'"Seek and you will find; knock and the door will be opened to you." — Matthew 7:7',note:'You used the diagnostic similarity — tanha and sin — to build a bridge before presenting the key difference. For the personally wounded: you met them in the loneliness and pointed to the God who sees. The move from "I practice" to "I am known" is exactly the right door for a Buddhist. Excellent work.',path:'Best Route · T9 ✓'},
   outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'The Right Question Left Behind',quote:'"You, specific, permanent, known." — The Gospel',note:'They left with a mismatch named: the hope they actually have doesn\'t match what Buddhism promises. That\'s a seed. It may grow for years before they look for the answer — but they\'ll know what question to ask.',path:'Good Route'},
   outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'A Practice to Try',quote:'"Be still, and know that I am God." — Psalm 46:10',note:'Giving a Buddhist a contemplative text — Psalm 139 or the Sermon — with Buddhist quality of attention is exactly the right bridge. It doesn\'t ask them to abandon their practice; it asks them to apply it somewhere new.',path:'Soft Route'},
+  outcome_away_cold:{type:'outcome',outcome:'cold',icon:'❄️',title:'Conversation Ended',quote:'"A gentle answer turns away wrath, but a harsh word stirs up anger." — Proverbs 15:1',note:'The framing felt like persuasion, not dialogue. For someone trained in Buddhist epistemology, being guided toward a conclusion without consent closes the conversation. The instinct was right — the method too directive.',path:'T8 · WRONG'},
   outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'Closed',quote:'"A gentle answer turns away wrath." — Proverbs 15:1',note:'Forcing the choice too early with a Buddhist interlocutor tends to close things down. They value non-coercion as a spiritual practice. A gentle exit with a specific text to investigate is more effective than a direct challenge.',path:'Pushed Away'},
 };
 let pathLog=[];
@@ -232,5 +234,6 @@ function restartGame(){document.getElementById('chat-area').innerHTML='';documen
 buildTrack();run('start');
 </script>
 <script src="verse-popup.js"></script>
+<script src="prayer-offer.js"></script>
 </body>
 </html>
