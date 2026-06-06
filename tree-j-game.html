@@ -118,7 +118,7 @@ const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp8','tp9'];
 const MAX_TIERS=9;
 const nodes={
   start:{type:'say',speaker:'you',tier:1,text:"Jesus died for your sins.",next:'t2_pick'},
-  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+  t2_pick:{type:'auto_pick',tier:2,prompt:'Choose how they respond to you...',choices:[
     {label:'Christians are the worst hypocrites',sub:'They preach love and live hate.',next:'t2a'},
     {label:'Church is full of judgment',sub:'The most judgmental people I know go to church.',next:'t2b'},
     {label:'Sunday Christians',sub:'You sin all week and get reset on Sunday.',next:'t2c'},
@@ -263,7 +263,7 @@ function hideChoices(){document.getElementById('choices-panel').classList.add('h
 async function pick(node,choice,idx){const btns=document.querySelectorAll('.choice-btn');btns.forEach((b,i)=>{b.disabled=true;if(i===idx&&choice.tag){b.classList.add(`tag-${choice.tag}`);const tl=document.createElement('span');tl.className='tag-label';tl.textContent=choice.tag.toUpperCase();b.querySelector('.choice-label').appendChild(tl);}});if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);await sleep(420);hideChoices();if(choice.youText){addBubble('you',choice.youText,node.tier,choice.src||null);await sleep(500);}await run(choice.next);}
 function showOutcome(node){document.getElementById('out-icon').textContent=node.icon||'✓';document.getElementById('out-title').textContent=node.title||'';document.getElementById('out-quote').textContent=node.quote||'';document.getElementById('out-note').textContent=node.note||'';document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');document.getElementById('outcome-screen').classList.add('visible');}
 function readConversation(){document.getElementById('outcome-screen').classList.remove('visible');}
-async function run(id){const node=nodes[id];if(!node){console.warn('Missing node:',id);return;}updateTrack(node.tier||1);if(node.type==='say'){if(node.speaker==='them'){showTyping();await sleep(900);removeTyping();}addBubble(node.speaker,node.text,node.tier||1,node.src||null);await sleep(node.speaker==='them'?400:300);if(node.next)await run(node.next);}else if(node.type==='pick'){showChoices(node);}else if(node.type==='outcome'){await sleep(300);showOutcome(node);}}
+async function run(id){const node=nodes[id];if(!node){console.warn('Missing node:',id);return;}updateTrack(node.tier||1);if(node.type==='say'){if(node.speaker==='them'){showTyping();await sleep(900);removeTyping();}addBubble(node.speaker,node.text,node.tier||1,node.src||null);await sleep(node.speaker==='them'?400:300);if(node.next)await run(node.next);}else if(node.type==='pick'){showChoices(node);}else if(node.type==='auto_pick'){run(nodes[node.choices[Math.floor(Math.random()*node.choices.length)].next])}else if(node.type==='outcome'){await sleep(300);showOutcome(node);}}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 function restartGame(){document.getElementById('chat-area').innerHTML='';document.getElementById('outcome-screen').classList.remove('visible');hideChoices();pathLog=[];buildTrack();run('start');}
 buildTrack();run('start');

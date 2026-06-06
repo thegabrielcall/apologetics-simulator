@@ -117,7 +117,7 @@ const MAX_TIERS=7;
 const nodes={
   start:{type:'say',speaker:'you',tier:1,text:"Jesus loves you.",next:'t2_pick'},
 
-  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+  t2_pick:{type:'auto_pick',tier:2,prompt:'Choose how they respond to you...',choices:[
     {label:'"That\'s just your belief"',sub:'All beliefs are equally valid.',next:'t2a'},
     {label:'"All religions lead to God"',sub:'Every path is the same destination.',next:'t2b'},
     {label:'"You can\'t know absolute truth"',sub:'Truth is relative — nobody has it all.',next:'t2c'},
@@ -358,6 +358,9 @@ async function run(id){
     if(node.next)await run(node.next);
   } else if(node.type==='pick'){
     showChoices(node);
+  } else if(node.type==='auto_pick'){
+    const rnd=node.choices[Math.floor(Math.random()*node.choices.length)];
+    run(rnd.next);
   } else if(node.type==='outcome'){
     await sleep(300);
     showOutcome(node);

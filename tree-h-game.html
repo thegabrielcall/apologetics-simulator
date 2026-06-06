@@ -125,7 +125,7 @@ const MAX_TIERS=11;
 const nodes={
   start:{type:'say',speaker:'you',tier:1,text:"Jesus died for your sins.",next:'t2_pick'},
 
-  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+  t2_pick:{type:'auto_pick',tier:2,prompt:'Choose how they respond to you...',choices:[
     {label:'The logic of evil disproves God',sub:'Omnipotent + all-good = no evil. But evil exists.',next:'t2a'},
     {label:'Children suffer — God watches',sub:'A loving God would intervene.',next:'t2b'},
     {label:'I prayed and lost someone anyway',sub:'Personal grief closed the door.',next:'t2c'},
@@ -433,6 +433,9 @@ async function run(id){
     if(node.next)await run(node.next);
   } else if(node.type==='pick'){
     showChoices(node);
+  } else if(node.type==='auto_pick'){
+    const rnd=node.choices[Math.floor(Math.random()*node.choices.length)];
+    run(rnd.next);
   } else if(node.type==='outcome'){
     await sleep(300);
     showOutcome(node);

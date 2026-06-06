@@ -116,7 +116,7 @@ const MAX_TIERS=7;
 const nodes={
   start:{type:'say',speaker:'you',tier:1,text:"Jesus loves you.",next:'t2_pick'},
 
-  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond...',choices:[
+  t2_pick:{type:'auto_pick',tier:2,prompt:'Choose how they respond...',choices:[
     {label:'"Prove it."',sub:'God doesn\'t exist — extraordinary claims need extraordinary evidence',next:'t2a'},
     {label:'"I\'m a scientist"',sub:'I believe what can be tested and independently verified',next:'t2b'},
     {label:'"I\'ve never seen anything convincing"',sub:'Looked — found nothing worth believing',next:'t2c'},
@@ -255,6 +255,7 @@ async function run(id){
     if(node.speaker==='them'){showTyping();await sleep(800+node.text.length*7);removeTyping();await sleep(100);}
     addBubble(node.speaker,node.text,node.tier);await sleep(500);if(node.next)run(node.next);
   }else if(node.type==='pick'){updateTrack(node.tier);showChoices(node);}
+  else if(node.type==='auto_pick'){const rnd=node.choices[Math.floor(Math.random()*node.choices.length)];run(rnd.next);}
   else if(node.type==='outcome'){await sleep(400);showOutcome(node);}
 }
 function showOutcome(node){

@@ -125,7 +125,7 @@ const MAX_TIERS=11;
 const nodes={
   start:{type:'say',speaker:'you',tier:1,text:"God has a plan for you.",next:'t2_pick'},
 
-  t2_pick:{type:'pick',tier:2,prompt:'Choose the situation they\'re in...',choices:[
+  t2_pick:{type:'auto_pick',tier:2,prompt:'Choose the situation they\'re in...',choices:[
     {label:'Baby died — fresh grief',sub:'"Please don\'t tell me God has a plan."',next:'t2a'},
     {label:'Lost a son — years of silence',sub:'Faith went quiet after.',next:'t2b'},
     {label:'Furious at God directly',sub:'"God took my daughter. I hate Him."',next:'t2c'},
@@ -527,6 +527,9 @@ async function run(id){
     if(node.next)await run(node.next);
   } else if(node.type==='pick'){
     showChoices(node);
+  } else if(node.type==='auto_pick'){
+    const rnd=node.choices[Math.floor(Math.random()*node.choices.length)];
+    run(rnd.next);
   } else if(node.type==='outcome'){
     await sleep(300);
     showOutcome(node);
