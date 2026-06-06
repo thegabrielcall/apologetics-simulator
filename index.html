@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apologetics Simulator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;min-height:100dvh;padding-bottom:50px}
+
+/* ── HEADER ── */
+.header{text-align:center;padding:18px 16px 14px}
+.subtitle{display:inline-block;font-size:.72rem;background:#161b22;border:1px solid #30363d;padding:4px 12px;border-radius:20px;color:#58a6ff;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+.header h1{font-size:1.75rem;font-weight:900;letter-spacing:-.02em;margin-bottom:6px}
+.header p{font-size:.84rem;color:#8b949e;max-width:460px;margin:0 auto 8px;line-height:1.5}
+.hint{font-size:.78rem;color:#3fb950;animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* ══════════════════════════════════════ SCENE */
+#scene{
+  position:relative;width:100%;height:270px;overflow:hidden;cursor:default;
+  background:linear-gradient(180deg,#020610 0%,#08102a 40%,#121840 65%,#0e0c20 85%,#080610 100%);
+}
+/* stars canvas sits behind everything */
+#star-canvas{position:absolute;inset:0;pointer-events:none}
+
+/* moon */
+.moon{
+  position:absolute;top:16px;right:100px;
+  width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 38% 38%,#fffde7,#fdd835 60%,#f9a825);
+  box-shadow:0 0 40px 10px rgba(253,216,53,.18),0 0 80px 20px rgba(253,216,53,.08);
+}
+
+/* building silhouettes */
+#skyline{position:absolute;bottom:50px;left:0;width:100%;height:170px;pointer-events:none}
+
+/* street lamps */
+.lamp{position:absolute;bottom:50px}
+.lamp-pole{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:60px;background:linear-gradient(180deg,#1e1e34,#141428)}
+.lamp-arm{position:absolute;top:0;left:50%;width:18px;height:3px;background:#1e1e34;border-radius:2px;transform:translateX(-2px) translateY(0px)}
+.lamp-bulb{position:absolute;top:-6px;left:calc(50% + 10px);transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:#ffe87a;box-shadow:0 0 12px 4px rgba(255,220,80,.5),0 0 30px 12px rgba(255,220,80,.18);animation:flicker 4s ease-in-out infinite}
+.lamp-cone{position:absolute;top:4px;left:calc(50% + 10px);transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:0px solid transparent;opacity:0;animation:coneOn 4s ease-in-out infinite}
+@keyframes flicker{0%,100%{opacity:.85}47%{opacity:1}48%{opacity:.7}49%{opacity:1}50%{opacity:.95}}
+@keyframes coneOn{0%,100%{opacity:.12}50%{opacity:.25}}
+
+/* ground / sidewalk */
+.ground{position:absolute;bottom:0;width:100%;height:50px;background:linear-gradient(180deg,#0c0c1e,#06060f)}
+.sidewalk-line{position:absolute;bottom:46px;width:100%;height:2px;background:rgba(255,255,255,.05)}
+.sidewalk-line2{position:absolute;bottom:50px;width:100%;height:1px;background:rgba(255,255,255,.08)}
+
+/* ── WALKER ── */
+.walker{
+  position:absolute;
+  bottom:50px;
+  display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;
+  --sz:14px; /* head size, overridden per walker */
+  animation:walkAcross var(--dur,18s) var(--dly,0s) linear infinite;
+}
+@keyframes walkAcross{from{left:calc(-60px * var(--scale,1))}to{left:calc(100% + 60px * var(--scale,1))}}
+
+.walker:hover .paper-note{transform:translateX(-50%) scale(1.25) translateY(-6px);box-shadow:0 0 18px 4px var(--col,#aaa);filter:brightness(1.1)}
+.walker:hover .figure{filter:drop-shadow(0 0 9px var(--col,#aaa)) brightness(1.35)!important}
+.walker.paused,.walker.paused .figure,.walker.paused .figure *{animation-play-state:paused!important}
+
+/* ── SVG HUMAN FIGURE ── */
+.figure{
+  width:calc(var(--sz) * 2.1);
+  height:calc(var(--sz) * 4);
+  display:block;
+  overflow:visible;
+  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--col,#aaa) 48%,transparent));
+  animation:figBob .5s ease-in-out infinite alternate;
+}
+@keyframes figBob{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-3px) rotate(1deg)}}
+/* legs swing opposite each other, arms counter-swing */
+.figure .leg-l{transform-origin:10px 27px;animation:legFwd .5s ease-in-out infinite alternate}
+.figure .leg-r{transform-origin:14px 27px;animation:legBwd .5s ease-in-out infinite alternate}
+.figure .arm-l{transform-origin:7px 14px;animation:legBwd .5s ease-in-out infinite alternate}
+.figure .arm-r{transform-origin:17px 14px;animation:legFwd .5s ease-in-out infinite alternate}
+@keyframes legFwd{from{transform:rotate(22deg)}to{transform:rotate(-22deg)}}
+@keyframes legBwd{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+
+/* floating paper above person */
+.paper-note{
+  position:absolute;
+  top:calc(var(--sz) * -3.2);
+  left:50%;
+  transform:translateX(-50%);
+  width:calc(var(--sz) * 1.7);
+  height:calc(var(--sz) * 2.1);
+  background:linear-gradient(160deg,#fefcf6,#f0ebe0);
+  border-radius:2px 4px 2px 2px;
+  box-shadow:1px 2px 6px rgba(0,0,0,.55),0 0 8px color-mix(in srgb,var(--col,#aaa) 50%,transparent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:calc(var(--sz) * 1.0);
+  line-height:1;
+  transition:all .2s;
+  animation:paperFloat 2.2s ease-in-out infinite;
+  animation-delay:var(--pdly,0s);
+  pointer-events:none;
+}
+/* folded corner */
+.paper-note::before{content:'';position:absolute;top:0;right:0;width:calc(var(--sz)*.5);height:calc(var(--sz)*.5);background:linear-gradient(225deg,#d8d0c0 50%,transparent 50%);border-radius:0 4px 0 0}
+/* ruled lines */
+.paper-note::after{content:'';position:absolute;inset:calc(var(--sz)*.6) calc(var(--sz)*.15) calc(var(--sz)*.2);background:repeating-linear-gradient(180deg,transparent,transparent calc(var(--sz)*.45),rgba(0,0,0,.12) calc(var(--sz)*.45),rgba(0,0,0,.12) calc(var(--sz)*.5));pointer-events:none}
+
+/* thread from paper to person */
+.paper-thread{
+  position:absolute;
+  left:50%;transform:translateX(-50%);
+  width:1px;
+  background:linear-gradient(180deg,rgba(255,255,255,.25) 0%,transparent 100%);
+  top:calc(var(--sz) * -1.1);
+  height:calc(var(--sz) * 2.1);
+  pointer-events:none;
+}
+
+@keyframes paperFloat{
+  0%,100%{transform:translateX(-50%) rotate(-3deg) translateY(0px)}
+  50%{transform:translateX(-50%) rotate(3deg) translateY(-5px)}
+}
+
+/* ── FLYING PAPER OVERLAY ── */
+#backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;backdrop-filter:blur(3px)}
+#paper-fly{
+  display:none;position:fixed;z-index:999;
+  transform-origin:center center;
+  pointer-events:none;
+  transition:left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;
+}
+#paper-fly.landed{pointer-events:auto}
+
+.fly-card{
+  width:265px;
+  background:linear-gradient(155deg,#fefcf7,#ede8dd);
+  border-radius:4px 10px 6px 6px;
+  padding:20px 18px 18px;
+  box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.6);
+  position:relative;
+}
+/* folded corner large */
+.fly-card::before{content:'';position:absolute;top:0;right:0;width:28px;height:28px;background:linear-gradient(225deg,#c8c0b0 50%,transparent 50%);border-radius:0 10px 0 0}
+/* ruled lines background */
+.fly-card::after{content:'';position:absolute;inset:62px 18px 60px;background:repeating-linear-gradient(180deg,transparent,transparent 20px,rgba(0,0,0,.07) 20px,rgba(0,0,0,.07) 21px);pointer-events:none;border-radius:2px}
+.fly-letter{font-size:2.2rem;font-weight:900;line-height:1;margin-bottom:5px;position:relative}
+.fly-title{font-size:.95rem;font-weight:800;color:#181818;margin-bottom:6px;position:relative;line-height:1.3}
+.fly-sub{font-size:.78rem;color:#444;font-style:italic;line-height:1.45;margin-bottom:16px;position:relative}
+.fly-go{width:100%;padding:10px;border:none;border-radius:6px;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .15s;position:relative;z-index:1}
+.fly-go:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.fly-close{position:absolute;top:8px;right:36px;background:none;border:none;font-size:1.1rem;color:#999;cursor:pointer;padding:2px 5px;border-radius:4px;z-index:2}
+.fly-close:hover{color:#333;background:rgba(0,0,0,.1)}
+
+/* ── REST OF PAGE ── */
+.content{padding:0 16px}
+.divider{display:flex;align-items:center;gap:12px;max-width:960px;margin:20px auto 14px;color:#30363d}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#30363d}
+.divider span{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:#8b949e;white-space:nowrap}
+.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:.74rem;color:#8b949e}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+.leg-best{background:#3fb950}.leg-good{background:#58a6ff}.leg-risky{background:#e3b341}.leg-wrong{background:#f85149}
+.section-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:#8b949e;margin-bottom:10px;padding-left:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;max-width:960px;margin:0 auto}
+.card{background:#161b22;border:1.5px solid #30363d;border-radius:12px;padding:16px;cursor:pointer;text-decoration:none;color:inherit;display:block;transition:all .2s;position:relative;overflow:hidden}
+.card:hover{border-color:#58a6ff;background:#1c2230;transform:translateY(-2px);box-shadow:0 6px 20px rgba(88,166,255,.12)}
+.card-letter{font-size:2rem;font-weight:900;line-height:1;margin-bottom:8px}
+.card-title{font-size:.98rem;font-weight:700;margin-bottom:4px}
+.card-objection{font-size:.8rem;color:#8b949e;margin-bottom:10px;line-height:1.4;font-style:italic}
+.card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{font-size:.68rem;padding:3px 8px;border-radius:10px;font-weight:600}
+.badge-tiers{background:#21262d;border:1px solid #30363d;color:#8b949e}
+.badge-opening{background:#0d2040;border:1px solid #1e4080;color:#58a6ff}
+.difficulty{display:flex;gap:3px;align-items:center}
+.diff-pip{width:6px;height:6px;border-radius:50%;background:#30363d}
+.diff-pip.on{background:#e3b341}
+.tier-bar{position:absolute;bottom:0;left:0;height:3px}
+.depth-7 .tier-bar{background:linear-gradient(90deg,#6ab8d4,#6ad490);width:64%}
+.depth-9 .tier-bar{background:linear-gradient(90deg,#b06ad4,#d4d06a);width:82%}
+.depth-11 .tier-bar{background:linear-gradient(90deg,#d46a6a,#d46aaa);width:100%}
+.card-letter.a{color:#6ab8d4}.card-letter.b{color:#6ad490}.card-letter.c{color:#d4a86a}
+.card-letter.d{color:#6a90d4}.card-letter.e{color:#b06ad4}.card-letter.f{color:#d4d06a}
+.card-letter.g{color:#d46aaa}.card-letter.h{color:#6ad4d4}.card-letter.i{color:#d4906a}
+.card-letter.j{color:#9a8fd4}.card-letter.k{color:#d46a6a}.card-letter.l{color:#88e060}
+.tip{max-width:960px;margin:28px auto 0;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 20px}
+.tip-title{font-size:.75rem;font-weight:700;color:#58a6ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.tip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.tip-item{font-size:.78rem;color:#8b949e;line-height:1.5}
+.tip-item strong{color:#cdd9e5}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <div class="subtitle">Apologetics Simulator</div>
+  <h1>12 Conversation Trees</h1>
+  <p>Practice real conversations. Each person carries a paper — click anyone to receive it and start their conversation.</p>
+  <div class="hint">↓ Click a person walking by to receive their paper ↓</div>
+</div>
+
+<!-- ═══ SCENE ═══ -->
+<div id="scene">
+  <canvas id="star-canvas"></canvas>
+  <div class="moon"></div>
+
+  <!-- buildings SVG -->
+  <svg id="skyline" viewBox="0 0 1200 170" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    <!-- far buildings -->
+    <g fill="#0a0a1c" opacity="0.9">
+      <rect x="0"   y="90" width="38" height="80"/>
+      <rect x="34"  y="110" width="20" height="60"/>
+      <rect x="50"  y="60" width="28" height="110"/>
+      <rect x="74"  y="80" width="50" height="90"/>
+      <rect x="120" y="40" width="22" height="130"/>
+      <rect x="138" y="70" width="36" height="100"/>
+      <rect x="170" y="90" width="24" height="80"/>
+      <rect x="190" y="50" width="40" height="120"/>
+      <rect x="226" y="75" width="18" height="95"/>
+      <rect x="240" y="30" width="30" height="140"/>
+      <rect x="268" y="60" width="50" height="110"/>
+      <rect x="314" y="80" width="22" height="90"/>
+      <rect x="332" y="45" width="34" height="125"/>
+      <rect x="362" y="70" width="28" height="100"/>
+      <rect x="386" y="90" width="42" height="80"/>
+      <rect x="424" y="55" width="20" height="115"/>
+      <rect x="440" y="35" width="44" height="135"/>
+      <rect x="480" y="75" width="26" height="95"/>
+      <rect x="502" y="50" width="38" height="120"/>
+      <rect x="536" y="80" width="24" height="90"/>
+      <rect x="556" y="60" width="44" height="110"/>
+      <rect x="596" y="40" width="28" height="130"/>
+      <rect x="620" y="70" width="36" height="100"/>
+      <rect x="652" y="85" width="22" height="85"/>
+      <rect x="670" y="45" width="48" height="125"/>
+      <rect x="714" y="65" width="30" height="105"/>
+      <rect x="740" y="30" width="24" height="140"/>
+      <rect x="760" y="60" width="46" height="110"/>
+      <rect x="802" y="80" width="32" height="90"/>
+      <rect x="830" y="50" width="20" height="120"/>
+      <rect x="846" y="70" width="40" height="100"/>
+      <rect x="882" y="40" width="28" height="130"/>
+      <rect x="906" y="65" width="36" height="105"/>
+      <rect x="938" y="85" width="24" height="85"/>
+      <rect x="958" y="45" width="44" height="125"/>
+      <rect x="998" y="60" width="30" height="110"/>
+      <rect x="1024" y="30" width="22" height="140"/>
+      <rect x="1042" y="75" width="48" height="95"/>
+      <rect x="1086" y="50" width="34" height="120"/>
+      <rect x="1116" y="65" width="26" height="105"/>
+      <rect x="1138" y="80" width="40" height="90"/>
+      <rect x="1174" y="45" width="26" height="125"/>
+    </g>
+    <!-- windows: tiny yellow dots -->
+    <g fill="rgba(255,240,160,0.35)" opacity="0.8">
+      <rect x="55" y="68" width="3" height="3"/><rect x="62" y="68" width="3" height="3"/>
+      <rect x="55" y="76" width="3" height="3"/><rect x="62" y="80" width="3" height="3"/>
+      <rect x="125" y="48" width="3" height="3"/><rect x="132" y="55" width="3" height="3"/>
+      <rect x="125" y="62" width="3" height="3"/><rect x="132" y="48" width="3" height="3"/>
+      <rect x="196" y="58" width="3" height="3"/><rect x="204" y="65" width="3" height="3"/>
+      <rect x="196" y="72" width="3" height="3"/>
+      <rect x="246" y="38" width="3" height="3"/><rect x="254" y="45" width="3" height="3"/>
+      <rect x="246" y="52" width="3" height="3"/><rect x="254" y="38" width="3" height="3"/>
+      <rect x="246" y="60" width="3" height="3"/>
+      <rect x="338" y="52" width="3" height="3"/><rect x="346" y="60" width="3" height="3"/>
+      <rect x="338" y="67" width="3" height="3"/><rect x="346" y="52" width="3" height="3"/>
+      <rect x="447" y="42" width="3" height="3"/><rect x="455" y="50" width="3" height="3"/>
+      <rect x="447" y="58" width="3" height="3"/><rect x="455" y="42" width="3" height="3"/>
+      <rect x="447" y="66" width="3" height="3"/>
+      <rect x="508" y="58" width="3" height="3"/><rect x="516" y="65" width="3" height="3"/>
+      <rect x="508" y="72" width="3" height="3"/>
+      <rect x="603" y="47" width="3" height="3"/><rect x="611" y="54" width="3" height="3"/>
+      <rect x="603" y="61" width="3" height="3"/>
+      <rect x="677" y="52" width="3" height="3"/><rect x="685" y="60" width="3" height="3"/>
+      <rect x="677" y="68" width="3" height="3"/><rect x="685" y="52" width="3" height="3"/>
+      <rect x="747" y="37" width="3" height="3"/><rect x="755" y="45" width="3" height="3"/>
+      <rect x="747" y="53" width="3" height="3"/>
+      <rect x="836" y="57" width="3" height="3"/><rect x="844" y="65" width="3" height="3"/>
+      <rect x="889" y="47" width="3" height="3"/><rect x="897" y="55" width="3" height="3"/>
+      <rect x="889" y="62" width="3" height="3"/>
+      <rect x="965" y="52" width="3" height="3"/><rect x="973" y="60" width="3" height="3"/>
+      <rect x="965" y="68" width="3" height="3"/>
+      <rect x="1031" y="37" width="3" height="3"/><rect x="1048" y="82" width="3" height="3"/>
+      <rect x="1092" y="57" width="3" height="3"/><rect x="1100" y="65" width="3" height="3"/>
+      <rect x="1092" y="72" width="3" height="3"/>
+    </g>
+  </svg>
+
+  <!-- street lamps -->
+  <div class="lamp" style="left:15%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:42%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:70%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:93%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+
+  <div class="sidewalk-line"></div>
+  <div class="sidewalk-line2"></div>
+  <div class="ground"></div>
+
+  <!-- 12 walkers injected by JS -->
+  <div id="walkers"></div>
+</div>
+
+<!-- ═══ FLYING PAPER ═══ -->
+<div id="backdrop" onclick="dismissPaper()"></div>
+<div id="paper-fly">
+  <div class="fly-card">
+    <button class="fly-close" onclick="dismissPaper()">✕</button>
+    <div class="fly-letter" id="fly-letter"></div>
+    <div class="fly-title"  id="fly-title"></div>
+    <div class="fly-sub"    id="fly-sub"></div>
+    <button class="fly-go"  id="fly-go">Accept &amp; start this conversation →</button>
+  </div>
+</div>
+
+<!-- ═══ GRID ═══ -->
+<div class="content">
+  <div class="divider"><span>or choose directly below</span></div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot leg-best"></div>BEST — opens deepest</div>
+    <div class="leg-item"><div class="leg-dot leg-good"></div>GOOD — solid progress</div>
+    <div class="leg-item"><div class="leg-dot leg-risky"></div>RISKY — might work</div>
+    <div class="leg-item"><div class="leg-dot leg-wrong"></div>WRONG — closes conversation</div>
+  </div>
+
+  <div style="max-width:960px;margin:0 auto 10px"><div class="section-label">Foundational Objections · 7 Tiers</div></div>
+  <div class="grid">
+    <a class="card depth-7" href="tree-a-game.html"><div class="tier-bar"></div><div class="card-letter a">A</div><div class="card-title">There Is No God</div><div class="card-objection">"There's no evidence for God — science explains everything."</div><div class="card-meta"><span class="badge badge-tiers">7 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-7" href="tree-b-game.html"><div class="tier-bar"></div><div class="card-letter b">B</div><div class="card-title">Show Me Proof</div><div class="card-objection">"I need evidence — you can't just have faith in a book."</div><div class="card-meta"><span class="badge badge-tiers">7 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-7" href="tree-c-game.html"><div class="tier-bar"></div><div class="card-letter c">C</div><div class="card-title">Jesus Was a Myth</div><div class="card-objection">"Jesus is just a rehash of older myths — Horus, Mithras."</div><div class="card-meta"><span class="badge badge-tiers">7 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-7" href="tree-d-game.html"><div class="tier-bar"></div><div class="card-letter d">D</div><div class="card-title">The Bible Is Propaganda</div><div class="card-objection">"The Bible was written by men to control people."</div><div class="card-meta"><span class="badge badge-tiers">7 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-7" href="tree-e-game.html"><div class="tier-bar"></div><div class="card-letter e">E</div><div class="card-title">Science Explains Everything</div><div class="card-objection">"I believe in science, not fairy tales."</div><div class="card-meta"><span class="badge badge-tiers">7 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-7" href="tree-f-game.html"><div class="tier-bar"></div><div class="card-letter f">F</div><div class="card-title">That's Just Your Belief</div><div class="card-objection">"All religions are equally valid — truth is relative."</div><div class="card-meta"><span class="badge badge-tiers">7 Tiers</span><span class="badge badge-opening">Jesus loves you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div><div class="diff-pip"></div></div></div></a>
+  </div>
+
+  <div style="max-width:960px;margin:22px auto 10px"><div class="section-label">Deep Conversations · 9–11 Tiers</div></div>
+  <div class="grid">
+    <a class="card depth-11" href="tree-g-game.html"><div class="tier-bar"></div><div class="card-letter g">G</div><div class="card-title">Have You Heard the Good News?</div><div class="card-objection">"The church destroyed my family / I left 15 years ago…"</div><div class="card-meta"><span class="badge badge-tiers">11 Tiers</span><span class="badge badge-opening">Have you heard the Good News?</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div></div></div></a>
+    <a class="card depth-11" href="tree-h-game.html"><div class="tier-bar"></div><div class="card-letter h">H</div><div class="card-title">If God Is Good, Why Evil?</div><div class="card-objection">"If God is all-powerful and good, evil shouldn't exist."</div><div class="card-meta"><span class="badge badge-tiers">11 Tiers</span><span class="badge badge-opening">Jesus died for your sins.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div></div></div></a>
+    <a class="card depth-11" href="tree-i-game.html"><div class="tier-bar"></div><div class="card-letter i">I</div><div class="card-title">My Child Died</div><div class="card-objection">"Please — don't tell me God has a plan."</div><div class="card-meta"><span class="badge badge-tiers">11 Tiers</span><span class="badge badge-opening">God has a plan for you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div></div></div></a>
+    <a class="card depth-9" href="tree-j-game.html"><div class="tier-bar"></div><div class="card-letter j">J</div><div class="card-title">Christians Are Hypocrites</div><div class="card-objection">"They preach love and grace but judge everyone."</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">Jesus died for your sins.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div></div></div></a>
+    <a class="card depth-9" href="tree-k-game.html"><div class="tier-bar"></div><div class="card-letter k">K</div><div class="card-title">I'm Muslim</div><div class="card-objection">"Jesus was a prophet — Christians made him into God."</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">Have you heard the Good News?</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div></div></div></a>
+    <a class="card depth-9" href="tree-l-game.html"><div class="tier-bar"></div><div class="card-letter l">L</div><div class="card-title">I'm Buddhist</div><div class="card-objection">"Buddhism gives me inner peace — I don't need a personal God."</div><div class="card-meta"><span class="badge badge-tiers">9 Tiers</span><span class="badge badge-opening">God has a plan for you.</span><div class="difficulty"><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip on"></div><div class="diff-pip"></div></div></div></a>
+  </div>
+
+  <div class="tip">
+    <div class="tip-title">How to Use</div>
+    <div class="tip-grid">
+      <div class="tip-item"><strong>Click any passerby</strong> above to receive their paper and start their conversation.</div>
+      <div class="tip-item"><strong>Start with A–F</strong> — 7-tier trees cover the most common objections.</div>
+      <div class="tip-item"><strong>WRONG paths teach too</strong> — read the outcome notes to learn why each move fails.</div>
+      <div class="tip-item"><strong>Trees H &amp; I</strong> are the most sensitive — lead with presence before argument.</div>
+      <div class="tip-item"><strong>Replay each tree</strong> — try a different T2 variant to face all four sub-types.</div>
+      <div class="tip-item"><strong>Key evidence</strong> — 24,600 manuscripts · Acts 2:20 blood moon Apr 3 33 AD · Matt 27:46.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TREE DATA ──────────────────────────────────────────────────────────────
+const TREES = [
+  {letter:'A',emoji:'😤',title:'There Is No God',        sub:'"There\'s no evidence for God — science explains everything."',   file:'tree-a-game.html',color:'#6ab8d4'},
+  {letter:'B',emoji:'🧐',title:'Show Me Proof',           sub:'"I need evidence — you can\'t just have faith in a book."',        file:'tree-b-game.html',color:'#6ad490'},
+  {letter:'C',emoji:'😏',title:'Jesus Was a Myth',        sub:'"Jesus is just a rehash of older myths — Horus, Mithras."',        file:'tree-c-game.html',color:'#d4a86a'},
+  {letter:'D',emoji:'😒',title:'The Bible Is Propaganda', sub:'"The Bible was written by men to control people."',                file:'tree-d-game.html',color:'#6a90d4'},
+  {letter:'E',emoji:'🤓',title:'Science Explains Everything',sub:'"I believe in science, not fairy tales."',                       file:'tree-e-game.html',color:'#b06ad4'},
+  {letter:'F',emoji:'🙃',title:"That's Just Your Belief", sub:'"All religions are equally valid — truth is relative."',           file:'tree-f-game.html',color:'#d4d06a'},
+  {letter:'G',emoji:'😔',title:'Have You Heard the Good News?',sub:'"The church destroyed my family…"',                           file:'tree-g-game.html',color:'#d46aaa'},
+  {letter:'H',emoji:'😢',title:'If God Is Good, Why Evil?',sub:'"Evil proves God is powerless — or cruel."',                      file:'tree-h-game.html',color:'#6ad4d4'},
+  {letter:'I',emoji:'💔',title:'My Child Died',           sub:'"Don\'t you dare tell me God has a plan."',                        file:'tree-i-game.html',color:'#d4906a'},
+  {letter:'J',emoji:'🙄',title:'Christians Are Hypocrites',sub:'"They preach love and live judgment."',                           file:'tree-j-game.html',color:'#9a8fd4'},
+  {letter:'K',emoji:'🤲',title:"I'm Muslim",              sub:'"Jesus was a prophet — Christians made him into God."',            file:'tree-k-game.html',color:'#d46a6a'},
+  {letter:'L',emoji:'😌',title:"I'm Buddhist",            sub:'"Buddhism gives me inner peace — I don\'t need a personal God."',  file:'tree-l-game.html',color:'#88e060'},
+];
+
+// Walker config: back lane (B), mid lane (M), front lane (F)
+// sz = head px, dur = walk duration sec, dly = start delay sec, bottom offset
+const WALKER_CFG = [
+  {t:0, sz:10, dur:48, dly:0,  bot:96},  // A back
+  {t:1, sz:10, dur:44, dly:6,  bot:92},  // B back
+  {t:2, sz:11, dur:40, dly:12, bot:90},  // C back
+  {t:3, sz:11, dur:50, dly:18, bot:94},  // D back
+  {t:4, sz:14, dur:34, dly:2,  bot:70},  // E mid
+  {t:5, sz:14, dur:32, dly:8,  bot:68},  // F mid
+  {t:6, sz:15, dur:36, dly:14, bot:72},  // G mid
+  {t:7, sz:14, dur:30, dly:4,  bot:66},  // H mid
+  {t:8, sz:19, dur:24, dly:1,  bot:50},  // I front
+  {t:9, sz:18, dur:26, dly:7,  bot:50},  // J front
+  {t:10,sz:20, dur:22, dly:3,  bot:50},  // K front
+  {t:11,sz:17, dur:28, dly:9,  bot:50},  // L front
+];
+
+// ── BUILD STARS ────────────────────────────────────────────────────────────
+(function(){
+  const cvs = document.getElementById('star-canvas');
+  const scene = document.getElementById('scene');
+  cvs.width  = scene.offsetWidth  || window.innerWidth;
+  cvs.height = scene.offsetHeight || 270;
+  const ctx = cvs.getContext('2d');
+  for(let i=0;i<80;i++){
+    const x = Math.random()*cvs.width;
+    const y = Math.random()*(cvs.height*.62);
+    const r = Math.random()*1.1+.3;
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*.6+.2})`;
+    ctx.fill();
+  }
+})();
+
+// ── BUILD WALKERS ─────────────────────────────────────────────────────────
+const container = document.getElementById('walkers');
+WALKER_CFG.forEach(cfg=>{
+  const tree = TREES[cfg.t];
+  const el = document.createElement('div');
+  el.className = 'walker';
+  el.id = 'walker-'+tree.letter.toLowerCase();
+  el.title = `${tree.letter}: ${tree.title}`;
+  el.style.cssText = [
+    `--col:${tree.color}`,
+    `--sz:${cfg.sz}px`,
+    `--dur:${cfg.dur}s`,
+    `--dly:-${cfg.dly}s`,        // negative delay = start mid-walk
+    `--pdly:${cfg.dly*.3}s`,
+    `bottom:${cfg.bot}px`,
+  ].join(';');
+  el.innerHTML = `
+    <div class="paper-note">${tree.emoji}</div>
+    <div class="paper-thread" style="height:calc(${cfg.sz}px * 1.6);top:calc(${cfg.sz}px * -1.2)"></div>
+    <svg class="figure" viewBox="0 0 24 46" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="5" r="4.2" fill="var(--col)"/>
+      <rect x="10.5" y="9" width="3" height="2.2" rx="1" fill="var(--col)"/>
+      <path d="M7 11 Q12 9.5 17 11 L16.5 26.5 Q12 28 7.5 26.5 Z" fill="var(--col)" opacity="0.8"/>
+      <line class="arm-l" x1="7.5" y1="14" x2="1.5" y2="22.5" stroke="var(--col)" stroke-width="2.5" stroke-linecap="round" style="transform-origin:7.5px 14px"/>
+      <line class="arm-r" x1="16.5" y1="14" x2="22.5" y2="22.5" stroke="var(--col)" stroke-width="2.5" stroke-linecap="round" style="transform-origin:16.5px 14px"/>
+      <line class="leg-l" x1="10" y1="27" x2="6.5" y2="43" stroke="var(--col)" stroke-width="3" stroke-linecap="round" style="transform-origin:10px 27px"/>
+      <line class="leg-r" x1="14" y1="27" x2="17.5" y2="43" stroke="var(--col)" stroke-width="3" stroke-linecap="round" style="transform-origin:14px 27px"/>
+    </svg>`;
+  el.addEventListener('click', ()=> receivePaper(tree, el, cfg.sz));
+  container.appendChild(el);
+});
+
+// ── PAPER FLY INTERACTION ─────────────────────────────────────────────────
+let currentTree = null;
+let pausedWalker = null;
+
+function receivePaper(tree, walkerEl, sz){
+  if(currentTree) return; // already open
+  currentTree = tree;
+  pausedWalker = walkerEl;
+  walkerEl.classList.add('paused');
+
+  // Get walker screen position
+  const rect = walkerEl.getBoundingClientRect();
+  const paperTop  = rect.top  - sz*3.2;
+  const paperLeft = rect.left + rect.width/2;
+
+  // Populate card
+  const letter = tree.letter;
+  document.getElementById('fly-letter').textContent = letter;
+  document.getElementById('fly-letter').style.color = tree.color;
+  document.getElementById('fly-title').textContent  = tree.title;
+  document.getElementById('fly-sub').textContent    = tree.sub;
+  const btn = document.getElementById('fly-go');
+  btn.style.background = tree.color;
+  btn.style.color = '#0d1117';
+  btn.onclick = ()=> window.location.href = tree.file;
+
+  // Card target: center of viewport
+  const vpW = window.innerWidth;
+  const vpH = window.innerHeight;
+  const cardW = 265, cardH = 200;
+  const destLeft = (vpW - cardW) / 2;
+  const destTop  = Math.min((vpH - cardH) / 2, vpH * .3);
+
+  // Start: at paper position, tiny scale
+  const fly = document.getElementById('paper-fly');
+  fly.style.transition = 'none';
+  fly.style.display = 'block';
+  fly.style.left  = paperLeft + 'px';
+  fly.style.top   = paperTop  + 'px';
+  fly.style.transform = 'translate(-50%,-50%) scale(0.1) rotate(8deg)';
+  fly.style.opacity = '1';
+  fly.classList.remove('landed');
+
+  // Show backdrop
+  const bd = document.getElementById('backdrop');
+  bd.style.display='block';
+  void bd.offsetWidth;
+  bd.style.opacity='0';
+  bd.style.transition='opacity .3s';
+  setTimeout(()=>{ bd.style.opacity='1'; },10);
+
+  // Fly to center
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      fly.style.transition = 'left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1)';
+      fly.style.left  = destLeft + 'px';
+      fly.style.top   = destTop  + 'px';
+      fly.style.transform = 'translate(0,0) scale(1) rotate(0deg)';
+      setTimeout(()=>{ fly.classList.add('landed'); }, 560);
+    });
+  });
+}
+
+function dismissPaper(){
+  const fly = document.getElementById('paper-fly');
+  const bd  = document.getElementById('backdrop');
+  fly.classList.remove('landed');
+  fly.style.transition = 'opacity .25s,transform .25s';
+  fly.style.opacity = '0';
+  fly.style.transform += ' scale(.9)';
+  bd.style.opacity = '0';
+  setTimeout(()=>{
+    fly.style.display = 'none';
+    fly.style.opacity = '1';
+    bd.style.display = 'none';
+    if(pausedWalker){ pausedWalker.classList.remove('paused'); pausedWalker=null; }
+    currentTree = null;
+  }, 260);
+}
+
+// Dismiss on Escape
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') dismissPaper(); });
+</script>
+</body>
+</html>

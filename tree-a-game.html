@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tree A — There Is No God</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',serif}
+#app{display:flex;flex-direction:column;height:100vh;max-width:760px;margin:0 auto;padding:0 16px}
+#header{padding:14px 0 10px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#back-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+#back-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#game-title{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',monospace;color:#666;text-align:center}
+#restart-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s}
+#restart-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+#tier-track{display:flex;gap:4px;align-items:center}
+.tier-dot{width:22px;height:4px;border-radius:2px;background:#1c1c28;transition:background .4s}
+.tier-dot.active{background:#e8c97a}
+.tier-dot.done{background:#6ad49088}
+.outcome-dot{width:28px;background:#1c1c28}
+.outcome-dot.active{background:#b06ad4}
+#tier-label{font-size:0.6rem;font-family:'Courier New',monospace;color:#555;margin-left:8px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+#chat-area{flex:1;overflow-y:auto;padding:12px 0 8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+#chat-area::-webkit-scrollbar{width:3px}
+#chat-area::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:2px}
+.bubble-wrap{display:flex;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.bubble-wrap.visible{opacity:1;transform:none}
+.bubble-wrap.you-wrap{justify-content:flex-start}
+.bubble-wrap.them-wrap{justify-content:flex-end}
+.bubble{max-width:68%;padding:11px 15px;border-radius:12px;font-size:0.82rem;line-height:1.6}
+.you-wrap .bubble{border-top-left-radius:3px}
+.them-wrap .bubble{border-top-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tier-pip{display:inline-block;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-bottom:6px;border:1px solid;opacity:.8}
+.tp1{color:#6ab8d4;border-color:#6ab8d440;background:#6ab8d412}
+.tp2{color:#d46a6a;border-color:#d46a6a40;background:#d46a6a12}
+.tp3{color:#6ad490;border-color:#6ad49040;background:#6ad49012}
+.tp4{color:#d4a86a;border-color:#d4a86a40;background:#d4a86a12}
+.tp5{color:#6a90d4;border-color:#6a90d440;background:#6a90d412}
+.tp6{color:#b06ad4;border-color:#b06ad440;background:#b06ad412}
+.tp7{color:#d4d06a;border-color:#d4d06a40;background:#d4d06a12}
+.typing-wrap{display:flex;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.typing-wrap.visible{opacity:1}
+.typing{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:10px;border-top-right-radius:3px;padding:10px 16px;display:flex;gap:5px;align-items:center}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#555;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+#choices-panel{flex-shrink:0;padding:10px 0 16px}
+#choices-prompt{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:8px}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;transition:all .2s;position:relative;overflow:hidden}
+.choice-btn:hover{border-color:#6a90d455;background:#151528}
+.choice-label{font-size:0.78rem;color:#ccc;line-height:1.4;margin-bottom:4px}
+.choice-sub{font-size:0.68rem;color:#555;font-style:italic;line-height:1.3}
+.choice-btn.selected{pointer-events:none}
+.choice-btn.selected.tag-best{border-color:#6ad490;background:#1a2e1a}
+.choice-btn.selected.tag-good{border-color:#6ab8d4;background:#1a2a30}
+.choice-btn.selected.tag-risky{border-color:#d4a86a;background:#2e271a}
+.choice-btn.selected.tag-wrong{border-color:#d46a6a;background:#2e1a1a}
+.choice-btn.unselected{opacity:.3;pointer-events:none}
+.tag-flash{display:none;position:absolute;top:8px;right:8px;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid}
+.choice-btn.selected .tag-flash{display:block}
+.tag-best .tag-flash{color:#6ad490;border-color:#6ad49050;background:#6ad49015}
+.tag-good .tag-flash{color:#6ab8d4;border-color:#6ab8d450;background:#6ab8d415}
+.tag-risky .tag-flash{color:#d4a86a;border-color:#d4a86a50;background:#d4a86a15}
+.tag-wrong .tag-flash{color:#d46a6a;border-color:#d46a6a50;background:#d46a6a15}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0b0b14;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;z-index:100;max-width:760px;margin:0 auto}
+#outcome-screen.show{display:flex}
+.outcome-icon{font-size:3rem;margin-bottom:20px;animation:fadeUp .6s ease}
+.outcome-title{font-size:1.4rem;color:#e8c97a;margin-bottom:12px;text-align:center;animation:fadeUp .6s .1s ease both}
+.outcome-quote{max-width:560px;font-size:0.88rem;line-height:1.7;color:#ccc;margin-bottom:20px;animation:fadeUp .6s .2s ease both;border-left:3px solid #333;padding-left:16px}
+.outcome-note{font-size:0.72rem;font-style:italic;color:#666;margin-bottom:32px;text-align:center;animation:fadeUp .6s .3s ease both}
+.outcome-path{font-size:0.6rem;font-family:'Courier New',monospace;letter-spacing:0.08em;text-transform:uppercase;color:#444;margin-bottom:28px;text-align:center;animation:fadeUp .6s .35s ease both}
+.outcome-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s .4s ease both}
+.outcome-btn{background:#111120;border:1.5px solid #2a2a3a;border-radius:8px;padding:10px 22px;font-family:'Courier New',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;color:#888;transition:all .2s;text-decoration:none;display:inline-block}
+.outcome-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+.outcome-btn.primary{border-color:#6ad49055;color:#6ad490}
+.outcome-btn.primary:hover{border-color:#6ad490;background:#1a2e1a}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.src{display:block;font-size:0.56rem;font-family:'Courier New',monospace;background:#ffffff08;border:1px solid #ffffff18;border-radius:3px;padding:2px 6px;margin-top:8px;color:#888}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree A · "There Is No God"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn primary" onclick="closeOutcome()">← Read conversation</button>
+    <a class="outcome-btn" href="index.html">⊞ All Trees</a>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7'];
+const MAX_TIERS=7;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Jesus loves you.",next:'t2_pick'},
+
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond...',choices:[
+    {label:'"There is no God"',sub:'A delusion people use to feel less alone',next:'t2a'},
+    {label:'"God is unnecessary"',sub:'The universe explains itself — science is enough',next:'t2b'},
+    {label:'"I\'ve thought about it seriously"',sub:'Looked at the evidence — found nothing compelling',next:'t2c'},
+    {label:'"If God existed, the world wouldn\'t look like this"',sub:'Suffering and evil as the counter-argument',next:'t2d'},
+  ]},
+
+  t2a:{type:'say',speaker:'them',tier:2,text:"There is no God. It's a delusion people use to feel less alone.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"The universe doesn't need a creator. Science explains everything without a God hypothesis.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"I've actually thought about this seriously for years. I've looked at the evidence — I'm convinced there's nothing there.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"If a loving God existed, the world wouldn't look like this. The suffering alone disproves it.",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'Lead with the astronomy data',sub:'"A NASA astrophysicist confirmed the crucifixion date."',tag:'best',next:'t4_best',
+     youText:"Interesting — a NASA astrophysicist confirmed a blood moon over Jerusalem on April 3rd, 33 AD — the exact date the Bible records the crucifixion. Published in the Royal Astronomical Society journal. Not religion — data.",src:'📡 Schaefer, QJRAS 1990'},
+    {label:'Lead with manuscript evidence',sub:'"24,600 manuscripts — more than any ancient text."',tag:'good',next:'t4_good',
+     youText:"The New Testament has over 24,600 surviving manuscripts — more than any other ancient document in history. Homer's Iliad has 643. Caesar's Gallic Wars has 10. Historians trust those without question.",src:'📜 24,600+ NT Manuscripts'},
+    {label:'Ask what led to that conclusion',sub:'"Was it always this way or did something happen?"',tag:'risky',next:'t4_risky',
+     youText:"Can I ask what led you to that conclusion? Was it always this way, or did something happen?"},
+    {label:'Tell them they\'re missing out',sub:'"I genuinely believe you\'re missing something real."',tag:'wrong',next:'t4_wrong',
+     youText:"I respect that, but I genuinely believe you're missing out on something real."},
+  ]},
+
+  t4_best:{type:'say',speaker:'them',tier:4,text:"One date matching doesn't prove God exists. Coincidences happen all the time.",next:'t5_pick'},
+  t4_good:{type:'say',speaker:'them',tier:4,text:"More copies of a book doesn't make it true. People copy Harry Potter too.",next:'t5_pick'},
+  t4_risky:{type:'say',speaker:'them',tier:4,text:"Nothing happened. I just looked at the evidence and decided there wasn't any. Why does there have to be more to it?",next:'t5_risky_pick'},
+  t4_wrong:{type:'say',speaker:'them',tier:4,text:"I'm not missing out on anything. Please don't tell me what I'm missing.",next:'outcome_shutdown'},
+
+  t5_pick:{type:'pick',tier:5,prompt:'They pushed back. What do you say?',choices:[
+    {label:'The prophecy came before the science',sub:'"Acts 2:20 predicted this eclipse — decades before Schaefer."',tag:'best',next:'t6_main',
+     youText:"Sure — but Acts 2:20 predicted this exact eclipse decades before the astronomer's math confirmed it. The date, the city, the darkness — all match. That's a verifiable trail across 2,000 years.",src:'📖 Acts 2:20 · Written ~60 AD'},
+    {label:'Consistency is the proof',sub:'"24,600 copies all saying the same thing — that\'s verification."',tag:'good',next:'t6_main',
+     youText:"The manuscript consistency is actually the point — 24,600 copies from different centuries and continents all say the same thing. That's not how myths drift. That's how verified history holds."},
+    {label:'Ask what evidence would satisfy',sub:'"What would actually change your mind?"',tag:'risky',next:'t6_risky',
+     youText:"What kind of evidence would actually move the needle for you? I want to understand what you'd find compelling."},
+    {label:'Tell them to look at all the evidence',sub:'"You should examine the full scope before deciding."',tag:'wrong',next:'outcome_away_cold',
+     youText:"I think you should look at the full scope of evidence before coming to that conclusion."},
+  ]},
+
+  t5_risky_pick:{type:'pick',tier:5,prompt:'They\'re open but skeptical. How do you proceed?',choices:[
+    {label:'Share the manuscript evidence',sub:'"24,600 manuscripts — most of any ancient text."',tag:'best',next:'t6_main',
+     youText:"Here's something concrete: the New Testament has more surviving manuscripts than any document in ancient history — 24,600 cross-checked copies. The consistency across them is academically unmatched.",src:'📜 24,600+ NT Manuscripts'},
+    {label:'Introduce the astronomy data',sub:'"A peer-reviewed journal independently confirmed the date."',tag:'good',next:'t6_main',
+     youText:"There's peer-reviewed astronomy that independently confirmed a key biblical date. That's external verification — not religious argument."},
+    {label:'Invite them to look into it',sub:'"The evidence is more substantial than most realize."',tag:'risky',next:'outcome_away_soft',
+     youText:"The evidence is actually more substantial than most people realize. If you approached it with genuine curiosity, you might land somewhere different."},
+    {label:'Pivot to personal experience',sub:'"My own experience has shown me—"',tag:'wrong',next:'outcome_away_cold',
+     youText:"Well, my personal experience has shown me that—"},
+  ]},
+
+  t6_main:{type:'say',speaker:'them',tier:6,text:"I mean… I never actually looked into any of this. I just assumed there was nothing there.",next:'t7_pick'},
+  t6_risky:{type:'say',speaker:'them',tier:6,text:"I don't know what would be convincing. I've just never seen anything compelling.",next:'outcome_away_soft'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'Something shifted. Choose your final words.',choices:[
+    {label:'Invite the investigation',sub:'"If the Bible\'s astronomy held up, what else is worth looking at?"',tag:'best',next:'outcome_pray'},
+    {label:'Give space and point to the door',sub:'"The evidence isn\'t going anywhere. Take your time."',tag:'good',next:'outcome_away'},
+    {label:'Affirm their honesty',sub:'"Most people who say \'nothing\' haven\'t actually looked."',tag:'good',next:'outcome_away_soft'},
+    {label:'Press for a decision',sub:'"So does this change your mind?"',tag:'wrong',next:'outcome_pushed'},
+  ]},
+
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'They Open',
+    quote:'"I never actually looked at this. If the Bible\'s astronomy held up under a scientist\'s scrutiny — maybe it\'s worth examining properly. Where do I start?"',
+    note:'The assumption of nothing becomes a question about everything.',path:'Best Route · T7 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'🚶',title:'They Walk — Thinking',
+    quote:'"I\'ve never thought about the manuscript angle before. I need to look into this myself."',
+    note:'They leave with a question they didn\'t arrive with.',path:'Good Route · T7'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'A Crack Opens',
+    quote:'"Maybe I\'ve been assuming rather than actually investigating. That\'s a fair point."',
+    note:'Honest acknowledgment — the door is no longer fully closed.',path:'Gentle Route'},
+  outcome_away_cold:{type:'outcome',outcome:'cold',icon:'🌫️',title:'They Step Back',
+    quote:'"I appreciate the effort. Not today though."',
+    note:'Approach landed too broad. Lead with the specific data point next time.',path:'Ended early'},
+  outcome_shutdown:{type:'outcome',outcome:'shutdown',icon:'🚪',title:'They Shut Down',
+    quote:'"I\'m done with this conversation."',
+    note:'Never tell someone what they\'re missing — lead with evidence, not with lack.',path:'Ended early'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'They Felt Pushed',
+    quote:'"Don\'t push me. I\'ll think about it on my own terms."',
+    note:'You were close. Hold the door open — don\'t pull them through it.',path:'Near miss'},
+};
+
+// ── Engine ─────────────────────────────────────────────
+let pathTaken=[];
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className='tier-dot';d.id='dot-'+i;t.appendChild(d);
+  }
+  const sep=document.createElement('div');
+  sep.style.cssText='width:1px;height:12px;background:#2a2a3a;margin:0 2px';
+  t.appendChild(sep);
+  const od=document.createElement('div');
+  od.className='tier-dot outcome-dot';od.id='dot-out';t.appendChild(od);
+  const lbl=document.createElement('div');
+  lbl.id='tier-label';t.appendChild(lbl);
+  updateTrack(1);
+}
+
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.getElementById('dot-'+i);
+    if(!d)continue;
+    d.className='tier-dot'+(i<tier?' done':i===tier?' active':'');
+  }
+  const lbl=document.getElementById('tier-label');
+  if(lbl)lbl.textContent=tier<=MAX_TIERS?`Tier ${tier} / ${MAX_TIERS}`:'Outcome';
+}
+
+function addBubble(speaker,text,tier,src){
+  const chat=document.getElementById('chat-area');
+  const wrap=document.createElement('div');
+  wrap.className=`bubble-wrap ${speaker==='you'?'you-wrap':'them-wrap'}`;
+  const bub=document.createElement('div');
+  bub.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  const pip=document.createElement('span');
+  pip.className=`tier-pip ${TIER_PIP[tier]||'tp1'}`;
+  pip.textContent=`T${tier} · ${speaker==='you'?'You':'Them'}`;
+  bub.appendChild(pip);
+  bub.appendChild(document.createElement('br'));
+  bub.appendChild(document.createTextNode(text));
+  if(src){const s=document.createElement('span');s.className='src';s.textContent=src;bub.appendChild(s);}
+  wrap.appendChild(bub);chat.appendChild(wrap);
+  requestAnimationFrame(()=>wrap.classList.add('visible'));
+  setTimeout(()=>{chat.scrollTop=chat.scrollHeight;},50);
+}
+
+function showTyping(){
+  const chat=document.getElementById('chat-area');
+  const w=document.createElement('div');
+  w.className='typing-wrap';w.id='typer';
+  w.innerHTML='<div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  chat.appendChild(w);
+  requestAnimationFrame(()=>w.classList.add('visible'));
+  chat.scrollTop=chat.scrollHeight;
+}
+function removeTyping(){const e=document.getElementById('typer');if(e){e.style.opacity='0';setTimeout(()=>e.remove(),300);}}
+
+function showChoices(node){
+  document.getElementById('choices-prompt').textContent=node.prompt||'Choose...';
+  const grid=document.getElementById('choices-grid');
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div><span class="tag-flash">${c.tag||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('choices-panel').style.visibility='visible';
+}
+function hideChoices(){
+  document.getElementById('choices-panel').style.visibility='hidden';
+  document.getElementById('choices-grid').innerHTML='';
+  document.getElementById('choices-prompt').textContent='';
+}
+
+async function pick(node,choice,idx){
+  document.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    b.classList.add(i===idx?`selected tag-${choice.tag||'good'}`:'unselected');
+  });
+  if(choice.youText){
+    await sleep(300);
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    pathTaken.push({tier:node.tier,tag:choice.tag,label:choice.label});
+  }
+  await sleep(600);hideChoices();await sleep(200);
+  run(choice.next);
+}
+
+async function run(id){
+  if(!id)return;
+  const node=nodes[id];
+  if(!node){console.warn('Missing:',id);return;}
+  if(node.type==='say'){
+    updateTrack(node.tier);
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(800+node.text.length*7);
+      removeTyping();await sleep(100);
+    }
+    addBubble(node.speaker,node.text,node.tier);
+    await sleep(500);
+    if(node.next)run(node.next);
+  } else if(node.type==='pick'){
+    updateTrack(node.tier);
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(400);showOutcome(node);
+  }
+}
+
+function showOutcome(node){
+  updateTrack(MAX_TIERS+1);
+  const d=document.getElementById('dot-out');if(d)d.classList.add('active');
+  document.getElementById('out-icon').textContent=node.icon||'';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  const summary=pathTaken.map(p=>`T${p.tier}:${p.tag}`).join(' → ');
+  document.getElementById('out-path').textContent=(node.path||'')+(summary?' · '+summary:'');
+  document.getElementById('outcome-screen').classList.add('show');
+}
+function closeOutcome(){document.getElementById('outcome-screen').classList.remove('show');}
+function restartGame(){
+  document.getElementById('outcome-screen').classList.remove('show');
+  document.getElementById('chat-area').innerHTML='';
+  pathTaken=[];hideChoices();buildTrack();
+  sleep(300).then(()=>run('start'));
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+buildTrack();run('start');
+</script>
+</body>
+</html>

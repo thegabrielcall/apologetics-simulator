@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree E · Science vs Religion</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:22px;height:22px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}
+.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}
+.bubble-row.you{justify-content:flex-start}
+.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s;position:relative}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}
+.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}
+.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}
+.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}
+.tag-risky{border-color:#e3b341!important;background:#2d2008!important}
+.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}
+.tag-good .tag-label{background:#0d2040;color:#58a6ff}
+.tag-risky .tag-label{background:#4a3000;color:#e3b341}
+.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}
+.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}
+.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}
+.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}
+.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}
+.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree E · "Science Explains Everything"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7'];
+const MAX_TIERS=7;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Jesus loves you.",next:'t2_pick'},
+
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+    {label:'I believe in science',sub:'Not fairy tales.',next:'t2a'},
+    {label:'Evolution disproves Genesis',sub:'The Bible is just myth.',next:'t2b'},
+    {label:'Dawkins proved God is unnecessary',sub:'Science has all the answers.',next:'t2c'},
+    {label:'Science keeps shrinking God',sub:'"God of the gaps" keeps getting smaller.',next:'t2d'},
+  ]},
+
+  t2a:{type:'say',speaker:'them',tier:2,text:"I believe in science, not fairy tales. Religion is for people who can't handle reality.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"Evolution explains where we came from. Genesis is mythology — the Bible got it wrong from page one.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"Dawkins, Hitchens, Harris — the best thinkers of our time have shown God is simply not necessary. Science explains it all.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"Every time science advances, God retreats. Used to be God made the sun rise. Now we know better. The 'God of the gaps' keeps shrinking.",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'NASA confirmed a miracle date',sub:'Peer-reviewed astrophysics backs Scripture.',tag:'best',next:'t3_best_say',youText:"Actually — a NASA astrophysicist cross-referenced Scripture with astronomy. A lunar eclipse matching Acts 2:20's 'blood moon' was confirmed on April 3rd, 33 AD — the likely crucifixion date. Published in the Quarterly Journal of the Royal Astronomical Society.",src:'Schaefer · QJRAS 1990'},
+    {label:'Newton wrote more theology than physics',sub:'Great scientists have always held faith.',tag:'good',next:'t3_good_say',youText:"Newton wrote more about the Bible than about physics. Faraday, Kepler, Francis Collins — who mapped the human genome — all deeply held Christian faith. Science and faith have coexisted in brilliant minds for centuries."},
+    {label:'Where exactly is the conflict?',sub:'Ask them to name the specific point.',tag:'risky',next:'t3_risky_say',youText:"Walk me through it — where specifically do science and faith conflict for you? Because I want to understand exactly where you see the tension."},
+    {label:'"You\'re setting up a false choice"',sub:'Science OR God — a false binary.',tag:'wrong',next:'t3_wrong_say',youText:"You're presenting a false dichotomy. Science and religion answer different questions — they're not in competition."},
+  ]},
+
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"Okay… that's interesting. But one eclipse date doesn't prove God exists. Science still explains the universe without needing a deity.",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"Sure, some scientists believed — but that was before we really understood the evidence. Modern science has moved on from faith.",next:'t4_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"Where? Evolution. Cosmology. Neuroscience. All of it points away from God. The natural world is self-sufficient.",next:'t4_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"They ARE in competition. Science deals in evidence. Religion deals in wishful thinking. You can't have both.",next:'outcome_pushed'},
+
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'Science explains HOW — not WHY',sub:'There\'s something rather than nothing.',tag:'best',next:'t4_best_say',youText:"Science is extraordinary at the 'how.' How did the universe expand? How did life diversify? But the deepest question — why is there something rather than nothing? — science goes silent. That's not a gap. That's a different kind of question."},
+    {label:'Collins found faith THROUGH science',sub:'The genome pointed him to God.',tag:'good',next:'t4_good_say',youText:"Francis Collins didn't believe in spite of science — he came to faith through it. Mapping the human genome made him more convinced of a Creator, not less. The deeper the science, the bigger the wonder."},
+    {label:'Science studies nature — God isn\'t nature',sub:'Different domain, different tool.',tag:'risky',next:'t4_risky_say',youText:"Science is a tool for studying the natural world. If God exists outside nature, science wouldn't detect him any more than a metal detector finds music. It's the wrong instrument."},
+    {label:'Fine-tuning proves design',sub:'The cosmological constants are too precise.',tag:'wrong',next:'t4_wrong_say',youText:"Look at the fine-tuning of physical constants — gravity, electromagnetism, strong nuclear force. If any were off by a fraction, no universe, no life. That precision screams design."},
+  ]},
+
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"Hm. The 'why' question. I mean… science will eventually get there. Give it time.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"One scientist's conversion doesn't prove anything. Anecdotes aren't data.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"Convenient — you're defining God in a way that makes him impossible to test. That's not evidence, that's just a loophole.",next:'t5_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"Fine-tuning just means we happened to get the conditions right. Multiverse theory explains it without God. You're assuming the conclusion.",next:'outcome_shutdown'},
+
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Science can\'t answer "why" by design',sub:'No equation explains meaning or purpose.',tag:'best',next:'t5_best_say',youText:"Science can tell us how stars form. It can't tell us whether your life has meaning. It can describe neural firing patterns — it can't tell you whether love is real or just chemistry. 'Why' questions are structurally outside what science does."},
+    {label:'The "why" kept haunting the greatest minds',sub:'Einstein, Hawking — they all asked it.',tag:'good',next:'t5_good_say',youText:"Einstein said the most beautiful thing we can experience is the mysterious. Hawking's final question was 'what breathed fire into the equations?' Even the giants of science hit a wall where the 'why' lives — and they knew it."},
+    {label:'Has that why-question ever bothered you?',sub:'Turn it personal.',tag:'risky',next:'t5_risky_say',youText:"Let me ask you something personal — has the 'why' question ever actually bothered you? Not philosophically. I mean late at night, wondering if any of this means something?"},
+    {label:'Even atheist philosophers admit this',sub:'The "brute fact" problem.',tag:'wrong',next:'t5_wrong_say',youText:"Even atheist philosophers like Bertrand Russell admitted the universe's existence is a 'brute fact' — no explanation. They gave up on the question. That's not science winning; that's science surrendering."},
+  ]},
+
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"I guess meaning and purpose… those aren't really scientific questions, are they. I've never thought about it that way.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"Yeah, I've wondered about that. Why there's something rather than nothing. Science kind of… stops there.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"Honestly? Yeah. More than I admit. Especially when someone dies, or when something feels wrong in a way you can't explain scientifically.",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"I mean, surrendering the question isn't the same as saying God fills it. That's still a leap.",next:'t6_pick'},
+
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'That gap is where faith begins',sub:'Not ignorance — honest wonder.',tag:'best',next:'t6_best_say',youText:"That wonder — that question science can't dissolve — that's not a weakness in your thinking. That's the most honest and important question a human can have. And that's exactly where faith begins. Not with blind belief — but with following that question all the way down."},
+    {label:'Jesus addressed the "why" directly',sub:'He didn\'t explain suffering — He entered it.',tag:'good',next:'t6_good_say',youText:"What's remarkable about Jesus isn't that He explained why suffering exists — He didn't. He entered it. He said 'My God, why have you forsaken me?' on the cross. He sat with the question from the inside."},
+    {label:'What would it take for you to look further?',sub:'Open the door gently.',tag:'risky',next:'t6_risky_say',youText:"If the 'why' question genuinely matters to you — what would it take for you to follow it somewhere beyond science? Not asking you to believe. Just… what would make it worth looking?"},
+    {label:'The void proves there\'s something missing',sub:'Pressure the emptiness.',tag:'wrong',next:'t6_wrong_say',youText:"That emptiness you feel when you push the 'why' — that's not nothing. That's a shape. And every shape has something that fits it."},
+  ]},
+
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"I've never had someone explain it like that. I thought science and faith were opposites. But you're saying they ask different questions.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"That's… unexpected. I always assumed Christians had easy answers for everything. But He asked 'why have you forsaken me'?",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"I don't know. I've never really looked seriously. I think I assumed it was all answered. Maybe I haven't been fair to it.",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"Maybe. Or maybe I just haven't found the right framework yet. I'm not ready to call it God.",next:'outcome_away'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'How do you close?',choices:[
+    {label:'Science and faith — both point to awe',sub:'Invite them to keep following wonder.',tag:'best',next:'outcome_pray',youText:"Science opens the universe and says: look how vast, how precise, how staggering. Faith opens the same universe and says: someone made it for you, and knows your name. The awe is the same — the conclusions are different. Would you be willing to follow that question somewhere new?"},
+    {label:'Give them C.S. Lewis to read',sub:'A former atheist who asked the same questions.',tag:'good',next:'outcome_away',youText:"C.S. Lewis was a convinced atheist and Oxford professor — sharp as they come. He followed the questions you're asking all the way to faith. His book 'Mere Christianity' is worth an afternoon. You'd be a fair match for it."},
+    {label:'Leave the door open',sub:'Don\'t push — plant.',tag:'risky',next:'outcome_away_soft',youText:"I'm not asking you to decide anything today. Just don't close the question. The fact that it bothers you — that's worth following. I'll be praying for you."},
+    {label:'Science can\'t be the last word',sub:'Push for a decision.',tag:'wrong',next:'outcome_pushed',youText:"At some point you have to decide — is the 'why' a real question with a real answer, or is it nothing? Science can't tell you. You have to look somewhere else."},
+  ]},
+
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'Moment of Openness',quote:'"The heavens declare the glory of God; the skies proclaim the work of his hands." — Psalm 19:1',note:'You led with evidence, then shifted from the how to the why — the question science structurally can\'t answer. When they admitted the gap, you didn\'t push a decision. You invited them into wonder. That\'s the best apologetics move there is.',path:'Best Route · T1→T3:BEST→T4:BEST→T5:BEST→T6:BEST→T7:BEST ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'Intellectual Respect Earned',quote:'"Always be prepared to give an answer to everyone who asks you to give the reason for the hope that you have." — 1 Peter 3:15',note:'You engaged their intellect seriously. They left with C.S. Lewis\'s name and the knowledge that a brilliant atheist followed the same questions and arrived at faith. That seed may grow for years.',path:'Good Route · T7:GOOD'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'Door Left Open',quote:'"I planted the seed, Apollos watered it, but God has been making it grow." — 1 Corinthians 3:6',note:'They weren\'t ready — but they admitted the "why" question bothers them. You honored that without forcing a decision. A gentle close with prayer is often more powerful than a decisive argument.',path:'Soft Route · T7:RISKY'},
+  outcome_away_cold:{type:'outcome',outcome:'cold',icon:'🌫️',title:'Not Today',quote:'"A person\'s steps are directed by the LORD." — Proverbs 20:24',note:'They pushed back hard on fine-tuning arguments — those are interesting but easily countered with multiverse theory. Next time, lead with the "why" question before introducing cosmological arguments.',path:'Cold Route · T4:WRONG'},
+  outcome_shutdown:{type:'outcome',outcome:'shutdown',icon:'🚪',title:'Conversation Closed',quote:'"Do not give dogs what is sacred; do not throw your pearls to pigs." — Matthew 7:6',note:'Fine-tuning is a strong argument philosophically, but it opens a multiverse counter that\'s hard to close quickly. Lead with the "why" question first — it\'s personal and harder to deflect than cosmology.',path:'Shutdown · T4:WRONG'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'They Shut Down',quote:'"A gentle answer turns away wrath, but a harsh word stirs up anger." — Proverbs 15:1',note:'Framing faith as the only option feels like pressure, and pressure closes conversations. Try leading with curiosity — asking what the "why" question means to them before drawing conclusions.',path:'Pushed Away · T7:WRONG / T3:WRONG'},
+};
+
+let pathLog=[];
+let currentOutcome=null;
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className=`pip ${TIER_PIP[i]}`;
+    d.id=`pip-${i}`;
+    d.textContent=i;
+    t.appendChild(d);
+  }
+}
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const p=document.getElementById(`pip-${i}`);
+    if(!p)continue;
+    p.classList.remove('active','done');
+    if(i<tier)p.classList.add('done');
+    else if(i===tier)p.classList.add('active');
+  }
+}
+function addBubble(speaker,text,tier,src){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className=`bubble-row ${speaker}`;
+  const b=document.createElement('div');
+  b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  b.textContent=text;
+  if(src){
+    const badge=document.createElement('div');
+    badge.className='src-badge';
+    badge.textContent='📎 '+src;
+    b.appendChild(badge);
+  }
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function showTyping(){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className='bubble-row them';
+  row.id='typing-row';
+  const b=document.createElement('div');
+  b.className='bubble tb-1 typing-indicator';
+  b.innerHTML='<span></span><span></span><span></span>';
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function removeTyping(){
+  const r=document.getElementById('typing-row');
+  if(r)r.remove();
+}
+function showChoices(node){
+  const panel=document.getElementById('choices-panel');
+  const prompt=document.getElementById('choices-prompt');
+  const grid=document.getElementById('choices-grid');
+  panel.classList.remove('hidden');
+  prompt.textContent=node.prompt||'Choose your response...';
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+}
+function hideChoices(){
+  document.getElementById('choices-panel').classList.add('hidden');
+  document.getElementById('choices-grid').innerHTML='';
+}
+async function pick(node,choice,idx){
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===idx&&choice.tag){
+      b.classList.add(`tag-${choice.tag}`);
+      const tl=document.createElement('span');
+      tl.className='tag-label';
+      tl.textContent=choice.tag.toUpperCase();
+      b.querySelector('.choice-label').appendChild(tl);
+    }
+  });
+  if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);
+  await sleep(420);
+  hideChoices();
+  if(choice.youText){
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    await sleep(500);
+  }
+  await run(choice.next);
+}
+function showOutcome(node){
+  currentOutcome=node;
+  document.getElementById('out-icon').textContent=node.icon||'✓';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');
+  document.getElementById('outcome-screen').classList.add('visible');
+}
+function readConversation(){
+  document.getElementById('outcome-screen').classList.remove('visible');
+}
+async function run(id){
+  const node=nodes[id];
+  if(!node){console.warn('Missing node:',id);return;}
+  updateTrack(node.tier||1);
+  if(node.type==='say'){
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(900);
+      removeTyping();
+    }
+    addBubble(node.speaker,node.text,node.tier||1,node.src||null);
+    await sleep(node.speaker==='them'?400:300);
+    if(node.next)await run(node.next);
+  } else if(node.type==='pick'){
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(300);
+    showOutcome(node);
+  }
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function restartGame(){
+  document.getElementById('chat-area').innerHTML='';
+  document.getElementById('outcome-screen').classList.remove('visible');
+  hideChoices();
+  pathLog=[];
+  currentOutcome=null;
+  buildTrack();
+  run('start');
+}
+buildTrack();
+run('start');
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree F · "That's Just Your Belief"</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:22px;height:22px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}
+.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}
+.bubble-row.you{justify-content:flex-start}
+.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s;position:relative}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}
+.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}
+.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}
+.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}
+.tag-risky{border-color:#e3b341!important;background:#2d2008!important}
+.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}
+.tag-good .tag-label{background:#0d2040;color:#58a6ff}
+.tag-risky .tag-label{background:#4a3000;color:#e3b341}
+.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}
+.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}
+.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}
+.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}
+.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}
+.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree F · "That's Just Your Belief"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7'];
+const MAX_TIERS=7;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Jesus loves you.",next:'t2_pick'},
+
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+    {label:'"That\'s just your belief"',sub:'All beliefs are equally valid.',next:'t2a'},
+    {label:'"All religions lead to God"',sub:'Every path is the same destination.',next:'t2b'},
+    {label:'"You can\'t know absolute truth"',sub:'Truth is relative — nobody has it all.',next:'t2c'},
+    {label:'"Religion hurt me personally"',sub:'Bad experience shut the door.',next:'t2d'},
+  ]},
+
+  t2a:{type:'say',speaker:'them',tier:2,text:"That's just your belief. I'm glad it works for you, but my truth is different from your truth. Everyone has their own path.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"I'm spiritual, not religious. All religions basically teach the same thing — love, kindness. They all lead to the same God anyway.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"Nobody can know absolute truth. Certainty is arrogant. I try to stay open — no one religion has all the answers.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"I grew up in the church and got badly hurt. People there were judgmental and hypocritical. I want nothing to do with it.",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'The C.S. Lewis trilemma',sub:'Lord, Liar, or Lunatic — no fourth option.',tag:'best',next:'t3_best_say',youText:"C.S. Lewis pointed out something striking — Jesus didn't just teach good morals. He claimed to be God, to forgive sins, to judge the world. That leaves three options: He was lying, He was insane, or He was telling the truth. 'Good teacher' isn't on the list."},
+    {label:'Test the historical claim',sub:'Christianity rises or falls on a datable fact.',tag:'good',next:'t3_good_say',youText:"What makes Christianity different from other beliefs is that it's built on a historical event — the resurrection. Paul says in 1 Corinthians: if Christ was not raised, our faith is worthless. It's falsifiable. Did He rise, or didn't He?"},
+    {label:'Ask what hurt them',sub:'Acknowledge the wound first.',tag:'risky',next:'t3_risky_say',youText:"That sounds like it really hurt. I'm sorry. Can I ask — what happened? Because whatever they did, it wasn't what Jesus taught. He was hardest on religious hypocrites."},
+    {label:'All paths can\'t both be right',sub:'Logic doesn\'t allow total contradiction.',tag:'wrong',next:'t3_wrong_say',youText:"But they can't all lead to God — they contradict each other. Islam says Jesus wasn't crucified. Christianity says the crucifixion is everything. Those can't both be true."},
+  ]},
+
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"Okay, but maybe He was just a wise teacher who got misquoted over centuries. The disciples exaggerated.",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"But that's just the Christian claim. Every religion says theirs is the real one.",next:'t4_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"A leader in the church verbally abused my family. Used Scripture to control people. I can't look at a Bible without feeling sick.",next:'t4_hurt_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"But maybe 'God' is just a word for something bigger that transcends the details. The details don't matter.",next:'outcome_away'},
+
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'24,600 manuscripts can\'t all lie',sub:'Textual integrity is the best-documented in antiquity.',tag:'best',next:'t4_best_say',youText:"The New Testament has over 24,600 manuscript copies — more than any ancient document by far. Homer's Iliad has 643. Julius Caesar's writings have 10. The manuscript tradition for the Gospels was set long before any council could alter it. Exaggeration claims don't survive the evidence.",src:'McDowell · Evidence That Demands a Verdict'},
+    {label:'Early disciples died rather than recant',sub:'Propagandists don\'t die for a known lie.',tag:'good',next:'t4_good_say',youText:"Every one of the apostles except John was killed for claiming the resurrection was real. People die for things they believe are true. Nobody goes to torture defending a story they made up."},
+    {label:'What would it take to reconsider?',sub:'Open the epistemological door.',tag:'risky',next:'t4_risky_say',youText:"What would it take for you to honestly consider whether Christianity might be true? Not asking you to decide — just to look. What would be convincing to you?"},
+    {label:'Relativism refutes itself',sub:'Is the claim "no absolute truth" absolutely true?',tag:'wrong',next:'t4_wrong_say',youText:"'No one can know absolute truth' — is that statement absolutely true? Because if it is, it refutes itself. Every claim to relativism makes an absolute claim by accident."},
+  ]},
+
+  t4_hurt_pick:{type:'pick',tier:4,prompt:'How do you respond to their wound?',choices:[
+    {label:'Jesus condemned religious abuse',sub:'Matthew 23 — He was fiercer than you.',tag:'best',next:'t4_hurt_best_say',youText:"What that leader did — Jesus condemned it more harshly than anyone. Matthew 23: 'Woe to you, scribes and Pharisees, hypocrites!' He reserved his fiercest words for people who used religion to control others. What happened to your family was a betrayal of everything Jesus stood for."},
+    {label:'The church failed you — Jesus didn\'t',sub:'Separate the institution from the person.',tag:'good',next:'t4_hurt_good_say',youText:"The church hurt you. That's real. But Jesus isn't the institution. The same Jesus who said 'suffer the little children to come to me' is the one I'm talking about — not the man who abused his position."},
+    {label:'Tell me more if you want',sub:'Let them lead.',tag:'risky',next:'t4_hurt_risky_say',youText:"I don't want to rush past that. If you want to tell me more, I'm here. I'm not going to try to argue you back to church. I just want to understand."},
+    {label:'God isn\'t responsible for human failure',sub:'Distance God from the abuser.',tag:'wrong',next:'t4_hurt_wrong_say',youText:"That's a human failing — not God's. People misuse religion. That doesn't make the religion false."},
+  ]},
+
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"Okay, there are a lot of manuscripts. But they could all be copies of one wrong original.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"Maybe they really believed it. But that just means they were sincere, not that it was true.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"I don't know. I've never really been given a good reason to look. Something that actually addresses my doubts, not just 'have faith.'",next:'t5_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"Okay, fine, maybe relativism has a flaw. But that doesn't mean Christianity is right.",next:'t5_pick'},
+
+  t4_hurt_best_say:{type:'say',speaker:'them',tier:4,text:"I've never heard it put that way. I always thought Christians defended each other no matter what. You're saying Jesus would have been on my side?",next:'t5_hurt_pick'},
+  t4_hurt_good_say:{type:'say',speaker:'them',tier:4,text:"That's… a separation I've never made. Jesus versus the people who claim to follow Him.",next:'t5_hurt_pick'},
+  t4_hurt_risky_say:{type:'say',speaker:'them',tier:4,text:"Actually… yeah. It went on for years. My mom still hasn't recovered. I blamed God because I didn't know who else to blame.",next:'t5_hurt_pick'},
+  t4_hurt_wrong_say:{type:'say',speaker:'them',tier:4,text:"I know it intellectually. But it still feels like God let it happen.",next:'t5_hurt_pick'},
+
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Multiple independent sources agree',sub:'Matthew, Mark, Luke, John wrote independently.',tag:'best',next:'t5_best_say',youText:"The four Gospels were written independently in different places, for different audiences. They agree on the core: crucifixion, burial, empty tomb, appearances. Independent corroboration is exactly what historians require to establish a historical event."},
+    {label:'Sincerity + evidence = different case',sub:'They had more than belief — they had witnesses.',tag:'good',next:'t5_good_say',youText:"You're right — sincerity alone doesn't prove truth. But the disciples weren't just sincere. They claimed to have seen the risen Jesus, touched Him, eaten with Him. They went from hiding in fear to publicly declaring the resurrection in the same city where it happened, where anyone could refute them."},
+    {label:'Jesus addressed doubt openly',sub:'He showed Thomas His wounds.',tag:'risky',next:'t5_risky_say',youText:"The disciple Thomas refused to believe without evidence. Jesus didn't condemn him — He showed up and said 'put your finger here, see my hands.' Honest doubt is welcomed in Christianity. 'Have faith and stop asking' is not what Jesus taught."},
+    {label:'The resurrection is falsifiable',sub:'Just produce the body.',tag:'wrong',next:'t5_wrong_say',youText:"If someone had produced Jesus's body, Christianity would have ended in Jerusalem in 33 AD. The Roman and Jewish authorities had every reason to do exactly that. They couldn't."},
+  ]},
+
+  t5_hurt_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'God felt forsaken too — on the cross',sub:'Matthew 27:46 — Jesus cried out in abandonment.',tag:'best',next:'t5_hurt_best_say',youText:"On the cross, Jesus cried out — 'My God, my God, why have you forsaken me?' He knows what it feels like to be abandoned by the Father. He's not a distant God who watched your family suffer unmoved. He entered that suffering."},
+    {label:'Lament is in the Bible',sub:'The Psalms are full of "where are you, God?"',tag:'good',next:'t5_hurt_good_say',youText:"The Psalms are full of 'where are you, God?' Psalm 22, Psalm 88 — raw, anguished. Blaming God is in Scripture. That's not faithlessness — the biblical writers did the same thing. You're more in the tradition than you think."},
+    {label:'You can be angry at God and right',sub:'That anger is honest.',tag:'risky',next:'t5_hurt_risky_say',youText:"Being angry at God isn't the same as rejecting Him. Job was furious at God and God called him righteous. Your anger might be the most honest prayer you've ever prayed."},
+    {label:'Healing may still be possible',sub:'God can restore what was taken.',tag:'wrong',next:'t5_hurt_wrong_say',youText:"I believe God can restore what was taken from your family. He's a God of redemption. What was done doesn't have to be the final word."},
+  ]},
+
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"That's… actually a stronger case than I thought. Independent accounts. I hadn't considered that.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"In the same city — where people could just say 'we have the body.' That's a point I haven't heard before.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"Wait — he showed Thomas the wounds? That's very different from 'just believe.' Why don't Christians talk about that more?",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"They could have sealed the tomb, guarded it — and lost the body anyway. I don't know what to do with that.",next:'t6_pick'},
+
+  t5_hurt_best_say:{type:'say',speaker:'them',tier:5,text:"He said that? 'Why have you forsaken me'? That's… I always pictured Jesus as calm and in control. Not abandoned.",next:'t6_hurt_pick'},
+  t5_hurt_good_say:{type:'say',speaker:'them',tier:5,text:"I didn't know that was in there. I thought the Bible was all about praise and gratitude. Not anger.",next:'t6_hurt_pick'},
+  t5_hurt_risky_say:{type:'say',speaker:'them',tier:5,text:"I've been so angry for so long. I thought it meant I wasn't a believer. But maybe… I was praying and didn't know it.",next:'t6_hurt_pick'},
+  t5_hurt_wrong_say:{type:'say',speaker:'them',tier:5,text:"I want to believe that. I just don't know if I can trust Him again.",next:'t6_hurt_pick'},
+
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'The evidence invites a look',sub:'Not asking for faith — just fairness.',tag:'best',next:'t6_best_say',youText:"I'm not asking you to believe today. I'm asking you to give the evidence a fair hearing — the same standard you'd apply to any historical question. Read the Gospels like a skeptic. Ask what the most honest explanation of the empty tomb is. Just follow it."},
+    {label:'C.S. Lewis — atheist who looked honestly',sub:'He followed the evidence and didn\'t expect what he found.',tag:'good',next:'t6_good_say',youText:"C.S. Lewis was one of the most rigorous minds of the 20th century. An atheist. He started with exactly your objections and followed them honestly — and ended up writing 'I believe in Christianity as I believe the sun has risen: not only because I see it, but because by it I see everything else.'"},
+    {label:'What do you do with the empty tomb?',sub:'Press the historical fact.',tag:'risky',next:'t6_risky_say',youText:"Here's the historical question: everyone in Jerusalem in 33 AD knew where Jesus was buried. Three days later, the tomb was empty. The disciples said He rose. The authorities said the disciples stole the body. Both sides agree the tomb was empty. What's your explanation?"},
+    {label:'Your honest doubt honors God',sub:'Don\'t tie up this too fast.',tag:'wrong',next:'t6_wrong_say',youText:"Look — God isn't threatened by your questions. He can handle your skepticism. The question is whether you're willing to honestly look."},
+  ]},
+
+  t6_hurt_pick:{type:'pick',tier:6,prompt:'How do you close with them?',choices:[
+    {label:'Jesus wept at Lazarus\'s tomb',sub:'He didn\'t explain grief — He grieved.',tag:'best',next:'t6_hurt_best_say',youText:"When Lazarus died — John 11:35, the shortest verse in the Bible: 'Jesus wept.' He didn't give a theological explanation of death. He stood at the tomb and cried. That's the God I'm talking about — not the one who handed out suffering from a distance."},
+    {label:'You don\'t have to re-enter the church',sub:'Jesus and the institution are separate.',tag:'good',next:'t6_hurt_good_say',youText:"You don't have to go back to that building or that community. Faith isn't membership. It's a relationship with Jesus, and that relationship doesn't require the people who hurt you."},
+    {label:'Take as long as you need',sub:'Don\'t force a decision.',tag:'risky',next:'t6_hurt_risky_say',youText:"I don't want to push you toward anything. You've been through real damage. But if it would ever mean something — Jesus didn't just observe your pain from heaven. He came in and took it."},
+    {label:'Forgiveness could free you',sub:'Not for them — for you.',tag:'wrong',next:'t6_hurt_wrong_say',youText:"I know forgiveness is the last thing you want to hear. But it wouldn't be for him — it would be for you. Unforgiveness chains you to the person who hurt you."},
+  ]},
+
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"A fair hearing. That seems… reasonable. I've never actually read the Gospels as a skeptic. I've just rejected Christianity wholesale.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"Lewis started where I am? An atheist? And he ended up a believer? That's not the story I thought Christians told.",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"The Romans and Jews had every reason to produce the body and they didn't. That's… a real historical problem for the skeptic position, isn't it.",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"Maybe. I'm just not sure I'm ready to go looking. It feels too close.",next:'outcome_away_soft'},
+
+  t6_hurt_best_say:{type:'say',speaker:'them',tier:6,text:"He wept. I never… I thought Jesus was always strong and calm. He wept at death. He knows what it's like.",next:'t7_hurt_pick'},
+  t6_hurt_good_say:{type:'say',speaker:'them',tier:6,text:"That's actually freeing to hear. That I could have Jesus without having to go back to that place.",next:'t7_hurt_pick'},
+  t6_hurt_risky_say:{type:'say',speaker:'them',tier:6,text:"He came in and took it. That's… that's a different picture than the one I had.",next:'t7_hurt_pick'},
+  t6_hurt_wrong_say:{type:'say',speaker:'them',tier:6,text:"I know you're right. But I'm not there yet. Not today.",next:'outcome_away'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'How do you close?',choices:[
+    {label:'Invite them to read one Gospel',sub:'Just Mark — 45 minutes, like a skeptic.',tag:'best',next:'outcome_pray',youText:"Read the Gospel of Mark — it takes 45 minutes. Read it like a journalist: what claims are being made, what evidence is offered, what's the most honest explanation of what you read. You don't need faith to start. Just honesty."},
+    {label:'Give them C.S. Lewis',sub:'Mere Christianity — a fair intellectual encounter.',tag:'good',next:'outcome_away',youText:"If you're willing to give one book an honest read — Mere Christianity by C.S. Lewis. Written by a former atheist for skeptics. If after that you still disagree, you've at least engaged the strongest version of the argument."},
+    {label:'Leave with a question',sub:'Don\'t close it — open it.',tag:'risky',next:'outcome_away_soft',youText:"I won't push. But I'll leave you with one question to sit with: if the resurrection happened — what would that change? Just sit with it. I'll be praying for you."},
+    {label:'Press for a decision',sub:'Ask directly.',tag:'wrong',next:'outcome_pushed',youText:"Based on everything we've talked about — do you believe it's possible that Jesus really rose from the dead?"},
+  ]},
+
+  t7_hurt_pick:{type:'pick',tier:7,prompt:'How do you close?',choices:[
+    {label:'Offer to pray with them right now',sub:'No strings, no pressure.',tag:'best',next:'outcome_pray',youText:"Would you let me pray for you right now? Not asking you to believe anything. Just — if there's a God who wept at Lazarus's tomb, let's see if He shows up for you too. Right here."},
+    {label:'You don\'t have to decide today',sub:'The door stays open.',tag:'good',next:'outcome_away',youText:"You don't need to decide anything today. The fact that you're still willing to talk about it after everything you've been through — that matters. Take your time. I'll be praying for you."},
+    {label:'Jesus is still there',sub:'The wound doesn\'t have the last word.',tag:'risky',next:'outcome_away_soft',youText:"Whatever happened in that church — Jesus hasn't moved. He's not that leader. He never was. Whenever you're ready, He'll still be there."},
+    {label:'The church owes you an apology',sub:'Validate the wrong.',tag:'wrong',next:'outcome_away',youText:"The church failed you. What happened was wrong. Someone in that church owes you a real apology. That's not faith — that's just justice."},
+  ]},
+
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'A Real Opening',quote:'"Come to me, all you who are weary and burdened, and I will give you rest." — Matthew 11:28',note:'You navigated either the intellectual or the emotional barrier beautifully. For the skeptic: leading with the Lewis trilemma and historical evidence built credibility before asking for commitment. For the wounded: you led with acknowledgment of pain, not argument. Both paths honored the person in front of you.',path:'Best Route · T7 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'Seed Planted',quote:'"I planted the seed, Apollos watered it, but God has been making it grow." — 1 Corinthians 3:6',note:'They left with something solid: a book, a question, or a moment of honest acknowledgment. That\'s a win. Most people need multiple conversations before they\'re ready to look seriously.',path:'Good Route · T7:GOOD'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'Door Left Open',quote:'"The Spirit and the bride say, \'Come!\'" — Revelation 22:17',note:'They weren\'t ready — but they weren\'t closed either. A gentle close without pressure honors their process. The question you left them with may stay with them far longer than any argument.',path:'Soft Route'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'Respectful Exit',quote:'"But in your hearts revere Christ as Lord." — 1 Peter 3:15',note:'They weren\'t hostile — just not ready. You validated their experience. That matters. Don\'t underestimate a conversation where someone feels heard.',path:'Respectful Exit'},
+  outcome_shutdown:{type:'outcome',outcome:'shutdown',icon:'🚪',title:'Conversation Ended',quote:'"A wise man\'s heart guides his mouth." — Proverbs 16:23',note:'Relativism-refuting logic is satisfying intellectually but can feel aggressive in conversation. It may have closed the door. Next time, try asking what they personally believe before challenging the framework.',path:'Shutdown · T3:WRONG'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'Pushed Too Hard',quote:'"A gentle answer turns away wrath." — Proverbs 15:1',note:'Pressing for a decision too early can feel like a sales pitch. People who are intellectually open often shut down when they sense pressure. Try ending with a question or a recommendation rather than a direct ask.',path:'Pushed Away · T7:WRONG'},
+};
+
+let pathLog=[];
+let currentOutcome=null;
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className=`pip ${TIER_PIP[i]}`;
+    d.id=`pip-${i}`;
+    d.textContent=i;
+    t.appendChild(d);
+  }
+}
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const p=document.getElementById(`pip-${i}`);
+    if(!p)continue;
+    p.classList.remove('active','done');
+    if(i<tier)p.classList.add('done');
+    else if(i===tier)p.classList.add('active');
+  }
+}
+function addBubble(speaker,text,tier,src){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className=`bubble-row ${speaker}`;
+  const b=document.createElement('div');
+  b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  b.textContent=text;
+  if(src){
+    const badge=document.createElement('div');
+    badge.className='src-badge';
+    badge.textContent='📎 '+src;
+    b.appendChild(badge);
+  }
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function showTyping(){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className='bubble-row them';
+  row.id='typing-row';
+  const b=document.createElement('div');
+  b.className='bubble tb-1 typing-indicator';
+  b.innerHTML='<span></span><span></span><span></span>';
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function removeTyping(){
+  const r=document.getElementById('typing-row');
+  if(r)r.remove();
+}
+function showChoices(node){
+  const panel=document.getElementById('choices-panel');
+  const prompt=document.getElementById('choices-prompt');
+  const grid=document.getElementById('choices-grid');
+  panel.classList.remove('hidden');
+  prompt.textContent=node.prompt||'Choose your response...';
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+}
+function hideChoices(){
+  document.getElementById('choices-panel').classList.add('hidden');
+  document.getElementById('choices-grid').innerHTML='';
+}
+async function pick(node,choice,idx){
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===idx&&choice.tag){
+      b.classList.add(`tag-${choice.tag}`);
+      const tl=document.createElement('span');
+      tl.className='tag-label';
+      tl.textContent=choice.tag.toUpperCase();
+      b.querySelector('.choice-label').appendChild(tl);
+    }
+  });
+  if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);
+  await sleep(420);
+  hideChoices();
+  if(choice.youText){
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    await sleep(500);
+  }
+  await run(choice.next);
+}
+function showOutcome(node){
+  currentOutcome=node;
+  document.getElementById('out-icon').textContent=node.icon||'✓';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');
+  document.getElementById('outcome-screen').classList.add('visible');
+}
+function readConversation(){
+  document.getElementById('outcome-screen').classList.remove('visible');
+}
+async function run(id){
+  const node=nodes[id];
+  if(!node){console.warn('Missing node:',id);return;}
+  updateTrack(node.tier||1);
+  if(node.type==='say'){
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(900);
+      removeTyping();
+    }
+    addBubble(node.speaker,node.text,node.tier||1,node.src||null);
+    await sleep(node.speaker==='them'?400:300);
+    if(node.next)await run(node.next);
+  } else if(node.type==='pick'){
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(300);
+    showOutcome(node);
+  }
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function restartGame(){
+  document.getElementById('chat-area').innerHTML='';
+  document.getElementById('outcome-screen').classList.remove('visible');
+  hideChoices();
+  pathLog=[];
+  currentOutcome=null;
+  buildTrack();
+  run('start');
+}
+buildTrack();
+run('start');
+</script>
+</body>
+</html>

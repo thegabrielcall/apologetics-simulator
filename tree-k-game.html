@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree K · I'm Muslim</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:20px;height:20px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+.tp8.done,.tp8.active{border-color:#d46aaa;color:#d46aaa;background:#260d1a}
+.tp9.done,.tp9.active{border-color:#6ad4d4;color:#6ad4d4;background:#0d2626}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}.bubble-row.you{justify-content:flex-start}.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}.tb-8{background:#2e1a24;border:1.5px solid #d46aaa;color:#e8b8d4}.tb-9{background:#1a2e2e;border:1.5px solid #6ad4d4;color:#b8e8e8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}.typing-indicator span:nth-child(2){animation-delay:.15s}.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}.tag-risky{border-color:#e3b341!important;background:#2d2008!important}.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}.tag-good .tag-label{background:#0d2040;color:#58a6ff}.tag-risky .tag-label{background:#4a3000;color:#e3b341}.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree K · "I'm Muslim"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-8','tb-9'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp8','tp9'];
+const MAX_TIERS=9;
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Have you heard the Good News?",next:'t2_pick'},
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+    {label:'Jesus was just a prophet',sub:'I respect Jesus — but He wasn\'t God.',next:'t2a'},
+    {label:'The Bible was corrupted',sub:'The original Gospel — Injil — was changed.',next:'t2b'},
+    {label:'Christians worship three Gods',sub:'That\'s polytheism — Islam is pure monotheism.',next:'t2c'},
+    {label:'Muhammad was the final prophet',sub:'Jesus was one of many — not the last or the greatest.',next:'t2d'},
+  ]},
+  t2a:{type:'say',speaker:'them',tier:2,text:"I actually respect Jesus — Isa — as a great prophet. But Christians made him into God, which he never claimed to be. Islam gives him his proper place.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"The original Gospel given to Jesus — the Injil — was corrupted by his followers over centuries. What you have now is not what he taught. The Quran preserved the original message.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"Christians worship the Father, the Son, and the Holy Spirit — three gods. Islam recognizes one God, undivided. 'God is One' — the Quran is clear. The Trinity is polytheism.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"God sent many prophets — Adam, Abraham, Moses, Jesus, and finally Muhammad, the seal of the prophets. Jesus was part of a long line. Muhammad completed the revelation.",next:'t3_pick'},
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'The manuscripts predate Nicaea by centuries',sub:'The text was established before any council could alter it.',tag:'best',next:'t3_best_say',youText:"The Gospel manuscripts are the best-documented text in antiquity — over 24,600 copies, dating back within decades of the originals, long before the Council of Nicaea in 325 AD. The Council didn't write the Gospels — it recognized manuscripts that already existed. The corruption argument doesn't survive the manuscript evidence.",src:'McDowell · Evidence That Demands a Verdict'},
+    {label:'We actually agree on Jesus — we differ on who He is',sub:'Build on common ground first.',tag:'good',next:'t3_good_say',youText:"Here's what's interesting: we agree on more about Jesus than most people realize. We both believe He was born of a virgin, performed miracles, and will return at the end of time. The question we differ on is: who exactly was He? That's the most important question in both our faiths."},
+    {label:'What does the Quran say Jesus did?',sub:'Use Islamic scripture to establish Jesus\'s uniqueness.',tag:'risky',next:'t3_risky_say',youText:"Let me ask you something from within Islam — the Quran says Jesus was born of a virgin, performed miracles, was taken to heaven without dying, and will return at the end of time. No other prophet in the Quran gets that treatment. What do you make of that?"},
+    {label:'The Trinity isn\'t polytheism',sub:'Three persons, one essence.',tag:'wrong',next:'t3_wrong_say',youText:"The Trinity isn't three gods — it's one God in three persons. The Father, Son, and Holy Spirit share one divine essence. Christians are strict monotheists. The Trinitarian formula is about the nature of the one God, not multiple gods."},
+  ]},
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"But even if the manuscripts are old, they could have been corrupted early — before most of those copies were made. You can't guarantee the originals were accurate.",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"We agree Jesus was born of a virgin and will return — yes. But agreeing on the miracles doesn't mean he was God. Prophets perform miracles. Moses parted the sea. That didn't make Moses God.",next:'t4_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"Jesus in the Quran is unique, I agree. He's called the Messiah, Word of God, a Spirit from God. But even that uniqueness doesn't make him divine — it makes him the greatest prophet.",next:'t4_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"Three persons sharing one essence — that's still three. You're dividing God. Islam says God is absolutely one — no divisions, no distinctions, no partners.",next:'t4_pick'},
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'Multiple independent manuscripts rule out early corruption',sub:'Four Gospels written independently — all agree on the core.',tag:'best',next:'t4_best_say',youText:"Early corruption theory requires all four independent Gospel writers — different locations, different audiences, different dates — to have made the same changes in the same direction. Textual criticism shows over 99.5% consistency across thousands of manuscripts from multiple independent traditions. That's not what systematic corruption looks like."},
+    {label:'Jesus claimed things no other prophet claimed',sub:'Prophets speak for God — Jesus claimed to be God.',tag:'good',next:'t4_good_say',youText:"The difference isn't in the miracles — you're right that prophets perform miracles. The difference is in the claims. Moses said 'Thus says the LORD.' Jesus said 'I AM the way, the truth, and the life' — using the same divine name God used to Moses. No prophet before or after made that claim."},
+    {label:'"Word of God" in Islamic theology is uncreated',sub:'The Word has the same nature as God.',tag:'risky',next:'t4_risky_say',youText:"In Islamic theology, the Quran is the Word of God — and it's uncreated, eternal, having the same nature as God. The Gospel of John calls Jesus the Word of God. If the Word is divine in Islamic theology of the Quran, what does it mean that the same title is given to Jesus?"},
+    {label:'Tawhid and the Trinity aren\'t as opposed as they seem',sub:'Christian monotheism is absolute.',tag:'wrong',next:'t4_wrong_say',youText:"Islamic Tawhid — the absolute unity of God — and Christian monotheism actually share the same foundation. Christians affirm one God. The question is whether the one God can be known in three ways of being, not whether there are three gods."},
+  ]},
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"99.5% consistency — that's more than I assumed. But the other 0.5% could contain significant changes. Critical differences.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"'I AM' — the divine name from Exodus. Jesus used that. I've heard this before. The question is whether Jesus actually said that or whether it was added by his followers.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"The Word as uncreated — that's a deep point. Islamic theologians have wrestled with it. If Jesus is the Word and the Word is uncreated… that's a tension in Islamic theology I've thought about.",next:'t5_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"Three ways of being — that still makes God multiple. Even if they share one essence, you're still describing internal divisions in God. That's incompatible with true unity.",next:'t5_pick'},
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'The variants don\'t affect any core doctrine',sub:'No manuscript variant changes who Jesus claimed to be.',tag:'best',next:'t5_best_say',youText:"The textual variants scholars have found — the 0.5% — are things like spelling differences, word order, a verse added in some traditions. Not a single core doctrine of Christianity depends on a disputed passage. No variant changes Jesus's claims, His death, His resurrection. The critical content is unaffected."},
+    {label:'The earliest manuscripts have it — Mark was written within 35 years',sub:'Within living memory of eyewitnesses.',tag:'good',next:'t5_good_say',youText:"Mark's Gospel was written within 35 years of the crucifixion — within living memory of people who were there. If the 'I AM' claims were invented, anyone who'd known Jesus could have denied them publicly, in the same city where it happened. Nobody produced a competing account saying 'he never said that.'"},
+    {label:'The Word of God tension is real in Islamic scholarship',sub:'Honor the depth of their tradition.',tag:'risky',next:'t5_risky_say',youText:"You've encountered the real tension in Islamic theology. The Mutazilites said the Quran was created to preserve God's absolute unity. The mainstream Ashari school said it was uncreated — and accepted the tension. Christians face the same tension with Jesus as Word. Different traditions, same deep question."},
+    {label:'The Quran refers to Jesus with titles given to no other prophet',sub:'Ruhullah — Spirit of God.',tag:'wrong',next:'t5_wrong_say',youText:"In the Quran, Jesus is called Ruhullah — the Spirit of God — a title given to no other prophet. Not Abraham, not Moses, not Muhammad. If Spirit of God is a prophetic title given to many, why does only Jesus get it?"},
+  ]},
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"No variant changes the core claims of Jesus. That's actually a stronger argument for textual integrity than I expected. The critical passages are consistent.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"Written within living memory — and no one produced a rebuttal. In the same city where it happened. That's the argument for the Quran's authenticity too — it was memorized from the beginning, no time for corruption. You're using the same standard I use.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"The same deep question in different traditions. I've always assumed Christianity had easy answers and Islam had the harder theology. You're suggesting they share a deep common question.",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"Ruhullah — yes, it's unique. But unique doesn't mean divine. He's honored above others, yes. But he's still a created being in Islamic theology.",next:'t6_pick'},
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'You\'re using the same standard as the Quran\'s preservation',sub:'Oral transmission + manuscripts + living witnesses.',tag:'best',next:'t6_best_say',youText:"Exactly — and you've named the standard yourself. The Quran's preservation is defended by saying it was transmitted from the beginning through multiple chains. The New Testament has that AND manuscript evidence going back to within decades. Both traditions take transmission seriously. The Gospel's standard is the same — or stronger."},
+    {label:'Jesus claimed to be the final revelation — not a link in a chain',sub:'His claim is exclusive.',tag:'good',next:'t6_good_say',youText:"In the Gospel of John, Jesus says 'I am the way, the truth, and the life — no one comes to the Father except through me.' That's an exclusive final claim — not 'I'm one of many' but 'I'm the door.' That claim either makes Him a liar or the final word — not a link in a prophetic chain."},
+    {label:'Both faiths converge on the same question',sub:'Who is Jesus — the hinge of both.',tag:'risky',next:'t6_risky_say',youText:"What's fascinating is that Jesus is the hinge point of both faiths. Islam takes Him seriously enough to include Him, honor Him, expect His return. Christianity centers everything on Him. We're both in deep conversation with the same person. The question of who He is — that's where we split."},
+    {label:'The seal of the prophets — but Jesus will return',sub:'In Islamic eschatology, Jesus returns at the end.',tag:'wrong',next:'t6_wrong_say',youText:"In Islamic eschatology, at the end of time, Jesus returns — not Muhammad. Jesus descends, defeats the Antichrist, establishes justice. If Muhammad is the seal of the prophets, why does Jesus return and not Muhammad?"},
+  ]},
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"Same standard or stronger. I've dismissed the Gospels without applying the same scrutiny I apply to defend the Quran. That's inconsistent of me.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"'I am the way — no one comes to the Father except through me.' That's an exclusive final claim. That can't coexist with him being one prophet among many. Either he said it and it's true, or the Gospel is false. No middle ground.",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"Both faiths in deep conversation with the same person. The split is on who He is. That's the question I've never been asked to sit with directly — not 'is Christianity right' but 'who is Jesus specifically.'",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"Jesus returns in Islamic eschatology — yes. He defeats the Dajjal, establishes the Sharia. Some say that role honors Muhammad's legacy rather than superseding it. But I'll admit it's worth thinking about.",next:'t7_pick'},
+  t7_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Apply the same scrutiny to the Gospels you apply to the Quran',sub:'Intellectual consistency.',tag:'best',next:'t7_best_say',youText:"That intellectual consistency you named — I'd just ask you to apply it. Read the Gospel of Mark the way you'd approach a historical text. Same scrutiny you'd give any source. 45 minutes. What does this person actually say and do? Not filtered through centuries of debate — just the source."},
+    {label:'The exclusive claim demands a response',sub:'It can\'t both be true.',tag:'good',next:'t7_good_say',youText:"Here's the thing: 'I am the only way to the Father' and 'Jesus was one of many prophets' can't both be true. One of us is wrong about the most important claim Jesus made. That's worth examining carefully — not dismissing."},
+    {label:'Who is Jesus — that\'s the question both faiths put in front of you',sub:'Honor the shared focus.',tag:'risky',next:'t7_risky_say',youText:"Both our traditions honor Jesus and argue about Him. That convergence is remarkable. The question He forces — 'who do you say that I am?' — He asked it of His disciples, and it's the question He still asks. What would you say?"},
+    {label:'Ask about the return of Jesus',sub:'In Islamic eschatology, Jesus judges — Muhammad doesn\'t.',tag:'wrong',next:'t7_wrong_say',youText:"In Islamic eschatology, when Jesus returns, He prays behind the Mahdi — but He kills the Antichrist. He breaks the crosses. He judges. That's a role given to no other prophet in Islamic tradition. Why would the final prophet be secondary to Jesus at the final hour?"},
+  ]},
+  t7_best_say:{type:'say',speaker:'them',tier:7,text:"Read Mark like a historical text. Same scrutiny. Not filtered through tradition — just the source. I've read the Quran that way. I should give the Gospels the same fair hearing.",next:'t8_pick'},
+  t7_good_say:{type:'say',speaker:'them',tier:7,text:"'I am the only way' and 'one of many' can't both be true. We can't both be right about this. I've been avoiding confronting that. One of these claims is wrong.",next:'t8_pick'},
+  t7_risky_say:{type:'say',speaker:'them',tier:7,text:"'Who do you say that I am?' He asked it then and it's still asked. I've always answered 'prophet.' But I've never examined whether that answer can actually hold the weight of everything the Gospels and the Quran both say about him.",next:'t8_pick'},
+  t7_wrong_say:{type:'say',speaker:'them',tier:7,text:"Jesus's role in Islamic eschatology is remarkable. I've thought about it. Most Muslims focus on the Mahdi. But Jesus's role is unique. I don't have a fully satisfying answer for why.",next:'t8_pick'},
+  t8_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'Will you read Mark this week?',sub:'One specific commitment.',tag:'best',next:'t8_best_say',youText:"Would you be willing to read the Gospel of Mark this week — 45 minutes, as a historical text, the same standard you'd apply to anything? Not to convert, not to abandon your faith. Just to give the most important question in both our traditions a fair hearing at the source."},
+    {label:'The resurrection is the hinge',sub:'If it happened, everything changes.',tag:'good',next:'t8_good_say',youText:"Everything turns on one question: did Jesus rise from the dead? Islam says He was taken to heaven without dying. The Gospels say He died and rose. If the resurrection happened — every claim He made stands. If it didn't — it changes nothing about the prophetic chain. That's the factual question at the center."},
+    {label:'"Who do you say I am?" is the question',sub:'Don\'t force an answer — leave it open.',tag:'risky',next:'t8_risky_say',youText:"That question He asked — 'who do you say that I am?' — deserves a serious examination, not a traditional answer. I'm not asking you to abandon Islam. I'm asking whether you've examined the question as carefully as it deserves. He seems to demand that."},
+    {label:'The Gospel of John and the Quran on Jesus',sub:'Both give Him extraordinary titles.',tag:'wrong',next:'t8_wrong_say',youText:"The Gospel of John calls Jesus 'the Word' and 'the Light of the world.' The Quran calls Him 'the Word of God' and 'the Messiah.' Two revelations, 600 years apart, using the same extraordinary titles. That's remarkable convergence on who He is."},
+  ]},
+  t8_best_say:{type:'say',speaker:'them',tier:8,text:"Read Mark this week as a historical text. I've given less scrutiny to the Gospels than they deserve. I believe in honest investigation — I should apply it here.",next:'t9_pick'},
+  t8_good_say:{type:'say',speaker:'them',tier:8,text:"The resurrection — that's the factual hinge. Islam says He didn't die. Christianity says He died and rose. We can't both be right. Examining the historical evidence for the resurrection is the honest thing to do.",next:'t9_pick'},
+  t8_risky_say:{type:'say',speaker:'them',tier:8,text:"'Who do you say that I am?' deserves a serious examination, not a traditional answer. I believe in serious examination. I should give this question the same seriousness I give everything else.",next:'t9_pick'},
+  t8_wrong_say:{type:'say',speaker:'them',tier:8,text:"Both revelations — remarkable convergence on the same extraordinary person. That convergence itself demands examination. Why would two independent traditions point to the same figure with the same elevated titles?",next:'t9_pick'},
+  t9_pick:{type:'pick',tier:9,prompt:'How do you close?',choices:[
+    {label:'Same standard — read the source',sub:'Apply the Quran\'s standard to the Gospels.',tag:'best',next:'outcome_pray',youText:"The standard you hold the Quran to — transmitted faithfully, preserved from the beginning — I ask you to apply to the Gospels. 24,600 manuscripts, written within living memory, no corruption of the core. Read Mark this week, the way you'd read any source. I'll be praying for you."},
+    {label:'The resurrection is worth examining',sub:'Specific historical question.',tag:'good',next:'outcome_away',youText:"The resurrection — either it happened or it didn't. That question deserves honest investigation. Look at the five facts secular historians accept: the death, the burial, the empty tomb, the appearances, the disciples' transformation. Then decide. I'll be praying for you."},
+    {label:'Leave with the question open',sub:'"Who do you say that I am?"',tag:'risky',next:'outcome_away_soft',youText:"I'll leave you with the question He asked: 'Who do you say that I am?' Take it seriously. Not the traditional answer — the honest one, after real examination. He asked that of people who already thought they knew. I'll be praying for you."},
+    {label:'Challenge to debate',sub:'Too aggressive for interfaith.',tag:'wrong',next:'outcome_pushed',youText:"At some point you have to decide: is Jesus a prophet in a chain, or is He who He claimed to be? You can't hold both positions forever."},
+  ]},
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'Honest Inquiry Opened',quote:'"You will seek me and find me when you seek me with all your heart." — Jeremiah 29:13',note:'You navigated the most theologically sophisticated objection in apologetics with respect and rigor. Key moves: you used the same preservation standard for the Gospels as for the Quran, you built on Islamic honors for Jesus before pressing the key distinction, and you pointed to the resurrection as the specific factual hinge. Excellent.',path:'Best Route · T9 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'A Fair Examination Started',quote:'"Faith comes from hearing the message." — Romans 10:17',note:'Pointing them to the resurrection as a historical question — not a faith question — is exactly the right move with a Muslim who values intellectual rigor. They left with a specific, falsifiable question to investigate.',path:'Good Route · T9:GOOD'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'The Question Left Open',quote:'"Who do you say I am?" — Matthew 16:15',note:'Leaving the question open is exactly right in interfaith conversations. You can\'t close a Muslim to their tradition in one conversation — but you can leave them with the right question. That question has been working on people for 2,000 years.',path:'Soft Route'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'Conversation Closed',quote:'"A gentle answer turns away wrath." — Proverbs 15:1',note:'Interfaith conversations require patience above all else. Forcing a decision violates the respect the conversation requires. This is a multi-session discussion — plant seeds, don\'t demand fruit.',path:'Pushed Away'},
+};
+let pathLog=[];
+function buildTrack(){const t=document.getElementById('tier-track');t.innerHTML='';for(let i=1;i<=MAX_TIERS;i++){const d=document.createElement('div');d.className=`pip ${TIER_PIP[i]}`;d.id=`pip-${i}`;d.textContent=i;t.appendChild(d);}}
+function updateTrack(tier){for(let i=1;i<=MAX_TIERS;i++){const p=document.getElementById(`pip-${i}`);if(!p)continue;p.classList.remove('active','done');if(i<tier)p.classList.add('done');else if(i===tier)p.classList.add('active');}}
+function addBubble(speaker,text,tier,src){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className=`bubble-row ${speaker}`;const b=document.createElement('div');b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;b.textContent=text;if(src){const badge=document.createElement('div');badge.className='src-badge';badge.textContent='📎 '+src;b.appendChild(badge);}row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function showTyping(){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className='bubble-row them';row.id='typing-row';const b=document.createElement('div');b.className='bubble tb-1 typing-indicator';b.innerHTML='<span></span><span></span><span></span>';row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function removeTyping(){const r=document.getElementById('typing-row');if(r)r.remove();}
+function showChoices(node){const panel=document.getElementById('choices-panel');const prompt=document.getElementById('choices-prompt');const grid=document.getElementById('choices-grid');panel.classList.remove('hidden');prompt.textContent=node.prompt||'Choose...';grid.innerHTML='';node.choices.forEach((c,i)=>{const btn=document.createElement('button');btn.className='choice-btn';btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;btn.onclick=()=>pick(node,c,i);grid.appendChild(btn);});}
+function hideChoices(){document.getElementById('choices-panel').classList.add('hidden');document.getElementById('choices-grid').innerHTML='';}
+async function pick(node,choice,idx){const btns=document.querySelectorAll('.choice-btn');btns.forEach((b,i)=>{b.disabled=true;if(i===idx&&choice.tag){b.classList.add(`tag-${choice.tag}`);const tl=document.createElement('span');tl.className='tag-label';tl.textContent=choice.tag.toUpperCase();b.querySelector('.choice-label').appendChild(tl);}});if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);await sleep(420);hideChoices();if(choice.youText){addBubble('you',choice.youText,node.tier,choice.src||null);await sleep(500);}await run(choice.next);}
+function showOutcome(node){document.getElementById('out-icon').textContent=node.icon||'✓';document.getElementById('out-title').textContent=node.title||'';document.getElementById('out-quote').textContent=node.quote||'';document.getElementById('out-note').textContent=node.note||'';document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');document.getElementById('outcome-screen').classList.add('visible');}
+function readConversation(){document.getElementById('outcome-screen').classList.remove('visible');}
+async function run(id){const node=nodes[id];if(!node){console.warn('Missing:',id);return;}updateTrack(node.tier||1);if(node.type==='say'){if(node.speaker==='them'){showTyping();await sleep(900);removeTyping();}addBubble(node.speaker,node.text,node.tier||1,node.src||null);await sleep(node.speaker==='them'?400:300);if(node.next)await run(node.next);}else if(node.type==='pick'){showChoices(node);}else if(node.type==='outcome'){await sleep(300);showOutcome(node);}}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function restartGame(){document.getElementById('chat-area').innerHTML='';document.getElementById('outcome-screen').classList.remove('visible');hideChoices();pathLog=[];buildTrack();run('start');}
+buildTrack();run('start');
+</script>
+</body>
+</html>

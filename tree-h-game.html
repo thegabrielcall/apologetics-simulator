@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree H · If God Is Good, Why Evil?</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:20px;height:20px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}
+.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+.tp8.done,.tp8.active{border-color:#d46aaa;color:#d46aaa;background:#260d1a}
+.tp9.done,.tp9.active{border-color:#6ad4d4;color:#6ad4d4;background:#0d2626}
+.tp10.done,.tp10.active{border-color:#d4906a;color:#d4906a;background:#261a0d}
+.tp11.done,.tp11.active{border-color:#9a8fd4;color:#9a8fd4;background:#160d26}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}
+.bubble-row.you{justify-content:flex-start}
+.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tb-8{background:#2e1a24;border:1.5px solid #d46aaa;color:#e8b8d4}
+.tb-9{background:#1a2e2e;border:1.5px solid #6ad4d4;color:#b8e8e8}
+.tb-10{background:#2e221a;border:1.5px solid #d4906a;color:#e8ccb8}
+.tb-11{background:#1e1a2e;border:1.5px solid #9a8fd4;color:#ccc8e8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s;position:relative}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}
+.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}
+.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}
+.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}
+.tag-risky{border-color:#e3b341!important;background:#2d2008!important}
+.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}
+.tag-good .tag-label{background:#0d2040;color:#58a6ff}
+.tag-risky .tag-label{background:#4a3000;color:#e3b341}
+.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}
+.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}
+.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}
+.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}
+.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}
+.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree H · "If God Is Good, Why Does Evil Exist?"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-8','tb-9','tb-10','tb-11'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp8','tp9','tp10','tp11'];
+const MAX_TIERS=11;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Jesus died for your sins.",next:'t2_pick'},
+
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+    {label:'The logic of evil disproves God',sub:'Omnipotent + all-good = no evil. But evil exists.',next:'t2a'},
+    {label:'Children suffer — God watches',sub:'A loving God would intervene.',next:'t2b'},
+    {label:'I prayed and lost someone anyway',sub:'Personal grief closed the door.',next:'t2c'},
+    {label:'The Holocaust ends the argument',sub:'Six million Jews — where was God?',next:'t2d'},
+  ]},
+
+  t2a:{type:'say',speaker:'them',tier:2,text:"If God is all-powerful and perfectly good, evil shouldn't exist. But it does. Either He can't stop it — which makes Him weak — or He won't — which makes Him evil. Neither version is God.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"Children get cancer. Babies are born with terrible conditions. If God is watching that and doing nothing, I want nothing to do with Him.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"I prayed every night for months. My father was dying and I begged God to heal him. He died anyway. After that, I stopped believing God was listening.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"Six million Jews. Innocent people in gas chambers, children. If a loving God exists and allowed that, then either He wasn't there or He didn't care. I can't worship that.",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'God didn\'t observe — He entered suffering',sub:'The cross is God\'s answer to theodicy.',tag:'best',next:'t3_best_say',youText:"Christianity's answer to suffering isn't an explanation — it's a Person. God didn't watch from a distance. He came in. Jesus on the cross, crying out 'My God, why have you forsaken me?' — that's God inside the worst suffering, not above it."},
+    {label:'Free will requires real consequences',sub:'Love without freedom isn\'t love.',tag:'good',next:'t3_good_say',youText:"If God wanted to make creatures capable of love, they had to have genuine freedom. And genuine freedom means the real ability to choose evil. A God who constantly intervened to prevent every bad choice wouldn't have created free beings — He'd have created puppets."},
+    {label:'First — I\'m so sorry',sub:'Acknowledge the loss before the argument.',tag:'risky',next:'t3_risky_say',youText:"I'm so sorry. I'm not going to try to answer that with a theological argument right now. Losing someone you love and feeling like your prayers weren't heard — that's one of the hardest places a person can be. Can I ask what happened?"},
+    {label:'Evil proves a moral standard exists',sub:'C.S. Lewis: to call something evil, you need a standard.',tag:'wrong',next:'t3_wrong_say',youText:"To even call something evil, you need a moral standard — and a moral standard needs a source. C.S. Lewis noticed this: his very argument against God was actually evidence for one. You can't call the Holocaust 'wrong' in any objective sense without a moral lawgiver."},
+  ]},
+
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"But God being in the suffering doesn't explain why He let it happen. He could have stopped it and didn't.",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"Okay, free will explains human evil. But what about natural disasters? Children born with disease? That's not human choice.",next:'t4_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"My father was 58. Healthy his whole life. Diagnosed with cancer in January, died in October. I never understood why a good God would do that.",next:'t4_grief_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"That feels like a semantic trick. I don't need God to know the Holocaust was wrong. Basic human empathy tells me that.",next:'t4_pick'},
+
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'Job — God let suffering happen and still was there',sub:'The oldest theodicy in Scripture.',tag:'best',next:'t4_best_say',youText:"The book of Job is the oldest book in the Bible, and it exists entirely to sit inside your question. Job loses everything — children, health, wealth. God doesn't explain why. He just shows up in the whirlwind. His answer is His presence, not an explanation."},
+    {label:'Natural evil is philosophically separate',sub:'Moral evil vs. natural evil.',tag:'good',next:'t4_good_say',youText:"Philosophers separate moral evil — caused by human choice — from natural evil — disease, earthquakes. Free will defends the first. Natural evil is harder, and Christians don't pretend otherwise. But suffering that strips everything away is also, in Scripture, the place where the deepest faith grows."},
+    {label:'The cross is God absorbing the full weight',sub:'He doesn\'t exempt Himself.',tag:'risky',next:'t4_risky_say',youText:"What distinguishes Christianity from every other religion is this: God doesn't watch from above and say 'endure it.' He came down and took the worst of it. The cross is God absorbing suffering rather than deflecting it. That doesn't remove the mystery — but it changes who God is in it."},
+    {label:'Alvin Plantinga\'s free will defense',sub:'Greatest philosopher of religion, 20th century.',tag:'wrong',next:'t4_wrong_say',youText:"Alvin Plantinga — widely considered the greatest philosopher of religion in the 20th century — showed formally that an all-good, all-powerful God and free creatures is not a logical contradiction. The 'problem of evil' as a logical disproof doesn't hold."},
+  ]},
+
+  t4_grief_pick:{type:'pick',tier:4,prompt:'How do you respond to their grief?',choices:[
+    {label:'God didn\'t cause the cancer — He was there',sub:'Presence, not explanation.',tag:'best',next:'t4_grief_best_say',youText:"God didn't give your father cancer. Death entered the world — in Christian theology — when things broke. But here's what I know: Jesus wept at Lazarus's tomb. He didn't explain death. He stood there and cried. Whatever you prayed — He heard that."},
+    {label:'Unanswered prayer isn\'t absent God',sub:'Sometimes the answer is the suffering itself.',tag:'good',next:'t4_grief_good_say',youText:"The hardest part of faith is that 'no' or 'not yet' are also answers. That doesn't make the pain less real. But the silence you experienced — it might not have been God absent. The disciples thought the cross was God's absence too."},
+    {label:'Was there anything in those months?',sub:'Ask gently.',tag:'risky',next:'t4_grief_risky_say',youText:"In those ten months — was there anything? Any moment of peace, any comfort that surprised you? I'm asking because sometimes God is present in suffering in ways we only see in hindsight."},
+    {label:'Doubt after loss is completely normal',sub:'Don\'t rush to theology.',tag:'wrong',next:'t4_grief_wrong_say',youText:"What you felt — that abandonment after his death — that's one of the most common spiritual experiences a person goes through. C.S. Lewis described it exactly after his wife Joy died. Your doubt after loss is honest, not faithless."},
+  ]},
+
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"So Job is the Bible admitting God doesn't explain suffering — He just shows up. That's actually more honest than I expected.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"Faith growing through suffering — that sounds like a convenient story. But I'll grant that the Bible doesn't pretend it's easy.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"'God absorbed it rather than deflecting it' — that phrase is sticking with me. I never thought of the cross as God suffering with us.",next:'t5_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"Okay, free will isn't a logical contradiction. But that doesn't mean God is good. Just that He's possible.",next:'t5_pick'},
+
+  t4_grief_best_say:{type:'say',speaker:'them',tier:4,text:"He wept. I know that verse but I never thought about it as God actually feeling the weight of death. Not just observing it.",next:'t5_grief_pick'},
+  t4_grief_good_say:{type:'say',speaker:'them',tier:4,text:"The cross as God's absence… I've never heard someone say the disciples felt that. I always assumed they understood what was happening.",next:'t5_grief_pick'},
+  t4_grief_risky_say:{type:'say',speaker:'them',tier:4,text:"There was one night — about a week before he died. He had this peace. Completely calm. He said he wasn't afraid. I didn't know what to do with that.",next:'t5_grief_pick'},
+  t4_grief_wrong_say:{type:'say',speaker:'them',tier:4,text:"Lewis lost his wife? I didn't know that. He wrote about it?",next:'t5_grief_pick'},
+
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Job\'s story ends in restoration',sub:'Not explanation — presence and then restoration.',tag:'best',next:'t5_best_say',youText:"Job's story ends not with an explanation but with restoration — and a deeper intimacy with God than he had before the suffering. The question wasn't answered; it was transcended. That's not a satisfying intellectual answer, but it's the honest biblical one."},
+    {label:'Jesus asked "Why" too',sub:'Matthew 27:46 — from inside the worst moment.',tag:'good',next:'t5_good_say',youText:"On the cross, Jesus quoted Psalm 22 — 'My God, my God, why have you forsaken me?' He was asking your question from inside the worst pain a human has ever experienced. He's not above the question. He's inside it."},
+    {label:'The resurrection transforms the question',sub:'Death isn\'t the end — that changes everything.',tag:'risky',next:'t5_risky_say',youText:"If the resurrection happened — if death isn't the final word — then every question about suffering gets reframed. Not answered — reframed. Your father's death at 58 isn't erased. But if it's not the last line of his story, it means something different."},
+    {label:'Suffering built the greatest Christians',sub:'Paul, Corrie ten Boom, Dostoevsky.',tag:'wrong',next:'t5_wrong_say',youText:"The Christians whose faith shaped history were almost universally forged in suffering. Paul was imprisoned, flogged, shipwrecked. Corrie ten Boom survived Auschwitz and emerged with unshakeable faith. Suffering doesn't disprove God — it seems to be where He does His deepest work."},
+  ]},
+
+  t5_grief_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'That peace was real — and it came from somewhere',sub:'Don\'t dismiss the moment.',tag:'best',next:'t5_grief_best_say',youText:"That peace your father had — where do you think it came from? Not from the diagnosis, not from the prognosis. Peace like that, at the end, in someone who was afraid before — that's not chemistry. That's something else. Something that met him there."},
+    {label:'The disciples fled — then came back transformed',sub:'The cross looked like abandonment.',tag:'good',next:'t5_grief_good_say',youText:"When Jesus was crucified, every disciple ran. They thought it was over. Then three days later something happened that turned terrified men into people willing to die for what they'd seen. Your confusion after your father's death — the disciples had it worse, and they came back."},
+    {label:'Lewis wrote "A Grief Observed"',sub:'Raw, honest, furious — then something changed.',tag:'risky',next:'t5_grief_risky_say',youText:"C.S. Lewis wrote 'A Grief Observed' after his wife died. It starts with rage at God — 'a door slammed in your face.' Then something happened. He didn't get answers. He got presence. It's 60 pages and it might be the most honest thing ever written about grief and faith."},
+    {label:'God promises presence in the valley',sub:'Psalm 23:4 — not around the valley, through it.',tag:'wrong',next:'t5_grief_wrong_say',youText:"Psalm 23 — 'even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me.' Not around the valley. Through it. That's what was promised. Not rescue from pain, but presence inside it."},
+  ]},
+
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"Not answered but transcended. That's a strange comfort, but it's more honest than 'God has a plan.' I've never liked that phrase.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"Jesus asked it. From the cross. That changes the picture for me — He's not immune to the question. He's in it.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"If death isn't the end — the whole question changes. I've never been willing to seriously consider that the resurrection might have actually happened.",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"Maybe. But saying suffering leads to growth feels like a way of justifying evil after the fact. I still don't know why God didn't just make it easier.",next:'t6_pick'},
+
+  t5_grief_best_say:{type:'say',speaker:'them',tier:5,text:"I've thought about that a lot. That peace came from nowhere I can identify. He wasn't that kind of man — he was anxious his whole life. Then suddenly… not.",next:'t6_grief_pick'},
+  t5_grief_good_say:{type:'say',speaker:'them',tier:5,text:"They ran — then came back willing to die. I never thought about their fear first. I always pictured them as certain.",next:'t6_grief_pick'},
+  t5_grief_risky_say:{type:'say',speaker:'them',tier:5,text:"He started with rage. That's exactly where I am. What changed for him?",next:'t6_grief_pick'},
+  t5_grief_wrong_say:{type:'say',speaker:'them',tier:5,text:"Through the valley — not around it. That's not the sermon version I've always heard. I always heard God protects you from bad things.",next:'t6_grief_pick'},
+
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'C.S. Lewis — from atheist through grief to faith',sub:'He hated the "God has a plan" answer too.',tag:'best',next:'t6_best_say',youText:"C.S. Lewis started as an atheist, came to faith through logic, then had his faith shattered by his wife's death — and came out the other side with something deeper. He wrote that the 'God has a plan' answer is an insult to genuine grief. He wanted the same thing you want: honest engagement with the worst."},
+    {label:'Viktor Frankl — meaning survives Auschwitz',sub:'Human dignity held even in the camps.',tag:'good',next:'t6_good_say',youText:"Viktor Frankl survived Auschwitz. He wrote that even in the camps, those who held onto meaning — something beyond survival — outlasted those who didn't. He wasn't a Christian, but his witness is this: even at the extreme edge of human evil, something in the human spirit reaches beyond it."},
+    {label:'The cross is God\'s answer to the Holocaust',sub:'Not an explanation — solidarity.',tag:'risky',next:'t6_risky_say',youText:"Elie Wiesel wrote about a hanging in Auschwitz — a child dying slowly on the gallows — and someone asking 'where is God?' His answer: 'He is here — hanging on this gallows.' Whether or not Wiesel meant it theologically, it's the Christian answer. God doesn't explain the worst evil. He enters it."},
+    {label:'Heaven redeems — not cancels — suffering',sub:'Romans 8:18.',tag:'wrong',next:'t6_wrong_say',youText:"Romans 8:18 — 'our present sufferings are not worth comparing with the glory that will be revealed in us.' Not that the suffering didn't happen. Not that it was okay. But that what comes after is of a different category. Eternity reframes time."},
+  ]},
+
+  t6_grief_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'That peace was a visitation',sub:'Don\'t explain it away.',tag:'best',next:'t6_grief_best_say',youText:"I think your father met someone at the end. The peace that passes understanding — that phrase in Philippians — it doesn't mean peaceful circumstances. It means peace that has no rational explanation given the circumstances. That's what you saw. That's not nothing."},
+    {label:'What Lewis found — presence, not answers',sub:'"A Grief Observed" ending.',tag:'good',next:'t6_grief_good_say',youText:"What Lewis found wasn't that the questions were answered. It was that God was present anyway. He said he kept looking for God in his grief and finding a door slammed in his face — and then realized the door was his own clenched fist. The grief had locked him inside himself."},
+    {label:'Your grief is a form of love',sub:'C.S. Lewis: grief is the price of love.',tag:'risky',next:'t6_grief_risky_say',youText:"Lewis also wrote: 'Grief is the price we pay for love.' The fact that you're still in pain about your father — that's not a problem. That's loyalty. A God who created love and didn't create grief would have created something smaller than love."},
+    {label:'You could still talk to your father\'s God',sub:'Direct invitation.',tag:'wrong',next:'t6_grief_wrong_say',youText:"Whatever your father found at the end — you could ask for the same thing. Not because you believe it. Just: 'If you're there, show me what you showed him.' What do you have to lose?"},
+  ]},
+
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"Lewis hated 'God has a plan' too? I thought all Christians just defaulted to that. He sounds like someone who took the question seriously.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"Frankl's witness is hard to dismiss. He was there. And his conclusion wasn't that meaning was impossible — it was that it was essential.",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"'Where is God? Hanging on the gallows.' That's… I've never heard a Christian say something like that. That's not a comfortable answer.",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"Eternity reframing time — that only works if eternity is real. And that's the question.",next:'t7_pick'},
+
+  t6_grief_best_say:{type:'say',speaker:'them',tier:6,text:"Peace that has no rational explanation given the circumstances. That's exactly what it was. He had every reason to be terrified. And he wasn't.",next:'t7_grief_pick'},
+  t6_grief_good_say:{type:'say',speaker:'them',tier:6,text:"The clenched fist. I've been doing that. Locking myself inside the grief. Maybe I've been fighting the wrong thing.",next:'t7_grief_pick'},
+  t6_grief_risky_say:{type:'say',speaker:'them',tier:6,text:"Grief as the price of love. I've never thought of it as something I'm giving him. I've only thought of it as something being done to me.",next:'t7_grief_pick'},
+  t6_grief_wrong_say:{type:'say',speaker:'them',tier:6,text:"What do I have to lose? I've already lost what I was most afraid to lose. So… maybe.",next:'t7_grief_pick'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Would you be willing to read Job?',sub:'30 minutes. The oldest theodicy.',tag:'best',next:'t7_best_say',youText:"The book of Job is 30 minutes to read. It's ancient, and it refuses to give you easy answers. It sits inside your question longer and more honestly than any philosopher I know. It doesn't resolve the problem of evil — it lives inside it. Would you be willing to give it that?"},
+    {label:'The resurrection changes the stakes',sub:'If it happened, suffering isn\'t the last word.',tag:'good',next:'t7_good_say',youText:"Here's the hinge: if Jesus really rose from the dead, then death and suffering are real — but they're not final. If He didn't, then your argument wins and we should all go home. Everything turns on that one historical question. Is it worth examining?"},
+    {label:'What would it take to look again?',sub:'Not asking for belief — just openness.',tag:'risky',next:'t7_risky_say',youText:"I'm not asking you to resolve this today. But — given everything we've talked about — is there anything that would make you willing to look again? Not at the church, not at doctrine. At Jesus specifically."},
+    {label:'God owes us an explanation',sub:'Press the entitlement argument.',tag:'wrong',next:'outcome_pushed',youText:"I think God does owe us some kind of accounting for suffering. And I think at the end, there will be one. But right now, the question is whether you're willing to walk toward it."},
+  ]},
+
+  t7_grief_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Would you try talking to God about your father?',sub:'Not asking for belief — just a conversation.',tag:'best',next:'t7_grief_best_say',youText:"Would you be willing to try something? Not believing. Just talking — to whoever or whatever your father met at the end. Tell them what you're angry about. Tell them what you lost. See what happens. You're not committing to anything."},
+    {label:'Your father\'s peace is worth following',sub:'That evidence came from his life.',tag:'good',next:'t7_grief_good_say',youText:"You had a front-row seat to something that doesn't have a secular explanation. Your father, afraid his whole life, peaceful at the end — that's evidence. Not proof. But evidence worth following. What if what he found is findable?"},
+    {label:'Grief and faith can coexist',sub:'You don\'t have to resolve it to re-engage.',tag:'risky',next:'t7_grief_risky_say',youText:"You don't have to have it resolved to re-engage with faith. You can be angry at God and still be in relationship with Him. The Psalms are proof of that. The 'why' and the 'I trust you anyway' aren't opposites — they're the same cry."},
+    {label:'Your father found something — you can too',sub:'Direct invitation.',tag:'wrong',next:'outcome_pray',youText:"What your father found — that peace, that lack of fear — it's available to you. Not after you've figured it out. Right now, in the middle of the grief. Would you be willing to ask for it?"},
+  ]},
+
+  t7_best_say:{type:'say',speaker:'them',tier:7,text:"Job refuses to give easy answers. That's… actually why I stopped reading the Bible. Too many easy answers. Maybe I stopped too soon.",next:'t8_pick'},
+  t7_good_say:{type:'say',speaker:'them',tier:7,text:"Everything turns on the resurrection. I've never actually examined that question seriously. I just assumed it was a metaphor.",next:'t8_pick'},
+  t7_risky_say:{type:'say',speaker:'them',tier:7,text:"Jesus specifically. Not the church, not doctrine. Just… who He was. I could look at that.",next:'t8_pick'},
+  t7_grief_best_say:{type:'say',speaker:'them',tier:7,text:"Talking to God about my father. Not 'prayer' in the churchy sense. Just… telling Him what I lost. That feels different. I could try that.",next:'t8_grief_pick'},
+  t7_grief_good_say:{type:'say',speaker:'them',tier:7,text:"What he found is findable. I've never thought about his death as evidence of anything except absence. But what if it was evidence of presence?",next:'t8_grief_pick'},
+  t7_grief_risky_say:{type:'say',speaker:'them',tier:7,text:"Angry and in relationship. I didn't know that was allowed. I thought I had to resolve the anger first.",next:'t8_grief_pick'},
+
+  t8_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'Job\'s final word: "Now my eyes have seen you"',sub:'Not explanation — encounter.',tag:'best',next:'t8_best_say',youText:"The end of Job: God speaks from the whirlwind — and Job's response isn't 'now I understand.' It's 'before I heard of you; now my eyes have seen you.' The question wasn't answered. But Job encountered something that made the question secondary. That's the move."},
+    {label:'The resurrection has 5 core historical facts',sub:'Even secular scholars accept the baseline.',tag:'good',next:'t8_good_say',youText:"Even secular historians accept five facts: Jesus died by crucifixion, was buried, His disciples believed they saw Him risen, Paul and James — former skeptics — converted after seeing Him, and the tomb was empty. The debate isn't about the facts — it's about how to explain them."},
+    {label:'Start with the Gospel of Mark',sub:'Written within 35 years. Direct, no frills.',tag:'risky',next:'t8_risky_say',youText:"If you're going to look at Jesus specifically, start with Mark. It was written earliest, within living memory of events, and it reads like a journalist's account — not poetry, not theology. It's 16 chapters. 45 minutes. Read it like you'd read a court document."},
+    {label:'Jesus was the ultimate innocent sufferer',sub:'He crystallizes the theodicy question.',tag:'wrong',next:'t8_wrong_say',youText:"If you're going to wrestle with the problem of evil, you have to wrestle with Jesus — the most innocent person who ever lived, dying the worst death the Romans had. His story is the sharpest version of your question. And the resurrection is the answer inside the question."},
+  ]},
+
+  t8_grief_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'No conditions on that conversation',sub:'You can be furious and still start.',tag:'best',next:'t8_grief_best_say',youText:"That conversation doesn't have to be reverent. It doesn't have to be kind. You can say: 'I'm furious that you took him. I'm furious I didn't get more time. I'm furious you let him suffer.' Start there. The honest prayer is always better than the polished one."},
+    {label:'Your father\'s peace might be waiting for you',sub:'Not reserved just for the dying.',tag:'good',next:'t8_grief_good_say',youText:"That peace you saw in your father — it's not a deathbed privilege. Paul wrote from prison: 'The peace of God, which transcends all understanding, will guard your hearts and your minds.' The same peace. In worse circumstances than you're in now."},
+    {label:'The Psalms of lament are permission slips',sub:'Psalm 22, 88 — raw and real.',tag:'risky',next:'t8_grief_risky_say',youText:"Psalm 88 ends with 'darkness is my closest friend.' No resolution. No uplift. That's in the Bible. God included the prayer that doesn't get answered in Scripture. That's permission: you can come to God with everything you actually feel, not what you think you're supposed to feel."},
+    {label:'Let me pray for you right now',sub:'An offer, not a push.',tag:'wrong',next:'outcome_pray',youText:"Can I pray for you right now? Not for faith, not for theology. Just for what your father had — that peace that has no explanation. You don't have to believe it'll work. Just let me."},
+  ]},
+
+  t8_best_say:{type:'say',speaker:'them',tier:8,text:"'Now my eyes have seen you.' The question became secondary when he encountered something. That's different from being answered.",next:'t9_pick'},
+  t8_good_say:{type:'say',speaker:'them',tier:8,text:"Five facts secular historians accept. The empty tomb is the baseline, and both sides have to explain it. I've never framed it that way.",next:'t9_pick'},
+  t8_risky_say:{type:'say',speaker:'them',tier:8,text:"Like a court document. I could do that. 45 minutes, no prior commitments. I've given books more time for less reason.",next:'t9_pick'},
+  t8_wrong_say:{type:'say',speaker:'them',tier:8,text:"Jesus — the innocent sufferer — and the resurrection as the answer inside the question. I've never heard the cross framed as God's answer to theodicy before.",next:'t9_pick'},
+
+  t8_grief_best_say:{type:'say',speaker:'them',tier:8,text:"Start furious. Don't perform it. That actually feels possible. I've been too angry to pray, but maybe anger IS the prayer.",next:'t9_grief_pick'},
+  t8_grief_good_say:{type:'say',speaker:'them',tier:8,text:"Peace that transcends understanding — in worse circumstances. Not just for the dying. That's available now?",next:'t9_grief_pick'},
+  t8_grief_risky_say:{type:'say',speaker:'them',tier:8,text:"'Darkness is my closest friend' — and that's in the Bible. I've been carrying that sentence for years without knowing it was already there.",next:'t9_grief_pick'},
+
+  t9_pick:{type:'pick',tier:9,prompt:'How do you respond?',choices:[
+    {label:'The encounter precedes the understanding',sub:'Start the investigation from honest curiosity.',tag:'best',next:'t9_best_say',youText:"Job didn't understand — he encountered. The disciples didn't fully understand the resurrection — they saw it and were transformed. You don't need to resolve the theodicy question to start the investigation. You just need enough honest curiosity to look at the evidence."},
+    {label:'The empty tomb has no good secular explanation',sub:'Three main theories all fail.',tag:'good',next:'t9_good_say',youText:"Three theories try to explain the empty tomb without resurrection: the disciples stole the body — but why die for a lie? The authorities stole it — but why not produce it? Jesus didn't really die — but Roman soldiers were expert crucifiers. None of these hold up under examination."},
+    {label:'Give Mark 45 minutes',sub:'That\'s less than a movie.',tag:'risky',next:'t9_risky_say',youText:"45 minutes is less than a movie. You've been carrying this question for years — isn't it worth 45 minutes to read the most direct account of the man at the center of it? Not to decide. Just to actually look at what He said and did."},
+    {label:'The cross absorbed the worst evil',sub:'And came out the other side.',tag:'wrong',next:'t9_wrong_say',youText:"The worst evil humanity has ever produced — corruption, torture, injustice, betrayal — all of it converged on one person at the cross. And three days later He walked out. If that happened, then no evil has the final word. Not the Holocaust, not your father's cancer, not anything."},
+  ]},
+
+  t9_grief_pick:{type:'pick',tier:9,prompt:'How do you respond?',choices:[
+    {label:'Start the prayer right now',sub:'In the conversation.',tag:'best',next:'outcome_pray',youText:"You don't need to be anywhere special. You don't need different words. You could start right now — in your head, if you want. 'If you're there — I'm angry and I'm broken and I miss him. Show me what you showed him.' That's enough. That's the start."},
+    {label:'You don\'t have to decide anything',sub:'Just stay open.',tag:'good',next:'outcome_away',youText:"You don't have to decide whether you believe today. Just stay open. Don't close the question. Your father's peace came from somewhere — and you have the same access to that source he did. Take your time. I'll be praying for you."},
+    {label:'Read Psalm 23 tonight',sub:'One psalm. Five minutes. See what happens.',tag:'risky',next:'outcome_away_soft',youText:"Would you read Psalm 23 tonight? Not because it'll answer everything. Just because it was probably the last thing your father heard, or something like it. Five minutes. See if it means anything."},
+    {label:'The peace is available — ask for it',sub:'Direct but gentle.',tag:'wrong',next:'outcome_pray',youText:"What your father had is available. The peace that passed his understanding — it's not reserved for the dying. You could ask for it right now. 'If you're real, give me what you gave him.' One sentence. See what happens."},
+  ]},
+
+  t9_best_say:{type:'say',speaker:'them',tier:9,text:"Honest curiosity to look at the evidence. Not resolution first, investigation first. That's a lower bar than I've been setting.",next:'t10_pick'},
+  t9_good_say:{type:'say',speaker:'them',tier:9,text:"None of the three alternative theories hold up. I've heard them but never pushed on them. The empty tomb is the historical core and it has to be explained.",next:'t10_pick'},
+  t9_risky_say:{type:'say',speaker:'them',tier:9,text:"Less than a movie for something I've been arguing about for years without reading. I can't justify not reading it.",next:'t10_pick'},
+  t9_wrong_say:{type:'say',speaker:'them',tier:9,text:"If it happened. Everything rests on that. I think I need to actually examine whether it did.",next:'t10_pick'},
+
+  t10_pick:{type:'pick',tier:10,prompt:'How do you respond?',choices:[
+    {label:'Will you read Mark this week?',sub:'One commitment, not a conversion.',tag:'best',next:'t10_best_say',youText:"I want to ask for one specific thing — not belief, not church attendance. Will you read the Gospel of Mark this week? 45 minutes. Like a skeptic examining evidence. Just that, nothing more."},
+    {label:'The question you\'re asking is the right one',sub:'The best apologetics honors the question.',tag:'good',next:'t10_good_say',youText:"The fact that evil troubles you — that's not a reason to reject God. It might be evidence of one. You're furious that things aren't as they should be. That instinct — that things should be better — needs a source. Where does 'should' come from, in a universe without a standard?"},
+    {label:'Start smaller — just ask',sub:'No commitment needed.',tag:'risky',next:'t10_risky_say',youText:"If reading is too much — start even smaller. Tonight, just say out loud: 'If you're there, I want to know.' That's it. One sentence to an empty room. I've seen that sentence start things I couldn't have predicted."},
+    {label:'This conversation has moved something',sub:'Name the shift.',tag:'wrong',next:'t10_wrong_say',youText:"Something's moved in this conversation — I can feel it. You started with a closed case and you're ending with genuine questions. That's not nothing. That's actually the beginning."},
+  ]},
+
+  t10_best_say:{type:'say',speaker:'them',tier:10,text:"Read Mark this week. 45 minutes. Not a conversion — an examination. I can commit to that.",next:'t11_pick'},
+  t10_good_say:{type:'say',speaker:'them',tier:10,text:"'Should' needs a source. I've never thought about where my moral outrage comes from. If evil is really wrong — not just unpleasant — there has to be a standard.",next:'t11_pick'},
+  t10_risky_say:{type:'say',speaker:'them',tier:10,text:"'If you're there, I want to know.' One sentence to an empty room. I've said worse things to less possible addresses.",next:'t11_pick'},
+  t10_wrong_say:{type:'say',speaker:'them',tier:10,text:"Something has moved. I came in with a closed argument and I'm ending with open questions. I don't know what to do with that yet.",next:'t11_pick'},
+
+  t11_pick:{type:'pick',tier:11,prompt:'How do you close?',choices:[
+    {label:'The open question is the beginning',sub:'Walk them to the door, not through it.',tag:'best',next:'outcome_pray',youText:"That open question is the beginning. Not the end. The people who've found the deepest faith almost universally started where you are — with genuine questions that forced them to actually look. I'll be praying for you. Would you be willing to let me?"},
+    {label:'Follow the question wherever it leads',sub:'Honor the honest search.',tag:'good',next:'outcome_away',youText:"Follow it. Wherever it leads. Don't decide anything before you've looked. Read Mark, sit with Job, ask the one-sentence prayer. You're asking the most important question a human can ask. Honor it by actually looking."},
+    {label:'Leave with C.S. Lewis\'s name',sub:'"A Grief Observed" or "Mere Christianity."',tag:'risky',next:'outcome_away_soft',youText:"One more name: C.S. Lewis. 'A Grief Observed' if you're still in the pain of loss. 'Mere Christianity' if you're in the intellectual question. He was where you are, and he followed it honestly. I'll be praying for you."},
+    {label:'Press for a decision',sub:'Ask directly.',tag:'wrong',next:'outcome_pushed',youText:"Based on everything — do you think you could open the door back to faith? Even a crack?"},
+  ]},
+
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'A Door Opened',quote:'"Blessed are those who mourn, for they will be comforted." — Matthew 5:4',note:'You navigated the hardest apologetics conversation there is — theodicy and grief. The key moves: you led with presence before explanation, you honored the pain before the argument, and you ended with a specific action rather than a vague invitation. Excellent work.',path:'Best Route · T11 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'Following the Question',quote:'"Ask and it will be given to you; seek and you will find." — Matthew 7:7',note:'They left with the right posture: open questions and a commitment to look. That\'s a win. The theodicy conversation rarely closes in one sitting — but you moved them from a closed argument to genuine inquiry.',path:'Good Route · T11:GOOD'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'Seed in the Grief',quote:'"He heals the brokenhearted and binds up their wounds." — Psalm 147:3',note:'A gentle close is exactly right here. You honored the wound without rushing to resolution. That\'s more faithful to the gospel than a tidy argument. What you planted in that grief will grow.',path:'Soft Route'},
+  outcome_shutdown:{type:'outcome',outcome:'shutdown',icon:'🚪',title:'Closed for Now',quote:'"A time to be silent and a time to speak." — Ecclesiastes 3:7',note:'Some theodicy conversations hit a wall. Don\'t take it personally. You engaged the question seriously and that matters, even if it didn\'t feel like progress today.',path:'Closed'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'Pushed Too Hard',quote:'"A gentle answer turns away wrath." — Proverbs 15:1',note:'Theodicy conversations are the most emotionally raw there are. Pressing for a decision too quickly can feel dismissive of the pain. Next time, end with a commitment to investigate rather than a commitment to believe.',path:'Pushed Away'},
+};
+
+let pathLog=[];
+let currentOutcome=null;
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className=`pip ${TIER_PIP[i]}`;
+    d.id=`pip-${i}`;
+    d.textContent=i;
+    t.appendChild(d);
+  }
+}
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const p=document.getElementById(`pip-${i}`);
+    if(!p)continue;
+    p.classList.remove('active','done');
+    if(i<tier)p.classList.add('done');
+    else if(i===tier)p.classList.add('active');
+  }
+}
+function addBubble(speaker,text,tier,src){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className=`bubble-row ${speaker}`;
+  const b=document.createElement('div');
+  b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  b.textContent=text;
+  if(src){
+    const badge=document.createElement('div');
+    badge.className='src-badge';
+    badge.textContent='📎 '+src;
+    b.appendChild(badge);
+  }
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function showTyping(){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className='bubble-row them';
+  row.id='typing-row';
+  const b=document.createElement('div');
+  b.className='bubble tb-1 typing-indicator';
+  b.innerHTML='<span></span><span></span><span></span>';
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function removeTyping(){
+  const r=document.getElementById('typing-row');
+  if(r)r.remove();
+}
+function showChoices(node){
+  const panel=document.getElementById('choices-panel');
+  const prompt=document.getElementById('choices-prompt');
+  const grid=document.getElementById('choices-grid');
+  panel.classList.remove('hidden');
+  prompt.textContent=node.prompt||'Choose your response...';
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+}
+function hideChoices(){
+  document.getElementById('choices-panel').classList.add('hidden');
+  document.getElementById('choices-grid').innerHTML='';
+}
+async function pick(node,choice,idx){
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===idx&&choice.tag){
+      b.classList.add(`tag-${choice.tag}`);
+      const tl=document.createElement('span');
+      tl.className='tag-label';
+      tl.textContent=choice.tag.toUpperCase();
+      b.querySelector('.choice-label').appendChild(tl);
+    }
+  });
+  if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);
+  await sleep(420);
+  hideChoices();
+  if(choice.youText){
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    await sleep(500);
+  }
+  await run(choice.next);
+}
+function showOutcome(node){
+  currentOutcome=node;
+  document.getElementById('out-icon').textContent=node.icon||'✓';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');
+  document.getElementById('outcome-screen').classList.add('visible');
+}
+function readConversation(){
+  document.getElementById('outcome-screen').classList.remove('visible');
+}
+async function run(id){
+  const node=nodes[id];
+  if(!node){console.warn('Missing node:',id);return;}
+  updateTrack(node.tier||1);
+  if(node.type==='say'){
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(900);
+      removeTyping();
+    }
+    addBubble(node.speaker,node.text,node.tier||1,node.src||null);
+    await sleep(node.speaker==='them'?400:300);
+    if(node.next)await run(node.next);
+  } else if(node.type==='pick'){
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(300);
+    showOutcome(node);
+  }
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function restartGame(){
+  document.getElementById('chat-area').innerHTML='';
+  document.getElementById('outcome-screen').classList.remove('visible');
+  hideChoices();
+  pathLog=[];
+  currentOutcome=null;
+  buildTrack();
+  run('start');
+}
+buildTrack();
+run('start');
+</script>
+</body>
+</html>

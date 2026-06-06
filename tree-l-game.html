@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree L · I'm Buddhist</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:20px;height:20px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+.tp8.done,.tp8.active{border-color:#d46aaa;color:#d46aaa;background:#260d1a}
+.tp9.done,.tp9.active{border-color:#6ad4d4;color:#6ad4d4;background:#0d2626}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}.bubble-row.you{justify-content:flex-start}.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}.tb-8{background:#2e1a24;border:1.5px solid #d46aaa;color:#e8b8d4}.tb-9{background:#1a2e2e;border:1.5px solid #6ad4d4;color:#b8e8e8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}.typing-indicator span:nth-child(2){animation-delay:.15s}.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}.tag-risky{border-color:#e3b341!important;background:#2d2008!important}.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}.tag-good .tag-label{background:#0d2040;color:#58a6ff}.tag-risky .tag-label{background:#4a3000;color:#e3b341}.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree L · "I'm Buddhist"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-8','tb-9'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp8','tp9'];
+const MAX_TIERS=9;
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"God has a plan for you.",next:'t2_pick'},
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+    {label:'I don\'t believe in a personal God',sub:'Buddhism has no creator deity.',next:'t2a'},
+    {label:'Inner peace, not external salvation',sub:'Buddhism is about enlightenment from within.',next:'t2b'},
+    {label:'All religions point to the same truth',sub:'Different paths, same mountain.',next:'t2c'},
+    {label:'Impermanence — God as eternal doesn\'t fit',sub:'Everything is flux. A permanent God is a concept, not reality.',next:'t2d'},
+  ]},
+  t2a:{type:'say',speaker:'them',tier:2,text:"I'm Buddhist. I don't believe in a personal God who has 'plans.' Buddhism is about understanding reality — suffering, impermanence, no-self. God isn't necessary for that.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"I practice Buddhism because it gives me tools for inner peace — meditation, mindfulness, the Eightfold Path. Christianity is about being saved by something outside yourself. Buddhism is about finding what's already inside.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"I'm Buddhist, but I respect all spiritual paths. They all point toward the same truth — compassion, presence, letting go. Christianity is one map. Buddhism is another. Different languages, same destination.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"Buddhism teaches impermanence — everything is flux, everything changes, nothing is permanent, including the self. A God who is eternal and unchanging is a philosophical construct, not lived reality.",next:'t3_pick'},
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'Both diagnose the same core problem',sub:'Tanha (craving) vs. sin — both name the wound.',tag:'best',next:'t3_best_say',youText:"What's fascinating is that Buddhism and Christianity diagnose the same core human problem. Buddhism names it tanha — craving, grasping, clinging — as the root of suffering. Christianity names it sin — the self turned in on itself, reaching for what it wasn't meant to grasp. Different words, same wound."},
+    {label:'What drew you to Buddhism?',sub:'Understand their path before presenting yours.',tag:'good',next:'t3_good_say',youText:"I'm genuinely curious — what drew you to Buddhism? Was it the meditation, the philosophy, something else?"},
+    {label:'All paths don\'t lead to the same place',sub:'The maps contradict each other at the core.',tag:'risky',next:'t3_risky_say',youText:"The 'all paths lead to the same mountain' idea is beautiful, but it doesn't survive scrutiny. Buddhism says there is no permanent self and no creator God. Christianity says you have an eternal soul and a personal God who loves you. Those claims contradict each other. They can't both be right."},
+    {label:'The Sermon on the Mount and the Eightfold Path',sub:'Remarkably parallel ethical frameworks.',tag:'wrong',next:'t3_wrong_say',youText:"The Eightfold Path and the Sermon on the Mount have remarkable parallels — right speech, right action, love of enemy, nonviolence. Jesus and the Buddha were teaching something deeply similar about human flourishing."},
+  ]},
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"Both diagnose the same wound — craving versus sin. But the cures are very different. Buddhism says: see through the illusion of self. Christianity says: be forgiven and reborn. Those aren't the same prescription.",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"I grew up in a chaotic household. Buddhism gave me tools to be present — not to carry the past, not to catastrophize the future. Meditation literally changed my nervous system. It works.",next:'t4_drew_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"You're right — they contradict each other at the metaphysical level. I hold them loosely. I take what works. I'm not a doctrinaire Buddhist. But the practice has changed my life.",next:'t4_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"Similar ethics, but different metaphysics. Similar in practice, different in what they claim about reality. I don't want to conflate them — I just find the practices more useful than the doctrines.",next:'t4_pick'},
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'The cure differs on who does the curing',sub:'Buddhism: the self achieves release. Christianity: release is received.',tag:'best',next:'t4_best_say',youText:"The cure differs at the most important point: who does the curing. Buddhism says: through practice, discipline, meditation — you can achieve liberation. Christianity says: you can't liberate yourself from yourself. You need someone outside the closed system of the self to come in. That's what the incarnation is."},
+    {label:'C.S. Lewis: Lord, Liar, or Lunatic',sub:'Jesus made claims Buddha never made.',tag:'good',next:'t4_good_say',youText:"The Buddha said: 'I have found the path — follow it.' He pointed away from himself. Jesus said: 'I AM the path.' He pointed to Himself. That's a completely different claim. You can follow the Buddha's method without worshipping him. With Jesus, He made that separation impossible."},
+    {label:'The practice works — what about the claims?',sub:'Methods can work without being complete.',tag:'risky',next:'t4_risky_say',youText:"Mindfulness practices genuinely work — neuroscience confirms that. But a method working doesn't validate everything the system claims about reality. A diet can improve your health without the philosophy behind it being completely true. The practices are real. The metaphysics are separate."},
+    {label:'What does Buddhism say about love?',sub:'Karuna vs. agape.',tag:'wrong',next:'t4_wrong_say',youText:"Buddhism has a profound concept of compassion — karuna. Christianity has agape — unconditional love. What's the difference between them in your understanding?"},
+  ]},
+  t4_drew_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'Presence — Jesus taught that too',sub:'"Do not worry about tomorrow." — Matthew 6:34',tag:'best',next:'t4_drew_best_say',youText:"What Buddhism gave you — presence, not carrying the past, not catastrophizing the future — Jesus taught exactly that. 'Do not worry about tomorrow, for tomorrow will worry about itself.' The Sermon on the Mount is one of the greatest teachings on presence ever given. Did you know that?"},
+    {label:'Tools that genuinely work deserve respect',sub:'Acknowledge what Buddhism gave them.',tag:'good',next:'t4_drew_good_say',youText:"Meditation changing your nervous system — that's real. Presence as a practice is real. I honor that it worked for you, because you clearly needed something to work and it did. Can I ask — is there anything it hasn't been able to give you?"},
+    {label:'The chaos in your household — did Buddhism address the cause?',sub:'Presence helps — but does it address the deeper wound?',tag:'risky',next:'t4_drew_risky_say',youText:"The chaos you described — Buddhism helped you manage your response to it. That's real. But did it address the wound the chaos left? The things you needed that weren't given? Presence is powerful, but I've found it's different from being known and loved by someone who sees all the way in."},
+    {label:'Christianity also has contemplative traditions',sub:'Thomas Merton, Centering Prayer.',tag:'wrong',next:'t4_drew_wrong_say',youText:"Christianity has contemplative traditions just as rich — Thomas Merton, the Desert Fathers, Centering Prayer, the practice of the presence of God. The tools you found in Buddhism exist in a different form in the Christian tradition."},
+  ]},
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"You need someone outside the closed system of the self to come in. Buddhism would say the self is the illusion — there's nothing trapped inside to rescue. Liberation is seeing through the self, not having the self saved.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"Buddha pointed away from himself. Jesus pointed to himself. That's a real difference. The Buddha was humble — he said 'don't worship me, practice the dharma.' Jesus made it about Him.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"Methods work without validating the full metaphysics. That's actually very Buddhist — pragmatic, test what works. But I'll grant the point: the practices working doesn't mean the metaphysics are right.",next:'t5_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"Karuna is compassion — seeing the suffering of others and being moved to relieve it, without attachment. Agape I understand as unconditional love — including God's love for humanity. They're similar in scope but differ in source.",next:'t5_pick'},
+  t4_drew_best_say:{type:'say',speaker:'them',tier:4,text:"'Do not worry about tomorrow' — that's a teaching on presence. In the Sermon on the Mount. I've read Buddhist versions of that thought a hundred times and never noticed Jesus said it too.",next:'t5_drew_pick'},
+  t4_drew_good_say:{type:'say',speaker:'them',tier:4,text:"Is there anything it hasn't been able to give me. …That's a harder question. The loneliness. Mindfulness made me calm but I'm still sometimes very alone. The practice is solitary by design.",next:'t5_drew_pick'},
+  t4_drew_risky_say:{type:'say',speaker:'them',tier:4,text:"Being known and loved by someone who sees all the way in. That's… what I needed as a kid. The chaos was manageable but the invisibility was the worst part. Nobody saw what was actually happening.",next:'t5_drew_pick'},
+  t4_drew_wrong_say:{type:'say',speaker:'them',tier:4,text:"Centering Prayer, Desert Fathers — I didn't know Christianity had contemplative depth like that. I always associated it with performance and doctrine. Not practice.",next:'t5_drew_pick'},
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'The self is real enough to suffer',sub:'Buddhist practice confirms the problem Buddhism claims to solve.',tag:'best',next:'t5_best_say',youText:"Here's a tension inside Buddhism: if the self is an illusion, why does the illusion suffer so persistently? Buddhist practice takes decades of serious discipline — why would an illusion be so difficult to dissolve? Christianity's diagnosis is different: the self is real, it's just broken — and the brokenness needs healing, not dissolution."},
+    {label:'Jesus didn\'t say "follow my method" — He said "follow me"',sub:'The personal claim is distinctive.',tag:'good',next:'t5_good_say',youText:"The Buddha said 'be a lamp unto yourself.' Jesus said 'I am the light of the world; whoever follows me will never walk in darkness.' Two teachers, two completely different claims about the relationship between the teacher and the path. Buddha: use my method and be free. Jesus: know me and be free."},
+    {label:'Buddhism is pragmatic — so what about the resurrection?',sub:'Apply Buddhist pragmatism to the historical claim.',tag:'risky',next:'t5_risky_say',youText:"You said you're pragmatic — test what works. The resurrection is a historical claim that either happened or didn't. If it happened, the practical implications are enormous: death doesn't have the final word, the self isn't dissolved but redeemed. That's worth pragmatically investigating."},
+    {label:'Agape goes further than karuna',sub:'Christianity says God loves you personally.',tag:'wrong',next:'t5_wrong_say',youText:"Karuna is compassion for all beings equally — beautiful, but impersonal. Agape in Christianity is different: it's not that God compassionately regards you as one of many sentient beings. It's that God knows your name, counts the hairs on your head, saw you before you were born. Personal, specific, yours."},
+  ]},
+  t5_drew_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'The Sermon on the Mount saw you specifically',sub:'Not just presence — being known.',tag:'best',next:'t5_drew_best_say',youText:"The Sermon on the Mount is about presence — but it's the presence of someone specific who sees you. 'Blessed are those who mourn — they will be comforted.' 'Blessed are the pure in heart — they will see God.' Not a general practice for everyone. Direct address to the person in the room. Jesus was talking to you, not about you."},
+    {label:'Loneliness is the thing Buddhism can\'t fully cure',sub:'Buddhism is profound but impersonal.',tag:'good',next:'t5_drew_good_say',youText:"Buddhism gives you peace — but it's impersonal. It's about releasing attachment, including attachment to being known. Christianity offers something different: not detachment from being known but full knowledge. 'You are known fully and loved anyway.' That's a different answer to loneliness."},
+    {label:'Being seen — that\'s the heart of the Gospel',sub:'Nothing is hidden that will not be revealed — and loved.',tag:'risky',next:'t5_drew_risky_say',youText:"The invisibility you felt — that's the wound the Gospel speaks to most directly. 'You are fully known and fully loved.' Not in spite of everything hidden — because of it. That's not a practice. That's a relationship. And it starts with 'you are seen.'"},
+    {label:'The contemplative tradition meets both',sub:'Christian practice and Buddhist insight converge.',tag:'wrong',next:'t5_drew_wrong_say',youText:"Thomas Merton was a Trappist monk who studied Zen Buddhism. He found that contemplative Christianity and Buddhist meditation weren't in conflict — they were approaching the same depth from different directions. You don't have to choose between the stillness and the relationship."},
+  ]},
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"The self is real enough to suffer. If it were truly an illusion, liberation would be easy. The persistence of the self — even in practice — is the most honest thing I've encountered in years of sitting.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"'Be a lamp unto yourself' versus 'I am the light of the world.' That's the fundamental difference. Buddha gave a method. Jesus made a claim about himself. Those are different kinds of things.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"Apply pragmatic investigation to the resurrection. If it happened, death isn't dissolution — it's redemption. That changes everything about the Buddhist framework. That's worth actually examining.",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"God knows your name, counts the hairs on your head. Personal, specific — not just compassion for all sentient beings equally but love for this particular person. I've never experienced religion as personal. I didn't think it was supposed to be.",next:'t6_pick'},
+  t5_drew_best_say:{type:'say',speaker:'them',tier:5,text:"'Blessed are those who mourn' — not a general principle, a direct address. Jesus was talking to the person in the room. I've always read the Sermon as philosophy. But it reads like personal address.",next:'t6_drew_pick'},
+  t5_drew_good_say:{type:'say',speaker:'them',tier:5,text:"Buddhism offers release from attachment to being known. Christianity offers being known anyway. Those are very different solutions to the same loneliness. I've been choosing the one that removes the need rather than meets it.",next:'t6_drew_pick'},
+  t5_drew_risky_say:{type:'say',speaker:'them',tier:5,text:"'You are fully known and fully loved.' I've never had that. Not even close. What does that mean — where does it come from?",next:'t6_drew_pick'},
+  t5_drew_wrong_say:{type:'say',speaker:'them',tier:5,text:"Merton found they weren't in conflict — the stillness and the relationship. That's the version of Christianity I could engage. Not choosing between inner peace and being known.",next:'t6_drew_pick'},
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'Christianity offers the self healed — not dissolved',sub:'Resurrection vs. dissolution.',tag:'best',next:'t6_best_say',youText:"Here's the key difference between Buddhism and Christianity on the self. Buddhism's hope is nirvana — the extinction of craving, the dissolution of self into the undifferentiated whole. Christianity's hope is resurrection — the self healed, specific, personal, permanent. Not ending. Transformed. You, specific, forever."},
+    {label:'C.S. Lewis: the most important question',sub:'Lord, Liar, or Lunatic — the claim can\'t be avoided.',tag:'good',next:'t6_good_say',youText:"C.S. Lewis — himself an atheist before — made the point that you can't respect Jesus as a wise teacher and stop there. Jesus claimed to be God, to forgive sins, to raise the dead. That's not a method — it's a person making an absolute claim. Either He's right, or He was deluded, or He was lying. 'Good teacher who had good ideas' isn't on the table."},
+    {label:'What would pragmatism say about Jesus\'s resurrection?',sub:'Apply the Buddhist test: what do the results show?',tag:'risky',next:'t6_risky_say',youText:"Pragmatism: test by results. The disciples — cowards who scattered at the crucifixion — became people who died willingly for what they'd seen. That's a transformation Buddhism would recognize as significant. What caused it? The most straightforward explanation is the one they gave."},
+    {label:'The personal God you don\'t believe in might be exactly who you need',sub:'Gentle provocation.',tag:'wrong',next:'t6_wrong_say',youText:"The personal God who has a plan — the concept that doesn't fit your framework — what if that's precisely the gap Buddhism can't fill? Not 'God' as a philosophical necessity, but someone who knows your name and is actively invested in you?"},
+  ]},
+  t6_drew_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'It comes from the cross',sub:'God saw everything and came in anyway.',tag:'best',next:'t6_drew_best_say',youText:"'You are fully known and fully loved' — here's where it comes from. God saw everything — not just the polished version, everything — and came in anyway. The cross is God saying: I see all of it, and I'm not leaving. That's the source. Not performance, not spiritual achievement — just 'I see you and I'm here.'"},
+    {label:'Full knowledge — that\'s the Gospel',sub:'1 Corinthians 13:12.',tag:'good',next:'t6_drew_good_say',youText:"1 Corinthians 13:12 — 'now I know in part; then I shall know fully, even as I am fully known.' Not just 'God sees you' — 'you are fully known.' Seen completely, from the inside out, including the chaos of your childhood — and chosen. That's the Gospel in one verse."},
+    {label:'Seen — before you were born',sub:'Psalm 139.',tag:'risky',next:'t6_drew_risky_say',youText:"Psalm 139 — 'you knit me together in my mother's womb… your eyes saw my unformed body.' Before the chaos started, before you needed tools to survive — you were seen. The person who needed to be seen was already seen. You just didn't know it yet."},
+    {label:'The stillness and the relationship aren\'t opposites',sub:'Both can be true at once.',tag:'wrong',next:'t6_drew_wrong_say',youText:"The inner peace Buddhism gave you — the presence, the stillness — that's not in conflict with being known by a personal God. The Christian mystics found that the deepest stillness is found inside a relationship, not outside of one. You don't have to give up what Buddhism gave you."},
+  ]},
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"You, specific, forever — not dissolving but transformed. I've never wanted to dissolve. I've wanted the suffering to stop. Those are different hopes, and I've been accepting Buddhism's answer without noticing they don't match what I actually want.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"Lord, Liar, or Lunatic — I can't reduce him to wise teacher. If he claimed to be God and was wrong, he was either deluded or dishonest. If he was right — everything follows from that. That's a harder reckoning than I've given it.",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"Cowards became people willing to die. That's a transformation Buddhism would recognize as significant — and ask what caused it. The pragmatic question is exactly what changed them. The most direct explanation is what they said changed them.",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"The gap Buddhism can't fill. The loneliness. The sense of not being specifically seen and known. You're right that Buddhism doesn't offer that — it offers detachment from needing it. Maybe I've been treating the symptom.",next:'t7_pick'},
+  t6_drew_best_say:{type:'say',speaker:'them',tier:6,text:"God saw everything and came in anyway. Not because I cleaned it up first. Not because I achieved enough practice. Just — I see all of it, and I'm not leaving. That's different from everything I've ever been offered.",next:'t7_drew_pick'},
+  t6_drew_good_say:{type:'say',speaker:'them',tier:6,text:"'You are fully known.' Including the chaos. Including the invisibility. Including everything I haven't been able to meditate my way past. Fully known — and chosen. That's the verse I didn't know was in there.",next:'t7_drew_pick'},
+  t6_drew_risky_say:{type:'say',speaker:'them',tier:6,text:"Before the chaos started, I was seen. The person who needed to be seen was already seen. I've been trying to earn visibility through practice. But if Psalm 139 is real — I had it before I knew I needed it.",next:'t7_drew_pick'},
+  t6_drew_wrong_say:{type:'say',speaker:'them',tier:6,text:"The deepest stillness is found inside a relationship. The Christian mystics found that. I didn't know there was a Christianity that valued what Buddhism gave me and went further. I thought they were opposites.",next:'t7_drew_pick'},
+  t7_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Buddhism\'s hope and what you actually want',sub:'They don\'t match — that\'s worth examining.',tag:'best',next:'t7_best_say',youText:"The mismatch you named — that's worth sitting with. If what you actually want is to be specific and permanent and healed — not dissolved — then the question is whether Buddhism's framework can give you that, or whether you've been practicing toward a goal that isn't actually yours."},
+    {label:'The resurrection answers the key question',sub:'Is death dissolution or transformation?',tag:'good',next:'t7_good_say',youText:"The resurrection is the crux: did Jesus rise specifically, bodily, the same person He was? If so, death isn't dissolution — it's transformation. The specific self survives. Not nirvana — glorification. That question is historical, not philosophical. Is it worth examining?"},
+    {label:'What caused the disciples\' transformation?',sub:'Investigate the evidence.',tag:'risky',next:'t7_risky_say',youText:"The disciples' transformation is the most documented change of character in ancient history — from hiding in fear to dying for what they'd seen, within days. Historically: what caused it? The most parsimonious explanation is the one they gave. Is that worth examining?"},
+    {label:'Let me give you one verse to sit with',sub:'Psalm 139 or John 1.',tag:'wrong',next:'t7_wrong_say',youText:"Let me give you one thing to sit with — Psalm 139:13: 'You knit me together in my mother's womb.' Before any practice, before any discipline, before the chaos — you were made. And you were known as you were being made. That's worth meditating on."},
+  ]},
+  t7_drew_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Would you read the Sermon on the Mount?',sub:'Read it as personal address, not philosophy.',tag:'best',next:'t7_drew_best_say',youText:"Would you read the Sermon on the Mount — Matthew 5-7 — not as philosophy but as personal address? Not 'this is how people should live' but 'Jesus is talking to me specifically.' 15 minutes. Bring what you know from Buddhist practice. See what's different."},
+    {label:'Try Psalm 139 as a meditation',sub:'Read it the way you\'d do Buddhist reflection.',tag:'good',next:'t7_drew_good_say',youText:"Psalm 139 is worth reading the way you'd approach a Buddhist text — slowly, personally, letting each line sit. 'You have searched me and known me.' 'Where can I flee from your presence?' It's one of the most honest pieces of writing about being fully seen there is. Would you try it?"},
+    {label:'The stillness and the relationship — both are available',sub:'You don\'t have to give up what works.',tag:'risky',next:'t7_drew_risky_say',youText:"You don't have to give up the practice. The stillness, the presence, the mindfulness — those are real and valuable. What Christianity adds is someone in the stillness with you. Not watching from outside. Inside the quiet, knowing your name. Both are available."},
+    {label:'Would you let me pray for you?',sub:'Offer.',tag:'wrong',next:'outcome_pray',youText:"Would you let me pray for you right now? Not a religious performance. Just: someone who sees you, saying to the God who knows your name — this person is here and deserves to be known. That's all."},
+  ]},
+  t7_best_say:{type:'say',speaker:'them',tier:7,text:"Practicing toward a goal that isn't mine. I've been following the Eightfold Path toward liberation I don't actually want. I want to be specific. To matter. That's not what Buddhism promises.",next:'t8_pick'},
+  t7_good_say:{type:'say',speaker:'them',tier:7,text:"Historical investigation of the resurrection — not just philosophical. Did it happen? That question is falsifiable. And if it happened, dissolution isn't the hope. Transformation is. I've never applied that level of scrutiny to the claim.",next:'t8_pick'},
+  t7_risky_say:{type:'say',speaker:'them',tier:7,text:"Most parsimonious explanation is what they said. That's good epistemics. I've been dismissing the resurrection without examining it. That's not consistent with how I claim to approach truth.",next:'t8_pick'},
+  t7_wrong_say:{type:'say',speaker:'them',tier:7,text:"'You knit me together' — made. Not just floating into existence through causes and conditions. Made. With intention. Seen as you were being made. That's worth sitting with.",next:'t8_pick'},
+  t7_drew_best_say:{type:'say',speaker:'them',tier:7,text:"Read the Sermon on the Mount as personal address, not philosophy. 15 minutes. That's less than one sitting period. I can do that.",next:'t8_drew_pick'},
+  t7_drew_good_say:{type:'say',speaker:'them',tier:7,text:"Psalm 139 as a meditative text. 'You have searched me and known me.' I've used Buddhist texts that way. Giving the same attention to something Christian — that's intellectually fair.",next:'t8_drew_pick'},
+  t7_drew_risky_say:{type:'say',speaker:'them',tier:7,text:"Someone in the stillness with you. Not watching from outside — inside the quiet, knowing your name. That's what was missing. Buddhism gave me the room. Christianity offers someone to be in it with.",next:'t8_drew_pick'},
+  t8_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'The Gospel offers the specific self as the hope',sub:'You, permanent, transformed.',tag:'best',next:'t8_best_say',youText:"What the Gospel offers is exactly the goal you actually have — not dissolution, but you, specific, healed, permanent. The resurrection of Jesus is the prototype: the same person, in the same body with the same wounds, now transformed. That's what's promised. Not nirvana. Glorification."},
+    {label:'Read the Gospel of Mark — historical examination',sub:'Apply Buddhist pragmatism.',tag:'good',next:'t8_good_say',youText:"Apply the pragmatism you bring to practice: read the Gospel of Mark — 45 minutes — as a historical document. What happened? What did this person claim? What is the most honest explanation of the transformation of the disciples? Use the same standards you'd apply anywhere."},
+    {label:'The mismatch is the door',sub:'Where Buddhism falls short is where Christ enters.',tag:'risky',next:'t8_risky_say',youText:"The gap between what Buddhism promises — dissolution — and what you actually want — to matter, to be specific, to be known — that gap is the door. It's not a reason to abandon Buddhist practice. It's an invitation to ask whether there's something that can give you what practice alone can't."},
+    {label:'You\'ve found the edge of the method',sub:'Every method has limits.',tag:'wrong',next:'t8_wrong_say',youText:"You've been practicing honestly enough to find the edge — where the method runs out. That kind of honest practice is rare. What you found at the edge is the question Buddhism leaves open: is anyone there? Is the self known?"},
+  ]},
+  t8_drew_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'That\'s the beginning — one text, one commitment',sub:'Don\'t push further.',tag:'best',next:'t8_drew_best_say',youText:"That's the beginning. One text, one commitment. Not a conversion — an investigation. You've been sitting with Buddhist texts for years. Give the Sermon the same 15 minutes of honest attention. Bring what you know. Let it speak for itself."},
+    {label:'Someone in the stillness — that changes the practice',sub:'Not replacing meditation — completing it.',tag:'good',next:'t8_drew_good_say',youText:"Someone in the stillness with you. That's not replacing the practice — it's completing it. The stillness becomes a place to be met rather than a place to achieve. That's a different posture. It's worth finding out if it's real."},
+    {label:'Would you try Psalm 139 tonight?',sub:'Five minutes.',tag:'risky',next:'outcome_pray',youText:"Would you try Psalm 139 tonight? Just read it slowly — the way you'd sit with a koan. 'You have searched me and known me. You know when I sit and when I rise. You are familiar with all my ways.' See what it does to you. I'll be praying for you."},
+    {label:'Let me pray for you',sub:'Offer.',tag:'wrong',next:'outcome_pray',youText:"Would you let me pray for you right now? Just saying to the God who knows your name: this person is here. They want to be known. Show them."},
+  ]},
+  t8_best_say:{type:'say',speaker:'them',tier:8,text:"Not nirvana — glorification. The specific self, transformed. That's what I want. I've been accepting a framework that doesn't match what I actually hope for. That's honest and uncomfortable.",next:'t9_pick'},
+  t8_good_say:{type:'say',speaker:'them',tier:8,text:"Read Mark as a historical document. 45 minutes. Apply the same standards I apply anywhere. I've given more time to examining Buddhist sutras I already agree with. This is fair.",next:'t9_pick'},
+  t8_risky_say:{type:'say',speaker:'them',tier:8,text:"The gap is the door. Where the method runs out is where the question opens. I've been filling that gap with more practice. But what if the gap is pointing to something the practice can't reach?",next:'t9_pick'},
+  t8_drew_best_say:{type:'say',speaker:'them',tier:8,text:"One text, one commitment. 15 minutes of honest attention. Not a conversion — an investigation. I do that for every tradition I take seriously. I should do it here.",next:'t9_pick'},
+  t8_drew_good_say:{type:'say',speaker:'them',tier:8,text:"The stillness as a place to be met rather than achieved. That reframes everything. What if every meditation period has been preparation — and I've been waiting for something I didn't know to expect?",next:'t9_pick'},
+  t9_pick:{type:'pick',tier:9,prompt:'How do you close?',choices:[
+    {label:'One honest investigation',sub:'Read Mark. Apply the same standard.',tag:'best',next:'outcome_pray',youText:"One specific ask: read the Gospel of Mark — 45 minutes — as historical investigation. Bring your Buddhist practice, your pragmatism, your honest search. You've given years to the dharma. Give 45 minutes to the historical Jesus. Then decide. I'll be praying for you."},
+    {label:'You, specific, permanent, known',sub:'Name the hope directly.',tag:'good',next:'outcome_away',youText:"The hope you actually have — not dissolution but transformation, not impermanence but being specific and known — that hope has an answer. It's not certain until you look. But it's worth looking for. I'll be praying for you."},
+    {label:'Bring Buddhist attention to the Sermon',sub:'15 minutes, personal address.',tag:'risky',next:'outcome_away_soft',youText:"One thing: bring Buddhist quality of attention to the Sermon on the Mount. 15 minutes. Not philosophy — personal address. 'Blessed are you.' See what it does. I'll be praying for you."},
+    {label:'Force the choice',sub:'Too aggressive.',tag:'wrong',next:'outcome_pushed',youText:"At some point you have to ask: is Buddhism's framework actually giving you what you want? Or is it giving you peace about not having it?"},
+  ]},
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'An Investigation Opened',quote:'"Seek and you will find; knock and the door will be opened to you." — Matthew 7:7',note:'You used the diagnostic similarity — tanha and sin — to build a bridge before presenting the key difference. For the personally wounded: you met them in the loneliness and pointed to the God who sees. The move from "I practice" to "I am known" is exactly the right door for a Buddhist. Excellent work.',path:'Best Route · T9 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'The Right Question Left Behind',quote:'"You, specific, permanent, known." — The Gospel',note:'They left with a mismatch named: the hope they actually have doesn\'t match what Buddhism promises. That\'s a seed. It may grow for years before they look for the answer — but they\'ll know what question to ask.',path:'Good Route'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'A Practice to Try',quote:'"Be still, and know that I am God." — Psalm 46:10',note:'Giving a Buddhist a contemplative text — Psalm 139 or the Sermon — with Buddhist quality of attention is exactly the right bridge. It doesn\'t ask them to abandon their practice; it asks them to apply it somewhere new.',path:'Soft Route'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'Closed',quote:'"A gentle answer turns away wrath." — Proverbs 15:1',note:'Forcing the choice too early with a Buddhist interlocutor tends to close things down. They value non-coercion as a spiritual practice. A gentle exit with a specific text to investigate is more effective than a direct challenge.',path:'Pushed Away'},
+};
+let pathLog=[];
+function buildTrack(){const t=document.getElementById('tier-track');t.innerHTML='';for(let i=1;i<=MAX_TIERS;i++){const d=document.createElement('div');d.className=`pip ${TIER_PIP[i]}`;d.id=`pip-${i}`;d.textContent=i;t.appendChild(d);}}
+function updateTrack(tier){for(let i=1;i<=MAX_TIERS;i++){const p=document.getElementById(`pip-${i}`);if(!p)continue;p.classList.remove('active','done');if(i<tier)p.classList.add('done');else if(i===tier)p.classList.add('active');}}
+function addBubble(speaker,text,tier,src){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className=`bubble-row ${speaker}`;const b=document.createElement('div');b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;b.textContent=text;if(src){const badge=document.createElement('div');badge.className='src-badge';badge.textContent='📎 '+src;b.appendChild(badge);}row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function showTyping(){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className='bubble-row them';row.id='typing-row';const b=document.createElement('div');b.className='bubble tb-1 typing-indicator';b.innerHTML='<span></span><span></span><span></span>';row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function removeTyping(){const r=document.getElementById('typing-row');if(r)r.remove();}
+function showChoices(node){const panel=document.getElementById('choices-panel');const prompt=document.getElementById('choices-prompt');const grid=document.getElementById('choices-grid');panel.classList.remove('hidden');prompt.textContent=node.prompt||'Choose...';grid.innerHTML='';node.choices.forEach((c,i)=>{const btn=document.createElement('button');btn.className='choice-btn';btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;btn.onclick=()=>pick(node,c,i);grid.appendChild(btn);});}
+function hideChoices(){document.getElementById('choices-panel').classList.add('hidden');document.getElementById('choices-grid').innerHTML='';}
+async function pick(node,choice,idx){const btns=document.querySelectorAll('.choice-btn');btns.forEach((b,i)=>{b.disabled=true;if(i===idx&&choice.tag){b.classList.add(`tag-${choice.tag}`);const tl=document.createElement('span');tl.className='tag-label';tl.textContent=choice.tag.toUpperCase();b.querySelector('.choice-label').appendChild(tl);}});if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);await sleep(420);hideChoices();if(choice.youText){addBubble('you',choice.youText,node.tier,choice.src||null);await sleep(500);}await run(choice.next);}
+function showOutcome(node){document.getElementById('out-icon').textContent=node.icon||'✓';document.getElementById('out-title').textContent=node.title||'';document.getElementById('out-quote').textContent=node.quote||'';document.getElementById('out-note').textContent=node.note||'';document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');document.getElementById('outcome-screen').classList.add('visible');}
+function readConversation(){document.getElementById('outcome-screen').classList.remove('visible');}
+async function run(id){const node=nodes[id];if(!node){console.warn('Missing:',id);return;}updateTrack(node.tier||1);if(node.type==='say'){if(node.speaker==='them'){showTyping();await sleep(900);removeTyping();}addBubble(node.speaker,node.text,node.tier||1,node.src||null);await sleep(node.speaker==='them'?400:300);if(node.next)await run(node.next);}else if(node.type==='pick'){showChoices(node);}else if(node.type==='outcome'){await sleep(300);showOutcome(node);}}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function restartGame(){document.getElementById('chat-area').innerHTML='';document.getElementById('outcome-screen').classList.remove('visible');hideChoices();pathLog=[];buildTrack();run('start');}
+buildTrack();run('start');
+</script>
+</body>
+</html>

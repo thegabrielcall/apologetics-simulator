@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree J · Christians Are Hypocrites</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:20px;height:20px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}
+.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+.tp8.done,.tp8.active{border-color:#d46aaa;color:#d46aaa;background:#260d1a}
+.tp9.done,.tp9.active{border-color:#6ad4d4;color:#6ad4d4;background:#0d2626}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}
+.bubble-row.you{justify-content:flex-start}
+.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tb-8{background:#2e1a24;border:1.5px solid #d46aaa;color:#e8b8d4}
+.tb-9{background:#1a2e2e;border:1.5px solid #6ad4d4;color:#b8e8e8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s;position:relative}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}
+.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}
+.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}
+.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}
+.tag-risky{border-color:#e3b341!important;background:#2d2008!important}
+.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}
+.tag-good .tag-label{background:#0d2040;color:#58a6ff}
+.tag-risky .tag-label{background:#4a3000;color:#e3b341}
+.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}
+.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}
+.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}
+.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}
+.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}
+.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree J · "Christians Are Hypocrites"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-8','tb-9'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp8','tp9'];
+const MAX_TIERS=9;
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"Jesus died for your sins.",next:'t2_pick'},
+  t2_pick:{type:'pick',tier:2,prompt:'Choose how they respond to you...',choices:[
+    {label:'Christians are the worst hypocrites',sub:'They preach love and live hate.',next:'t2a'},
+    {label:'Church is full of judgment',sub:'The most judgmental people I know go to church.',next:'t2b'},
+    {label:'Sunday Christians',sub:'You sin all week and get reset on Sunday.',next:'t2c'},
+    {label:'Historical church crimes',sub:'Slavery, colonialism, abuse.',next:'t2d'},
+  ]},
+  t2a:{type:'say',speaker:'them',tier:2,text:"Christians are the most hypocritical people I know. They preach love and grace but judge everyone who's different from them. I want nothing to do with that.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"The most judgmental, gossip-filled people in my life go to church every Sunday. The church is a social club for people who think they're better than everyone else.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"Christians just use religion as a weekly reset button. They behave badly all week, go to church on Sunday for forgiveness, and start over. It's a moral hall pass.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"The church ran the Inquisition, justified slavery, covered up abuse. The history of Christianity is a history of violence and control in the name of God.",next:'t3_pick'},
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'Jesus was harsher on hypocrites than you',sub:'Matthew 23 — Woe to you, Pharisees.',tag:'best',next:'t3_best_say',youText:"Jesus reserved His harshest words for the religious hypocrites of His day. Matthew 23: 'Woe to you, scribes and Pharisees, hypocrites! You are like whitewashed tombs — beautiful on the outside, full of dead men's bones inside.' He saw it, named it, condemned it. He was more furious about it than you are."},
+    {label:'Hypocrisy confirms the diagnosis',sub:'Sick people in a hospital doesn\'t mean medicine is fake.',tag:'good',next:'t3_good_say',youText:"You're right — Christians are hypocrites. But here's the thing: the church isn't a museum of perfect people. It's a hospital for broken ones. The fact that the patients are sick doesn't mean the medicine is fake — it means they needed it."},
+    {label:'Who hurt you specifically?',sub:'Acknowledge the personal wound.',tag:'risky',next:'t3_risky_say',youText:"Someone specific hurt you, didn't they? This isn't just a philosophical objection. Can I ask what happened?"},
+    {label:'Not all Christians are hypocrites',sub:'Counter-example approach.',tag:'wrong',next:'t3_wrong_say',youText:"That's a generalization — not all Christians are like that. There are plenty of genuine, humble believers who live what they preach."},
+  ]},
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"Okay — Jesus condemned hypocrisy. But His followers do it constantly. What's the point of His teaching if His people ignore it?",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"'Hospital for the broken.' That's a nice image. But hospitals are supposed to actually heal people. These patients keep getting worse.",next:'t4_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"My uncle was a deacon. Used the church to manipulate my whole family for years. Quoted Scripture to keep everyone in line. I associate Christianity with control.",next:'t4_wound_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"So I should judge the religion by its best examples and ignore the worst? That seems convenient.",next:'outcome_pushed'},
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'The gap proves the standard is real',sub:'Hypocrisy requires a standard to violate.',tag:'best',next:'t4_best_say',youText:"Hypocrisy requires a standard to violate. The fact that Christians fall short of Jesus's teaching proves that His standard is genuinely high — and real. If Christianity were just a cultural club with no actual ethics, there'd be nothing to fall short of. The gap proves the standard matters."},
+    {label:'The first Christians died rather than compromise',sub:'That\'s the opposite of a hall pass.',tag:'good',next:'t4_good_say',youText:"The first Christians — who were there, who knew Jesus personally — were tortured and killed rather than deny what they'd seen. That's the opposite of a moral hall pass. Something happened to those people that turned cowards into martyrs."},
+    {label:'Jesus separated Himself from the institution',sub:'He attacked the religious establishment.',tag:'risky',next:'t4_risky_say',youText:"Jesus spent His ministry in direct conflict with the religious institution of His day. He didn't come to endorse the establishment — He overturned their tables. The same critique you're making of hypocrites, He made of them first, louder."},
+    {label:'Name the specific failure',sub:'Ask them to be precise.',tag:'wrong',next:'t4_wrong_say',youText:"What specific Christian behavior are you pointing to? Because there's a difference between an individual failing and Christianity itself being false."},
+  ]},
+  t4_wound_pick:{type:'pick',tier:4,prompt:'How do you respond to their wound?',choices:[
+    {label:'That\'s abuse — Scripture was weaponized',sub:'Name it directly.',tag:'best',next:'t4_wound_best_say',youText:"What your uncle did — using Scripture to control people — that's spiritual abuse. Jesus condemned it explicitly. The Pharisees did exactly the same thing: used religion to establish power over people. Jesus called them vipers. What happened to your family was a betrayal of everything He taught."},
+    {label:'Control in Jesus\'s name is a lie',sub:'Jesus gave freedom, not control.',tag:'good',next:'t4_wound_good_say',youText:"The Jesus of the Gospels gave people freedom — 'you will know the truth and the truth will set you free.' A religion used for control is the opposite of what He built. Your uncle used the name of someone who hates that use."},
+    {label:'You\'re right to reject that version',sub:'Validate the refusal.',tag:'risky',next:'t4_wound_risky_say',youText:"You're right to reject what your uncle did. What he taught isn't Christianity — it's a counterfeit that uses Christian language for control. Rejecting that isn't faithlessness. It's integrity."},
+    {label:'Is there anything in Jesus you could respect?',sub:'Try to separate Jesus from the institution.',tag:'wrong',next:'t4_wound_wrong_say',youText:"Setting your uncle aside — is there anything in Jesus Himself you could respect? Separate from the church, separate from the institution?"},
+  ]},
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"The gap proves the standard is real. I've never thought about it that way. The hypocrisy itself points to something genuine they're falling short of.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"The first ones died for it. That's different from the people I'm describing. The original Christians and modern ones seem like completely different groups.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"Jesus attacked the religious establishment. So He'd be as disgusted with modern churches as I am. That's not a selling point for Christianity.",next:'t5_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"The specific failure is that they claim to follow someone who taught love and they practice judgment. That gap is the failure.",next:'t5_pick'},
+  t4_wound_best_say:{type:'say',speaker:'them',tier:4,text:"Jesus called the people who did this vipers. Not metaphorically — He actually confronted them. He would have confronted my uncle. That's different from what I assumed Christianity was.",next:'t5_wound_pick'},
+  t4_wound_good_say:{type:'say',speaker:'them',tier:4,text:"Jesus gave freedom, not control. Everything in my experience with church was control. That's the opposite of what He built. I've been confusing the two.",next:'t5_wound_pick'},
+  t4_wound_risky_say:{type:'say',speaker:'them',tier:4,text:"Rejecting control isn't faithlessness — it's integrity. That reframe changes something. I thought leaving the church meant leaving God. Maybe it just meant leaving a bad institution.",next:'t5_wound_pick'},
+  t4_wound_wrong_say:{type:'say',speaker:'them',tier:4,text:"In Jesus specifically — yeah. What He taught about the poor, about hypocrites, about children. I can respect that. It's His followers I can't stand.",next:'t5_wound_pick'},
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Hypocrisy proves the ideal is worth pursuing',sub:'Counterfeit proves the original is valuable.',tag:'best',next:'t5_best_say',youText:"Nobody counterfeits pennies. You only counterfeit what's valuable. If Christianity were morally worthless, there'd be nothing to corrupt. The fact that it can be weaponized by hypocrites proves the original is worth stealing."},
+    {label:'The gap between Jesus and Christians is the argument FOR Jesus',sub:'They keep failing to reach His standard.',tag:'good',next:'t5_good_say',youText:"The gap between what Jesus taught and how His followers live is actually an argument for Jesus. His standard is so genuinely high — 'love your enemies, do good to those who hate you' — that no one can sustain it without something supernatural. The failure is human. The standard is His."},
+    {label:'What would you do with a Jesus you respect?',sub:'Ask the personal question.',tag:'risky',next:'t5_risky_say',youText:"You said you can respect Jesus but not His followers. What do you do with a Jesus you respect? Because He didn't just teach ethics — He claimed to be God, to forgive sins, to rise from the dead. You can't just take the teaching and leave the person."},
+    {label:'The church should be held accountable',sub:'Validate institutional critique.',tag:'wrong',next:'t5_wrong_say',youText:"You're right — the church should be held accountable for its failures. That's not an argument against Christianity. It's an argument for taking Christianity seriously enough to hold its people to its standard."},
+  ]},
+  t5_wound_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Leaving a bad institution isn\'t leaving God',sub:'The distinction is important.',tag:'best',next:'t5_wound_best_say',youText:"Leaving a church that weaponized faith against your family — that's not the same as leaving Jesus. Jesus left the temple. He spent most of His time outside religious institutions. Your integrity in refusing a corrupt system might actually be closer to Him than staying would have been."},
+    {label:'His followers keep failing Him — that\'s evidence of a real standard',sub:'The ideal survives the failures.',tag:'good',next:'t5_wound_good_say',youText:"You respect what He taught. Every Christian who uses religion to control someone is failing to follow it. But the teaching survives the failure. The hypocrites don't invalidate the original — they point back to it."},
+    {label:'What would it mean to follow Jesus outside the institution?',sub:'Separate the person from the church.',tag:'risky',next:'t5_wound_risky_say',youText:"What would it mean to follow Jesus — specifically — outside of any institution? No building, no organization, no deacon. Just: what did He teach and who did He say He was?"},
+    {label:'You\'ve already separated Jesus from the hypocrites',sub:'Name the distinction they already made.',tag:'wrong',next:'t5_wound_wrong_say',youText:"You already did the hard work — you separated Jesus from the people who use His name. That's actually the most theologically astute thing most people miss."},
+  ]},
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"Nobody counterfeits pennies. If Christianity were worthless, there'd be nothing to corrupt. That's a thought I've never had.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"'Love your enemies' — that's a standard nobody sustains. The failure is always human. The teaching has never been reached except by the person who gave it.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"You can't take the teaching and leave the person. He claimed to be God. That changes everything — if it's true, He's not just a good teacher.",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"Taking Christianity seriously enough to hold its people to its standard — that's actually what I want. I want the church to be what it claims. I just don't think it ever is.",next:'t6_pick'},
+  t5_wound_best_say:{type:'say',speaker:'them',tier:5,text:"Jesus left the temple. He spent time outside the institutions. My integrity in refusing the corrupt system might be closer to Him than staying. That's the first thing I've heard about Christianity that actually makes sense to me in years.",next:'t6_wound_pick'},
+  t5_wound_good_say:{type:'say',speaker:'them',tier:5,text:"The teaching survives the failure. The hypocrites point back to the original. I've been letting the counterfeit erase the original. I've been letting my uncle define Jesus.",next:'t6_wound_pick'},
+  t5_wound_risky_say:{type:'say',speaker:'them',tier:5,text:"Following Jesus outside any institution. Just what He taught, who He claimed to be. That's a version of faith I've never been offered. I've only ever been offered the building.",next:'t6_wound_pick'},
+  t5_wound_wrong_say:{type:'say',speaker:'them',tier:5,text:"I separated Jesus from the hypocrites. I've been doing that for years without realizing it might actually lead somewhere.",next:'t6_wound_pick'},
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'The Lord/Liar/Lunatic trilemma',sub:'Can\'t just respect the teaching — He claimed to be God.',tag:'best',next:'t6_best_say',youText:"C.S. Lewis made the point: Jesus claimed to be God, to forgive sins, to judge the world at the end of time. That's not what good teachers say. So He's either lying, delusional, or telling the truth. You can't reduce Him to an ethics teacher — He didn't leave that option open."},
+    {label:'The standard survives its misuse',sub:'Martin Luther King used the same Scripture slaveholders used.',tag:'good',next:'t6_good_say',youText:"Slaveholders used Scripture to justify slavery. Martin Luther King used the same Scripture to dismantle it. The same text led to both. That tells you the text is powerful enough to be misused — and the real question is which reading is faithful to the original."},
+    {label:'What would it take for you to look at Jesus directly?',sub:'Separate from the institution.',tag:'risky',next:'t6_risky_say',youText:"Separate from the church, separate from your uncle, separate from every Christian who's failed you — what would it take for you to look at Jesus directly? Just who He was and what He claimed?"},
+    {label:'The church\'s failures are real — and Jesus saw them coming',sub:'Matthew 7:21 — not everyone who says Lord, Lord.',tag:'wrong',next:'t6_wrong_say',youText:"Matthew 7:21 — Jesus said 'Not everyone who says to me Lord, Lord will enter the kingdom.' He predicted people would claim to follow Him without actually doing it. He built the failure into the forecast."},
+  ]},
+  t6_wound_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'Jesus outside the institution — what does that look like?',sub:'Make it concrete.',tag:'best',next:'t6_wound_best_say',youText:"Following Jesus outside the institution is just: read what He said in the Gospels. Not what people said about Him. Not what churches built around Him. Just Mark — 45 minutes — and read it like a journalist. What does this person actually say and do?"},
+    {label:'Your uncle let you see the counterfeit clearly',sub:'Reframe the damage.',tag:'good',next:'t6_wound_good_say',youText:"Your uncle gave you something painful but possibly useful: you can see the counterfeit very clearly. You know exactly what Christianity-as-control looks like. That might make you a better reader of the real thing — you'll recognize it when you see it."},
+    {label:'Jesus was hardest on the ones who controlled people',sub:'Your uncle had an enemy in Jesus.',tag:'risky',next:'t6_wound_risky_say',youText:"The person your uncle was most afraid of is Jesus. Not because Jesus is frightening to the humble — but because Jesus reserved His sharpest condemnation for people who used religion to dominate others. Your uncle had an enemy in the person whose name he used."},
+    {label:'You could separate from the institution permanently',sub:'Faith without the organization.',tag:'wrong',next:'t6_wound_wrong_say',youText:"You don't have to go back to any institution. Faith doesn't require membership. Jesus didn't hand out church cards — He said 'follow me.' That's a personal relationship, not an organizational one."},
+  ]},
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"Lord, Liar, or Lunatic. He didn't leave me the option of 'wise teacher who was misrepresented.' That changes what I'm actually rejecting when I reject Christianity.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"The same Scripture read to justify slavery and then to dismantle it. That's not the Scripture's fault — that's the reader's. The power is in the text. The betrayal is in the reading.",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"Look at Jesus directly. Not the institution. Just the Gospels, just the man. I could do that. I've never actually done that. I've always filtered Him through the people.",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"He predicted people would misuse His name. He saw it coming. That's not comforting — but it's at least honest. He didn't promise the institution would be good.",next:'t7_pick'},
+  t6_wound_best_say:{type:'say',speaker:'them',tier:6,text:"Just read Mark. Like a journalist. 45 minutes. No filter of the church or my uncle — just what the person said and did. I haven't done that. I've only ever seen Jesus through my uncle's version.",next:'t7_wound_pick'},
+  t6_wound_good_say:{type:'say',speaker:'them',tier:6,text:"I can recognize the counterfeit clearly. That might make me a better reader of the real thing. I've spent years seeing what it isn't. Maybe that's preparation for seeing what it is.",next:'t7_wound_pick'},
+  t6_wound_risky_say:{type:'say',speaker:'them',tier:6,text:"My uncle had an enemy in Jesus. He was using the name of someone who would have condemned him. That's actually important. It means there's a real Jesus underneath the one my uncle sold.",next:'t7_wound_pick'},
+  t6_wound_wrong_say:{type:'say',speaker:'them',tier:6,text:"Faith without the organization. 'Follow me' — not 'join this.' That's almost too simple. But it's different from everything I was ever told.",next:'t7_wound_pick'},
+  t7_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'The trilemma demands a response',sub:'You can\'t stay neutral on who He claimed to be.',tag:'best',next:'t7_best_say',youText:"If Jesus was Lord, Liar, or Lunatic — you can't stay neutral. A lunatic isn't worth following. A liar isn't worth admiring. But if He was telling the truth — then what He said matters more than what His followers do with it. The followers become secondary."},
+    {label:'Read the Gospels like a journalist',sub:'45 minutes. What did He actually say and do?',tag:'good',next:'t7_good_say',youText:"I want to suggest one thing: read the Gospel of Mark like a journalist. Not to convert, not to join anything. Just: what did this person actually say and do? 45 minutes. The hypocrisy of His followers is real — but He's distinct from them. You deserve to look at the original."},
+    {label:'Looking at Jesus directly is overdue',sub:'The filter has distorted the original.',tag:'risky',next:'t7_risky_say',youText:"You've been looking at Jesus through hypocrites your whole life. That's not the same as looking at Jesus. Whatever you decide — it should be based on who He actually is, not who His followers failed to be. That's just intellectual fairness."},
+    {label:'The church failed Jesus too',sub:'He would agree with your critique.',tag:'wrong',next:'t7_wrong_say',youText:"Here's what's almost ironic: Jesus would agree with your critique of the church. The same Jesus you're rejecting would be standing next to you calling out the hypocrites. You're not as far from Him as you think."},
+  ]},
+  t7_wound_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Will you read Mark this week?',sub:'One concrete ask.',tag:'best',next:'t7_wound_best_say',youText:"Will you read Mark this week? Not the church's version of it, not your uncle's version — just the text. What does Jesus say to people in power? What does He say to people who've been hurt? 45 minutes. It might read completely differently now that you know what the counterfeit looks like."},
+    {label:'The real Jesus is the one your uncle was afraid of',sub:'He weaponized the most dangerous name he could.',tag:'good',next:'t7_wound_good_say',youText:"Here's what's interesting: your uncle knew the name was powerful. He didn't use his own name to control people — he used Jesus's name. That means there's something in the original that he was trying to borrow. Something real enough to weaponize."},
+    {label:'You\'ve already found the real Jesus — in the resistance',sub:'Your integrity was Christlike.',tag:'risky',next:'t7_wound_risky_say',youText:"The way you've described this — refusing to be controlled, seeing through the manipulation, holding onto what was actually true — that's actually very close to how Jesus operated in hostile religious environments. You may have been practicing something Christlike without knowing it."},
+    {label:'The door back doesn\'t go through the institution',sub:'Direct, gentle invitation.',tag:'wrong',next:'outcome_pray',youText:"The door back doesn't go through your uncle, or that church, or any institution. It goes straight to the person — Jesus. Whatever door they closed, He didn't close it. Would you be willing to let me pray for you?"},
+  ]},
+  t7_best_say:{type:'say',speaker:'them',tier:7,text:"If He's telling the truth, the followers become secondary. I've been using the followers to avoid the primary question — which is who He is.",next:'t8_pick'},
+  t7_good_say:{type:'say',speaker:'them',tier:7,text:"Read Mark like a journalist. I've been filtering Jesus through hypocrites for years. The least I could do is look at the original source.",next:'t8_pick'},
+  t7_risky_say:{type:'say',speaker:'them',tier:7,text:"Intellectual fairness. I give every other historical figure that — I read their writing, not just what their followers did. Why not Jesus?",next:'t8_pick'},
+  t7_wrong_say:{type:'say',speaker:'them',tier:7,text:"Jesus would agree with my critique. I'm not as far from Him as I think. That's uncomfortable because it suggests I've been arguing past the real question.",next:'t8_pick'},
+  t7_wound_best_say:{type:'say',speaker:'them',tier:7,text:"Read Mark without the filter. See what He says to people in power, what He says to people who've been hurt. I haven't read it that way. I might not recognize the same book.",next:'t8_wound_pick'},
+  t7_wound_good_say:{type:'say',speaker:'them',tier:7,text:"He weaponized the most powerful name he could find. Something real enough to steal authority from. The borrowed power points back to the original.",next:'t8_wound_pick'},
+  t7_wound_risky_say:{type:'say',speaker:'them',tier:7,text:"I've been practicing something Christlike without knowing it. My refusal to be controlled was closer to Jesus than what my uncle was doing. That's the most disorienting thing I've heard in years.",next:'t8_wound_pick'},
+  t8_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'Who is He — that\'s the question you\'ve been avoiding',sub:'Confront the avoidance gently.',tag:'best',next:'t8_best_say',youText:"The primary question you've been avoiding with the hypocrisy argument — who is He? Lord, Liar, or Lunatic. That question doesn't go away when Christians fail. It's between you and Him, separate from everyone else."},
+    {label:'Mark 45 minutes is the honest investigation',sub:'Less than a movie.',tag:'good',next:'t8_good_say',youText:"45 minutes of Mark is less than a movie. You've given bad Christians more time to form your opinion than you've given the man they claim to follow. That's worth correcting — for your own integrity."},
+    {label:'You\'ve already separated the counterfeit from the original',sub:'That\'s the necessary first step.',tag:'risky',next:'t8_risky_say',youText:"You've already done the first necessary thing: you've separated the counterfeit from the original. That's where most people never get. The question now is whether you'll look at the original on its own terms."},
+    {label:'Let me pray for you',sub:'Offer.',tag:'wrong',next:'outcome_pray',youText:"Would you let me pray for you right now? Not for you to join anything, not for the church. Just for you — that whatever was taken from you by the hypocrites would be restored. That you'd see the real thing."},
+  ]},
+  t8_wound_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'Read Mark — see what Jesus says to the wounded',sub:'He was consistently on their side.',tag:'best',next:'t8_wound_best_say',youText:"In Mark — watch where Jesus goes. He moves toward the lepers, the women, the children, the outcasts, the people the religious establishment had discarded. He was consistently on the side of the people the powerful used religion against. That's the person your uncle claimed to represent."},
+    {label:'Your integrity proved there was a real standard',sub:'You knew it was wrong because the standard is real.',tag:'good',next:'t8_wound_good_say',youText:"You knew your uncle was wrong. How? If there's no real standard — no real Christianity — then his version is as good as any other. But you knew it wasn't. That knowledge came from somewhere. The original is real enough that you recognized the counterfeit."},
+    {label:'Christlike without knowing it',sub:'Name the grace already operating.',tag:'risky',next:'t8_wound_risky_say',youText:"What you did — refusing manipulation, holding onto what was actually true — that took real courage. And it's the kind of courage the Gospels celebrate: the people who refuse to pretend, who see through performance, who hold out for something real. You've been more faithful than you knew."},
+    {label:'The door is open right now',sub:'Direct invitation.',tag:'wrong',next:'outcome_pray',youText:"Whatever your uncle closed — the door is open right now. Not to his version. To the Jesus in Mark. Would you let me pray for that opening?"},
+  ]},
+  t8_best_say:{type:'say',speaker:'them',tier:8,text:"Who is He — Lord, Liar, or Lunatic — that question is between me and Him, separate from everyone else. I've been using everyone else to avoid it. That's honest.",next:'t9_pick'},
+  t8_good_say:{type:'say',speaker:'them',tier:8,text:"I've given bad Christians more time than the man they claim to follow. That's worth correcting for my own integrity. I'm not being fair to the original.",next:'t9_pick'},
+  t8_risky_say:{type:'say',speaker:'them',tier:8,text:"I've separated the counterfeit from the original. That's the first necessary step. The question now is whether I'll look at the original on its own terms. I think I need to.",next:'t9_pick'},
+  t8_wound_best_say:{type:'say',speaker:'them',tier:8,text:"Jesus moved toward the people the religious establishment had discarded. My uncle discarded us. So Jesus would have been on our side, not his. I've had it completely backwards.",next:'t9_wound_pick'},
+  t8_wound_good_say:{type:'say',speaker:'them',tier:8,text:"I recognized the counterfeit because the original is real enough to contrast. My knowledge that it was wrong came from somewhere. It came from the real standard. That's almost backwards from what I thought.",next:'t9_wound_pick'},
+  t8_wound_risky_say:{type:'say',speaker:'them',tier:8,text:"More faithful than I knew. I thought leaving the church meant leaving faith. But what I was being faithful to was something real — something my uncle was violating. I was protecting the original.",next:'t9_wound_pick'},
+  t9_pick:{type:'pick',tier:9,prompt:'How do you close?',choices:[
+    {label:'Read Mark this week',sub:'Specific, low-commitment ask.',tag:'best',next:'outcome_pray',youText:"One specific ask: read Mark this week. 45 minutes. Like a journalist, not a convert. Look at who He actually was — not through your experience of Christians, but through His own words and actions. Then decide. I'll be praying for you."},
+    {label:'The question is now between you and Him',sub:'Remove the noise.',tag:'good',next:'outcome_away',youText:"The noise of hypocrites — it's real, and the damage is real. But the question of who Jesus is, is now between you and Him. I hope you'll look at Him directly. Read Mark. Follow the question wherever it goes. I'll be praying for you."},
+    {label:'Leave with C.S. Lewis',sub:'Mere Christianity — a former skeptic who asked the same questions.',tag:'risky',next:'outcome_away_soft',youText:"One name: C.S. Lewis. He was a hard skeptic who came to faith the slow, honest way — through argument, not emotion. He was as disgusted by Christian hypocrisy as you are. His book 'Mere Christianity' is the case for Jesus without the church getting in the way. I'll be praying for you."},
+    {label:'Force the decision',sub:'Too aggressive.',tag:'wrong',next:'outcome_pushed',youText:"At some point you have to decide — are you going to let the failures of people stop you from examining the most important question there is?"},
+  ]},
+  t9_wound_pick:{type:'pick',tier:9,prompt:'How do you close?',choices:[
+    {label:'The real Jesus was on your side all along',sub:'Close with the inversion.',tag:'best',next:'outcome_pray',youText:"Here's the thing I want you to hold: the real Jesus was on your side all along. Every time your uncle used His name to control you — He was standing against it. You didn't leave Jesus. You were standing closer to Him than your uncle was. I'll be praying for you. Would you read Mark this week?"},
+    {label:'You protected something real',sub:'Honor the integrity.',tag:'good',next:'outcome_away',youText:"What you protected — your family's dignity, the truth, your refusal to be controlled — you were protecting something real. I believe it was precious to Jesus too. Take your time. Follow the question. I'll be praying for you."},
+    {label:'Read Mark without your uncle\'s voice',sub:'One specific ask.',tag:'risky',next:'outcome_away_soft',youText:"Read Mark without your uncle's voice in your head. Just the text. 45 minutes. See who Jesus actually is. You've been looking at a counterfeit for years — you deserve to see the original. I'll be praying for you."},
+    {label:'Let me pray right now',sub:'Offer.',tag:'wrong',next:'outcome_pray',youText:"Would you let me pray right now — just for you, and for your family, and for the restoration of what was taken?"},
+  ]},
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'Something Real Opened',quote:'"Woe to you, teachers of the law and Pharisees, you hypocrites!" — Matthew 23:13',note:'You used the objection as a door: Jesus hated hypocrisy more than your conversation partner did. For the wounded: you led with acknowledgment, distinguished Jesus from the institution, and ended with the inversion — the real Jesus was on their side all along. That\'s the most powerful move in this conversation.',path:'Best Route · T9 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'📘',title:'Question Opened',quote:'"You will seek me and find me when you seek me with all your heart." — Jeremiah 29:13',note:'They left with the primary question reframed: it\'s between them and Jesus, not between them and Christians. That\'s the most important reframe in this conversation. The seed is planted.',path:'Good Route · T9:GOOD'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'A Name Left Behind',quote:'"I planted the seed, Apollos watered it." — 1 Corinthians 3:6',note:'C.S. Lewis is one of the best tools in this conversation — he was everything they want: skeptical, rigorous, disgusted by religious pretension. Leaving them with his name was a good close.',path:'Soft Route'},
+  outcome_pushed:{type:'outcome',outcome:'pushed',icon:'↩️',title:'Pushed Too Hard',quote:'"A gentle answer turns away wrath." — Proverbs 15:1',note:'Pressure closes conversations. In the hypocrisy objection especially, people need to feel heard before they can be moved. Validate the critique before challenging the conclusion.',path:'Pushed Away'},
+};
+let pathLog=[];
+function buildTrack(){const t=document.getElementById('tier-track');t.innerHTML='';for(let i=1;i<=MAX_TIERS;i++){const d=document.createElement('div');d.className=`pip ${TIER_PIP[i]}`;d.id=`pip-${i}`;d.textContent=i;t.appendChild(d);}}
+function updateTrack(tier){for(let i=1;i<=MAX_TIERS;i++){const p=document.getElementById(`pip-${i}`);if(!p)continue;p.classList.remove('active','done');if(i<tier)p.classList.add('done');else if(i===tier)p.classList.add('active');}}
+function addBubble(speaker,text,tier,src){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className=`bubble-row ${speaker}`;const b=document.createElement('div');b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;b.textContent=text;if(src){const badge=document.createElement('div');badge.className='src-badge';badge.textContent='📎 '+src;b.appendChild(badge);}row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function showTyping(){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className='bubble-row them';row.id='typing-row';const b=document.createElement('div');b.className='bubble tb-1 typing-indicator';b.innerHTML='<span></span><span></span><span></span>';row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function removeTyping(){const r=document.getElementById('typing-row');if(r)r.remove();}
+function showChoices(node){const panel=document.getElementById('choices-panel');const prompt=document.getElementById('choices-prompt');const grid=document.getElementById('choices-grid');panel.classList.remove('hidden');prompt.textContent=node.prompt||'Choose your response...';grid.innerHTML='';node.choices.forEach((c,i)=>{const btn=document.createElement('button');btn.className='choice-btn';btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;btn.onclick=()=>pick(node,c,i);grid.appendChild(btn);});}
+function hideChoices(){document.getElementById('choices-panel').classList.add('hidden');document.getElementById('choices-grid').innerHTML='';}
+async function pick(node,choice,idx){const btns=document.querySelectorAll('.choice-btn');btns.forEach((b,i)=>{b.disabled=true;if(i===idx&&choice.tag){b.classList.add(`tag-${choice.tag}`);const tl=document.createElement('span');tl.className='tag-label';tl.textContent=choice.tag.toUpperCase();b.querySelector('.choice-label').appendChild(tl);}});if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);await sleep(420);hideChoices();if(choice.youText){addBubble('you',choice.youText,node.tier,choice.src||null);await sleep(500);}await run(choice.next);}
+function showOutcome(node){document.getElementById('out-icon').textContent=node.icon||'✓';document.getElementById('out-title').textContent=node.title||'';document.getElementById('out-quote').textContent=node.quote||'';document.getElementById('out-note').textContent=node.note||'';document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');document.getElementById('outcome-screen').classList.add('visible');}
+function readConversation(){document.getElementById('outcome-screen').classList.remove('visible');}
+async function run(id){const node=nodes[id];if(!node){console.warn('Missing node:',id);return;}updateTrack(node.tier||1);if(node.type==='say'){if(node.speaker==='them'){showTyping();await sleep(900);removeTyping();}addBubble(node.speaker,node.text,node.tier||1,node.src||null);await sleep(node.speaker==='them'?400:300);if(node.next)await run(node.next);}else if(node.type==='pick'){showChoices(node);}else if(node.type==='outcome'){await sleep(300);showOutcome(node);}}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function restartGame(){document.getElementById('chat-area').innerHTML='';document.getElementById('outcome-screen').classList.remove('visible');hideChoices();pathLog=[];buildTrack();run('start');}
+buildTrack();run('start');
+</script>
+</body>
+</html>

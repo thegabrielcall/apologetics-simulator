@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tree G — Conversation Simulator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',serif}
+
+/* ── Layout ── */
+#app{display:flex;flex-direction:column;height:100vh;max-width:760px;margin:0 auto;padding:0 16px}
+
+/* ── Header ── */
+#header{padding:14px 0 10px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#game-title{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;font-family:'Courier New',monospace;color:#666}
+#restart-btn{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#444;background:none;border:1px solid #2a2a3a;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s}
+#restart-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+
+/* ── Tier progress ── */
+#tier-track{display:flex;gap:4px;align-items:center}
+.tier-dot{width:18px;height:4px;border-radius:2px;background:#1c1c28;transition:background .4s,width .3s}
+.tier-dot.active{background:#e8c97a}
+.tier-dot.done{background:#6ad49088}
+.tier-dot.outcome-dot{width:28px;background:#1c1c28}
+.tier-dot.outcome-dot.active{background:#b06ad4}
+#tier-label{font-size:0.6rem;font-family:'Courier New',monospace;color:#555;margin-left:8px;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+
+/* ── Chat area ── */
+#chat-area{flex:1;overflow-y:auto;padding:12px 0 8px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+#chat-area::-webkit-scrollbar{width:3px}
+#chat-area::-webkit-scrollbar-track{background:transparent}
+#chat-area::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:2px}
+
+/* ── Bubbles ── */
+.bubble-wrap{display:flex;opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+.bubble-wrap.visible{opacity:1;transform:none}
+.bubble-wrap.you-wrap{justify-content:flex-start}
+.bubble-wrap.them-wrap{justify-content:flex-end}
+.bubble{max-width:68%;padding:11px 15px;border-radius:12px;font-size:0.82rem;line-height:1.6;position:relative}
+.you-wrap .bubble{border-top-left-radius:3px}
+.them-wrap .bubble{border-top-right-radius:3px}
+
+/* tier color classes */
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.tb-8{background:#2e1a24;border:1.5px solid #d46aaa;color:#e8b8d4}
+.tb-9{background:#1a2e2e;border:1.5px solid #6ad4d4;color:#b8e8e8}
+.tb-10{background:#2e221a;border:1.5px solid #d4906a;color:#e8ccb8}
+.tb-11{background:#1e1a2e;border:1.5px solid #9a8fd4;color:#ccc8e8}
+
+.tier-pip{display:inline-block;font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.07em;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-bottom:6px;border:1px solid;opacity:.8}
+
+/* typing indicator */
+.typing-wrap{display:flex;justify-content:flex-end;opacity:0;transition:opacity .3s}
+.typing-wrap.visible{opacity:1}
+.typing{background:#1e1e2e;border:1px solid #2a2a3a;border-radius:10px;border-top-right-radius:3px;padding:10px 16px;display:flex;gap:5px;align-items:center}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:#555;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* ── Choices panel ── */
+#choices-panel{flex-shrink:0;padding:10px 0 16px}
+#choices-prompt{font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:8px}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{
+  background:#111120;border:1.5px solid #2a2a3a;border-radius:10px;
+  padding:12px 14px;cursor:pointer;text-align:left;
+  transition:all .2s;position:relative;overflow:hidden
+}
+.choice-btn:hover{border-color:#6a90d455;background:#151528}
+.choice-btn .choice-label{font-size:0.78rem;color:#ccc;line-height:1.4;margin-bottom:4px}
+.choice-btn .choice-sub{font-size:0.68rem;color:#555;font-style:italic;line-height:1.3}
+.choice-btn.selected{pointer-events:none}
+.choice-btn.selected.tag-best{border-color:#6ad490;background:#1a2e1a}
+.choice-btn.selected.tag-good{border-color:#6ab8d4;background:#1a2a30}
+.choice-btn.selected.tag-risky{border-color:#d4a86a;background:#2e271a}
+.choice-btn.selected.tag-wrong{border-color:#d46a6a;background:#2e1a1a}
+.choice-btn.unselected{opacity:.3;pointer-events:none}
+.tag-flash{
+  display:none;position:absolute;top:8px;right:8px;
+  font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.1em;
+  text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid
+}
+.choice-btn.selected .tag-flash{display:block}
+.tag-best .tag-flash{color:#6ad490;border-color:#6ad49050;background:#6ad49015}
+.tag-good .tag-flash{color:#6ab8d4;border-color:#6ab8d450;background:#6ab8d415}
+.tag-risky .tag-flash{color:#d4a86a;border-color:#d4a86a50;background:#d4a86a15}
+.tag-wrong .tag-flash{color:#d46a6a;border-color:#d46a6a50;background:#d46a6a15}
+
+/* ── Outcome screen ── */
+#outcome-screen{
+  display:none;position:fixed;inset:0;background:#0b0b14;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 24px;z-index:100;max-width:760px;margin:0 auto
+}
+#outcome-screen.show{display:flex}
+.outcome-icon{font-size:3rem;margin-bottom:20px;animation:fadeUp .6s ease}
+.outcome-title{font-size:1.4rem;color:#e8c97a;margin-bottom:12px;text-align:center;animation:fadeUp .6s .1s ease both}
+.outcome-quote{
+  max-width:560px;text-align:center;font-size:0.9rem;line-height:1.7;
+  color:#ccc;margin-bottom:20px;animation:fadeUp .6s .2s ease both;
+  border-left:3px solid #333;padding-left:16px;text-align:left
+}
+.outcome-note{font-size:0.72rem;font-style:italic;color:#666;margin-bottom:32px;text-align:center;animation:fadeUp .6s .3s ease both}
+.outcome-path-summary{
+  font-size:0.62rem;font-family:'Courier New',monospace;letter-spacing:0.08em;
+  text-transform:uppercase;color:#444;margin-bottom:28px;text-align:center;
+  animation:fadeUp .6s .35s ease both
+}
+.outcome-btns{display:flex;gap:12px;animation:fadeUp .6s .4s ease both}
+.outcome-btn{
+  background:#111120;border:1.5px solid #2a2a3a;border-radius:8px;
+  padding:10px 22px;font-family:'Courier New',monospace;font-size:0.7rem;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;color:#888;transition:all .2s
+}
+.outcome-btn:hover{color:#e8c97a;border-color:#e8c97a55}
+.outcome-btn.primary{border-color:#6ad49055;color:#6ad490}
+.outcome-btn.primary:hover{border-color:#6ad490;background:#1a2e1a}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ── Source badge ── */
+.src{display:inline-block;font-size:0.55rem;font-family:'Courier New',monospace;
+  background:#fff08;border:1px solid #fff18;border-radius:3px;padding:2px 5px;
+  margin-top:7px;color:#888;display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <span id="game-title">Tree G · Conversation Simulator</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track">
+      <!-- dots injected by JS -->
+    </div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path-summary" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn" onclick="restartGame()">↺ Try a different path</button>
+    <button class="outcome-btn primary" onclick="closeOutcome()">← Read full conversation</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  GAME DATA
+// ═══════════════════════════════════════════════════════════
+
+const TIER_COLORS = ['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-8','tb-9','tb-10','tb-11'];
+const TIER_LABELS = ['','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11'];
+
+// node types: 'say' | 'pick' | 'outcome'
+const nodes = {
+
+  // ─── OPENING ───────────────────────────────────────────
+  start: {
+    type:'say', speaker:'you', tier:1,
+    text: "Have you heard the Good News?",
+    next:'t2_pick'
+  },
+
+  // ─── T2 CHOICE ─────────────────────────────────────────
+  t2_pick:{
+    type:'pick', tier:2,
+    prompt:'Choose how they respond...',
+    choices:[
+      { label:'"Church destroyed my family"', sub:'Financial exploitation — years of manipulation', next:'t2a', youText:null },
+      { label:'"The church ruined my marriage"', sub:'Spiritual abuse tore their family apart', next:'t2b', youText:null },
+      { label:'"I walked away 15 years ago"', sub:'Watched leaders destroy lives — never looked back', next:'t2c', youText:null },
+      { label:'"A pastor hurt me as a teenager"', sub:'Personal trauma and betrayal at 14', next:'t2d', youText:null },
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════
+  //  PATH A — Church destroyed my family
+  // ════════════════════════════════════════════════════════
+  t2a:{ type:'say', speaker:'them', tier:2,
+    text:"I don't want to hear anything about God. The church destroyed my family. Years of manipulation, financial exploitation — they tore us apart. I watched every bit of it happen.",
+    next:'t3a_pick'
+  },
+  t3a_pick:{
+    type:'pick', tier:3, prompt:'How do you respond?',
+    choices:[
+      { label:'Lead with empathy', sub:'"I\'m sorry. Was it the institution or Jesus himself?"',
+        tag:'best', next:'t4a_main',
+        youText:"I'm so sorry. That's real, and it's not okay. Can I ask — was it the institution that hurt you, or Jesus himself?" },
+      { label:'Point to Jesus\'s own record', sub:'"Jesus actually opposed religious institutions."',
+        tag:'good', next:'t4a_ok',
+        youText:"Jesus actually spent most of his time opposing religious institutions. He was killed by one." },
+      { label:'Defend the church', sub:'"Not all churches are like that."',
+        tag:'risky', next:'t4a_risky',
+        youText:"Not all churches are like that — real ones don't act that way." },
+      { label:'Dismiss the experience', sub:'"Those weren\'t real Christians."',
+        tag:'wrong', next:'t4a_wrong',
+        youText:"Those people weren't real Christians. You can't blame Jesus for what they did." },
+    ]
+  },
+
+  // ── A main highway ──
+  t4a_main:{ type:'say', speaker:'them', tier:4,
+    text:"Same thing. Jesus, God, church — you can't separate them. One package deal. And that package deal destroyed everything.",
+    next:'t5a_pick'
+  },
+  t5a_pick:{
+    type:'pick', tier:5, prompt:'They pushed back. What do you say?',
+    choices:[
+      { label:'Cite Jesus\'s own words against leaders', sub:'"He called them whitewashed tombs — killed BY the church"',
+        tag:'best', next:'t6a_main',
+        youText:"I hear that. But the same Bible you're rejecting has Jesus calling religious leaders 'whitewashed tombs.' He was actually killed BY the religious establishment. He's on record opposing it." },
+      { label:'Ask them to consider the distinction', sub:'"What if the institution got it wrong and Jesus is on your side?"',
+        tag:'good', next:'t6a_ok',
+        youText:"What if the institution got it completely wrong — and Jesus is actually on your side of this?" },
+      { label:'Ask what happened', sub:'"Can you tell me what they actually did?"',
+        tag:'risky', next:'t6a_risky',
+        youText:"Can you tell me more about what they actually did to your family?" },
+      { label:'Validate their frustration', sub:'"You\'re right to be angry. The church has failed people."',
+        tag:'wrong', next:'t6a_wrong',
+        youText:"You're right to be angry. The church has failed a lot of people badly." },
+    ]
+  },
+  t6a_main:{ type:'say', speaker:'them', tier:6,
+    text:"So why did He allow them to build one in His name? Every corrupt church claims to follow Jesus. He had to have known this would happen.",
+    next:'t7a_pick'
+  },
+  t7a_pick:{
+    type:'pick', tier:7, prompt:'One of the deepest questions. How do you answer?',
+    choices:[
+      { label:'Jesus predicted this exact thing', sub:'"He warned about wolves in sheep\'s clothing before it happened"',
+        tag:'best', next:'t8a_main',
+        youText:"That's one of the most honest questions anyone could ask. And Jesus predicted it — He warned about wolves in sheep's clothing, false prophets inside the church. The corruption you witnessed? He named it before it happened." },
+      { label:'Separate institution from relationship', sub:'"He never designed a corporation. He wanted relationship."',
+        tag:'good', next:'t8a_ok',
+        youText:"He didn't design the institution. He designed relationship. Everything built on top of that — the buildings, the hierarchy, the power structures — that was human. And humans corrupt things." },
+      { label:'Free will defense', sub:'"God allows people to abuse even His own name."',
+        tag:'risky', next:'t8a_risky',
+        youText:"God allows human free will, which means people can abuse things — even His own name. That's not His design, it's the cost of genuine freedom." },
+      { label:'Concede the point', sub:'"That\'s fair — the church has failed a lot of people."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"That's a fair point. The church has failed a lot of people and I can't explain why God allowed it." },
+    ]
+  },
+  t8a_main:{ type:'say', speaker:'them', tier:8,
+    text:"...I didn't know that. I always thought the Bible just propped up whatever the church wanted to do.",
+    next:'t9a_pick'
+  },
+  t9a_pick:{
+    type:'pick', tier:9, prompt:'Something shifted. Build on it carefully.',
+    choices:[
+      { label:'Show Jesus is on their side', sub:'"The prophets, Jesus, Paul — they critiqued religious power. He would weep over this."',
+        tag:'best', next:'t10a_main',
+        youText:"It does the opposite in most places. The prophets, Jesus, Paul — they spent most of their words critiquing the religious power of their day. The church hurt you. Jesus is the one who would weep over that. He has a track record of weeping." },
+      { label:'Invite them to read it themselves', sub:'"The Bible is actually more critical of religion than any atheist."',
+        tag:'good', next:'t10a_ok',
+        youText:"The Bible is actually the most scathing critique of religious power ever written. You wouldn't know that from the people who weaponized it — but it's there. You could read it for yourself, on your own terms." },
+      { label:'Ask what it would mean', sub:'"What if Jesus is completely different from what hurt you?"',
+        tag:'risky', next:'t10a_risky',
+        youText:"What would it mean to you, if Jesus turned out to be completely different from what hurt you?" },
+      { label:'Pivot to making it right', sub:'"What would you need to see to trust again?"',
+        tag:'risky', next:'t10a_risky',
+        youText:"What would you need to see to be able to trust again?" },
+    ]
+  },
+  t10a_main:{ type:'say', speaker:'them', tier:10,
+    text:"If He weeps over it... maybe He's not the same as them. I've been carrying anger at a face that might not even be His face. I think I've been blaming the wrong person for years.",
+    next:'t11a_pick'
+  },
+  t11a_pick:{
+    type:'pick', tier:11, prompt:'This is the moment. Choose your final words.',
+    choices:[
+      { label:'Confirm who He really is', sub:'"He and the people who hurt you are on opposite sides of this story."',
+        tag:'best', next:'outcome_pray_a',
+        youText:"He is. The Jesus of the Bible wept, confronted the powerful, and was killed by them. Him and the people who hurt your family are on opposite sides of this story." },
+      { label:'Give them space and an open door', sub:'"Read His actual words when you\'re ready."',
+        tag:'good', next:'outcome_away_a',
+        youText:"Take your time. Read His actual words when you're ready — not through anyone else's filter. The door is open." },
+      { label:'Hold the moment gently', sub:'"There\'s no timeline. You\'ve been carrying this long enough."',
+        tag:'good', next:'outcome_away_soft_a',
+        youText:"You've been carrying this for a long time. There's grace for wherever you are right now. No timeline." },
+      { label:'Push for a decision', sub:'"So does this mean you\'re ready to give faith a try?"',
+        tag:'wrong', next:'outcome_pushed',
+        youText:"So does this mean you're ready to give faith a try?" },
+    ]
+  },
+
+  // ── A side paths ──
+  t4a_ok:{ type:'say', speaker:'them', tier:4,
+    text:"I've heard that. 'Jesus is different from the church.' But who speaks for Jesus? The church does. So how is He actually different if his followers act like this?",
+    next:'t5a_ok_pick'
+  },
+  t5a_ok_pick:{
+    type:'pick', tier:5, prompt:'Good question. How do you answer it?',
+    choices:[
+      { label:'Jesus\'s own words set the standard', sub:'"He predicted this failure himself — that\'s the difference."',
+        tag:'best', next:'t6a_main',
+        youText:"The difference is that Jesus himself predicted his followers would fail this way — and condemned it in advance. He said watch out for wolves in sheep's clothing. He wasn't surprised by this. He named it." },
+      { label:'His historical record speaks', sub:'"He was killed by the same kind of leaders."',
+        tag:'good', next:'t6a_main',
+        youText:"He was killed by the same kind of religious leaders who hurt your family. That's the historical record. He's not on their side." },
+      { label:'Invite them to read Jesus directly', sub:'"Read what Jesus said himself — not what the church said about him."',
+        tag:'risky', next:'t8a_risky',
+        youText:"Read what Jesus himself said — not what the church says about him. The words are preserved. You can go directly to the source." },
+      { label:'Concede the difficulty', sub:'"That\'s a fair challenge. I don\'t have a clean answer."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"That's a genuinely hard challenge and I don't have a clean answer for it." },
+    ]
+  },
+  t4a_risky:{ type:'say', speaker:'them', tier:4,
+    text:"Every church says 'we're the real ones.' That's exactly what my church said right up until everything fell apart. I've heard it from all of them.",
+    next:'t5a_risky_pick'
+  },
+  t5a_risky_pick:{
+    type:'pick', tier:5, prompt:'They shut that down. Can you recover?',
+    choices:[
+      { label:'Acknowledge they\'re right and redirect', sub:'"You\'re right. Jesus predicted exactly that."',
+        tag:'best', next:'t6a_main',
+        youText:"You're right, and I shouldn't have said it that way. Jesus himself said most religious leaders would be like that — He warned about it. He predicted your exact experience." },
+      { label:'Apologize and reset', sub:'"That was defensive of me. I\'m sorry."',
+        tag:'good', next:'t6a_main',
+        youText:"That was the wrong thing to say — it was defensive of me and it dismissed what you went through. I'm sorry. What you experienced was real." },
+      { label:'Keep defending churches', sub:'"But if you found the right one—"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"But if you found the right community—" },
+      { label:'Redirect to Jesus only', sub:'"Forget churches. What do you think of Jesus himself?"',
+        tag:'risky', next:'t6a_ok',
+        youText:"Forget churches entirely. What do you think of Jesus himself, separate from any institution?" },
+    ]
+  },
+  t4a_wrong:{ type:'say', speaker:'them', tier:4,
+    text:"Don't tell me they weren't real Christians. That's what every church person says about every other church. You're all the same. This conversation is over.",
+    next:'outcome_shutdown'
+  },
+
+  // ── A branching nodes (merge back to main or end) ──
+  t6a_ok:{ type:'say', speaker:'them', tier:6,
+    text:"...Honestly? I think Jesus was probably a decent person. It's the institution I can't stand.",
+    next:'t7a_ok_pick'
+  },
+  t7a_ok_pick:{
+    type:'pick', tier:7, prompt:'They separated Jesus from the church. Explore that.',
+    choices:[
+      { label:'Build on that separation', sub:'"Then let\'s talk about Jesus himself, not the institution."',
+        tag:'best', next:'t8a_ok',
+        youText:"That's a meaningful distinction. Then let's talk about Jesus himself — his historical existence, what he actually said, what he claimed. Separate from any institution." },
+      { label:'Ask what they think of his claims', sub:'"If he was decent, what do you make of his claims about himself?"',
+        tag:'good', next:'t8a_ok',
+        youText:"If Jesus was a decent person — and the historical record is clear he existed — what do you make of his claims about himself? He claimed to be God. That's hard to categorize as just 'decent.'" },
+      { label:'Share evidence', sub:'"His existence is the most documented event in ancient history."',
+        tag:'good', next:'t8a_ok',
+        youText:"His existence is actually the most documented event in all of ancient history — more preserved than any Roman emperor. That's worth taking seriously." },
+      { label:'Press for commitment', sub:'"So would you be open to exploring faith again?"',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"So would you be open to exploring faith again, starting with just Jesus?" },
+    ]
+  },
+  t8a_ok:{ type:'say', speaker:'them', tier:8,
+    text:"I've never actually looked at the historical record. I just lumped it all together. Maybe that's not fair.",
+    next:'t9a_ok_pick'
+  },
+  t9a_ok_pick:{
+    type:'pick', tier:9, prompt:'They\'re opening up. How do you respond?',
+    choices:[
+      { label:'Affirm them and give space', sub:'"That\'s honest. Take your time with the actual text."',
+        tag:'best', next:'outcome_away_a',
+        youText:"That's one of the most honest things someone can say. Take your time with his actual words — not filtered through anyone else. They've survived 24,600 manuscripts across centuries. They can handle your questions." },
+      { label:'Share a specific reference', sub:'"Start with the Gospel of John. Just read what he said."',
+        tag:'good', next:'outcome_away_a',
+        youText:"Start with the Gospel of John. Just read what Jesus said in his own words. No commentary, no church. Just the words." },
+      { label:'Invite them to pray now', sub:'"Would you want to say a short prayer right now?"',
+        tag:'risky', next:'outcome_pushed',
+        youText:"Would you want to say a short prayer right now? Even just to open the conversation with God?" },
+      { label:'Give them the whole argument', sub:'"Here\'s what the evidence shows..."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"Here's the thing — the manuscript evidence, the secular historians, the fulfilled prophecies—" },
+    ]
+  },
+  t6a_risky:{ type:'say', speaker:'them', tier:6,
+    text:"He predicted it? Like — Jesus actually said false prophets would show up inside the church?",
+    next:'t7a_pick'
+  },
+  t6a_wrong:{ type:'say', speaker:'them', tier:6,
+    text:"Right. They've failed a lot of people. Including me. I don't see how that changes anything.",
+    next:'outcome_away_cold'
+  },
+  t8a_risky:{ type:'say', speaker:'them', tier:8,
+    text:"Maybe. I'd have to actually read it myself to know. I've only ever heard it interpreted for me by people with an agenda.",
+    next:'outcome_away_a'
+  },
+  t8a_ok:{ type:'say', speaker:'them', tier:8,
+    text:"I've never actually looked at the historical record for myself. I just lumped it all together. Maybe that's not fair to do.",
+    next:'t9a_ok_pick'
+  },
+  t10a_ok:{ type:'say', speaker:'them', tier:10,
+    text:"On my own terms... I've never done that. It was always the church's terms. Maybe that's the problem.",
+    next:'outcome_away_a'
+  },
+  t10a_risky:{ type:'say', speaker:'them', tier:10,
+    text:"...I don't know what it would mean. I haven't let myself think about it.",
+    next:'outcome_away_soft_a'
+  },
+
+  // ════════════════════════════════════════════════════════
+  //  PATH B — Church ruined my marriage
+  // ════════════════════════════════════════════════════════
+  t2b:{ type:'say', speaker:'them', tier:2,
+    text:"Good news? The church manipulated my wife into leaving me. Her pastor told her I was 'spiritually unfit' for asking questions. They used God as a weapon to break up a family. So keep your gospel.",
+    next:'t3b_pick'
+  },
+  t3b_pick:{
+    type:'pick', tier:3, prompt:'How do you respond to spiritual abuse?',
+    choices:[
+      { label:'Name what happened directly', sub:'"That\'s called spiritual abuse — and Jesus condemned it."',
+        tag:'best', next:'t4b_main',
+        youText:"What they did has a name: spiritual abuse. And Jesus had some of his harshest words reserved for leaders who used religious authority to harm people and break families." },
+      { label:'Validate and redirect', sub:'"That pastor abused his position. That\'s not the faith."',
+        tag:'good', next:'t4b_ok',
+        youText:"That pastor abused his position. That's not the faith — that's a power trip hiding behind a collar." },
+      { label:'Question both sides', sub:'"Was there anything on both sides that—"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"Was there maybe something on both sides that contributed to—" },
+      { label:'Offer sympathy without substance', sub:'"I\'m sorry that happened to you."',
+        tag:'risky', next:'t4b_risky',
+        youText:"I'm really sorry that happened to you. That sounds incredibly painful." },
+    ]
+  },
+  t4b_main:{ type:'say', speaker:'them', tier:4,
+    text:"Spiritual abuse. I've never heard that phrase used in a church context. But that's exactly what it was — abuse, dressed up in scripture.",
+    next:'t5b_pick'
+  },
+  t5b_pick:{
+    type:'pick', tier:5, prompt:'They recognized the term. Go deeper.',
+    choices:[
+      { label:'Show Jesus protected people from this', sub:'"Matthew 18 — he promised consequences for exactly this."',
+        tag:'best', next:'t6b_main',
+        youText:"Matthew 18:6 — Jesus said whoever causes harm to the vulnerable, it would be better for them to have a millstone tied around their neck. He wasn't neutral about spiritual abuse. He was furious about it." },
+      { label:'Separate God from the abuser', sub:'"The God of the Bible stands against what that pastor did."',
+        tag:'good', next:'t6b_main',
+        youText:"The God that pastor claimed to represent would stand against everything he did. They're not the same." },
+      { label:'Suggest professional help', sub:'"Have you been able to process this with anyone?"',
+        tag:'risky', next:'t6b_risky',
+        youText:"Have you been able to process this with a counselor or anyone outside the church?" },
+      { label:'Recommend a better church', sub:'"You should try a church that doesn\'t operate like—"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"You should try finding a church community that doesn't operate that way—" },
+    ]
+  },
+  t6b_main:{ type:'say', speaker:'them', tier:6,
+    text:"He promised consequences for people like that pastor? I spent five years thinking God approved of what he did — or at least let it go.",
+    next:'t7b_pick'
+  },
+  t7b_pick:{
+    type:'pick', tier:7, prompt:'They\'ve been carrying a false picture of God. Clarify it.',
+    choices:[
+      { label:'Show God is on their side, not the abuser\'s', sub:'"The pastor and God are on opposite sides of what happened."',
+        tag:'best', next:'t8b_main',
+        youText:"That pastor and the God of the Bible are on opposite sides of what happened to your family. God wasn't approving it or allowing it passively — Jesus was describing the judgment waiting for people who do exactly that." },
+      { label:'Let the verse speak for itself', sub:'"Millstone around the neck — that\'s Jesus speaking, not me."',
+        tag:'good', next:'t8b_main',
+        youText:"'Millstone around their neck and thrown into the sea' — that's Jesus speaking, not me. He was angrier about it than either of us." },
+      { label:'Give them space to process', sub:'"This might be a lot to take in."',
+        tag:'risky', next:'outcome_away_b',
+        youText:"I know this is a lot to take in. There's no rush here." },
+      { label:'Ask if they want to reconcile', sub:'"Is there any part of you that wants to reconnect with God?"',
+        tag:'wrong', next:'outcome_pushed',
+        youText:"Is there any part of you that wants to reconnect with God?" },
+    ]
+  },
+  t8b_main:{ type:'say', speaker:'them', tier:8,
+    text:"...I've been angry at God for something He would have opposed. For five years. That's a long time to be furious at the wrong target.",
+    next:'t9b_pick'
+  },
+  t9b_pick:{
+    type:'pick', tier:9, prompt:'They\'re realizing something important. Be gentle.',
+    choices:[
+      { label:'Affirm the realization', sub:'"The real God and what happened to you are on different sides."',
+        tag:'best', next:'outcome_pray_b',
+        youText:"The real God and what that pastor did are on completely different sides. You weren't angry at God — you were angry at a lie someone put on His face. That's fair. Now you know the difference." },
+      { label:'Give them room to breathe', sub:'"Take your time. The door is open when you\'re ready."',
+        tag:'good', next:'outcome_away_b',
+        youText:"Take your time with this. You've been carrying it for five years — there's no rush. The door is open whenever you're ready." },
+      { label:'Pray for them out loud', sub:'"Can I say a quick prayer for you right now?"',
+        tag:'risky', next:'outcome_pray_b',
+        youText:"Can I say a quick prayer for you right now? You don't have to do anything — just receive it." },
+      { label:'Give them resources', sub:'"Here are some books on spiritual abuse recovery."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"There are actually some really good books on spiritual abuse recovery you might want to look at." },
+    ]
+  },
+  t4b_ok:{ type:'say', speaker:'them', tier:4,
+    text:"A power trip. Yes. And it worked. I lost my family to someone's power trip dressed up as God's will.",
+    next:'t5b_ok_pick'
+  },
+  t5b_ok_pick:{
+    type:'pick', tier:5, prompt:'They\'re describing real spiritual abuse. Stay with it.',
+    choices:[
+      { label:'Connect their pain to Jesus\'s anger', sub:'"Jesus was most publicly angry at exactly this kind of leader."',
+        tag:'best', next:'t6b_main',
+        youText:"Jesus saved his most public anger for exactly this kind of leader — the ones who used religious power to control and harm people. Matthew 23. It's some of the sharpest language in the Bible." },
+      { label:'Validate without deflecting', sub:'"What happened to you was wrong. Full stop."',
+        tag:'good', next:'t6b_main',
+        youText:"What happened to you was wrong. That's not even a faith question — it's just wrong. No qualifier." },
+      { label:'Ask about their marriage', sub:'"Are you and your wife in contact at all?"',
+        tag:'risky', next:'outcome_away_b',
+        youText:"Are you and your wife still in contact at all?" },
+      { label:'Offer to connect them with help', sub:'"There are people who specialize in spiritual abuse recovery."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"There are counselors who specialize in spiritual abuse recovery—" },
+    ]
+  },
+  t4b_risky:{ type:'say', speaker:'them', tier:4,
+    text:"Sympathy is great but I've had plenty of that. What I haven't had is someone explain why God let it happen.",
+    next:'t5b_pick'
+  },
+  t6b_risky:{ type:'say', speaker:'them', tier:6,
+    text:"I've been in therapy for years. It's helped with the trauma. The God question is still open though.",
+    next:'t7b_pick'
+  },
+
+  // ════════════════════════════════════════════════════════
+  //  PATH C — Left church 15 years ago
+  // ════════════════════════════════════════════════════════
+  t2c:{ type:'say', speaker:'them', tier:2,
+    text:"I grew up in church my entire life. Watched the elders systematically destroy three families — manipulation, money, power. I walked away fifteen years ago and I haven't looked back once.",
+    next:'t3c_pick'
+  },
+  t3c_pick:{
+    type:'pick', tier:3, prompt:'15 years of resolve. How do you open the door?',
+    choices:[
+      { label:'Ask what they left behind', sub:'"Was it the people, or Jesus himself, that you walked away from?"',
+        tag:'best', next:'t4c_main',
+        youText:"Fifteen years of watching that — I understand the walk away. Can I ask: was it the people who broke your faith, or did walking away include Jesus himself?" },
+      { label:'Acknowledge the pattern', sub:'"What you saw is real — religious abuse of power is documented."',
+        tag:'good', next:'t4c_ok',
+        youText:"What you witnessed is real and it's documented. Religious abuse of power is as old as religion itself — and it's been critiqued by the Bible harder than anywhere else." },
+      { label:'Ask if they miss it', sub:'"Do you ever wonder what you\'ve been missing?"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"Do you ever wonder if you've been missing something being away from it?" },
+      { label:'Share your own faith', sub:'"I know it feels that way — my experience was different though."',
+        tag:'risky', next:'t4c_risky',
+        youText:"I understand why you left. My own experience has been different, but I respect the decision you made." },
+    ]
+  },
+  t4c_main:{ type:'say', speaker:'them', tier:4,
+    text:"Honestly? I stopped separating them a long time ago. It all got blurry. I threw the whole package out — Jesus, God, church — together.",
+    next:'t5c_pick'
+  },
+  t5c_pick:{
+    type:'pick', tier:5, prompt:'They admit they threw Jesus out with the institution. Explore that.',
+    choices:[
+      { label:'Name the distinction clearly', sub:'"The people who hurt others and Jesus are on different sides of the Bible."',
+        tag:'best', next:'t6c_main',
+        youText:"The people who did what you saw and Jesus of Nazareth are on different sides of the same Bible. Jesus spent his ministry confronting exactly the kind of leaders you watched. He was executed by them." },
+      { label:'Point to secular evidence', sub:'"His historical existence is separate from the institution."',
+        tag:'good', next:'t6c_ok',
+        youText:"His historical existence is completely separate from any institution. Non-Christian Roman historians — Tacitus, Pliny — documented him. That record exists outside of any church." },
+      { label:'Ask what it would take', sub:'"What would make it worth separating them in your mind?"',
+        tag:'risky', next:'t6c_risky',
+        youText:"What would it take for you to be willing to look at Jesus separately from the institution — even just as a historical question?" },
+      { label:'Defend the church', sub:'"Not every church is like what you experienced."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"Not every church operates the way what you experienced—" },
+    ]
+  },
+  t6c_main:{ type:'say', speaker:'them', tier:6,
+    text:"He was executed by them? I knew he was crucified — but I never connected that to the same dynamic I watched.",
+    next:'t7c_pick'
+  },
+  t7c_pick:{
+    type:'pick', tier:7, prompt:'History just became personal. Keep building.',
+    choices:[
+      { label:'Connect the dots fully', sub:'"Same power structure, same manipulation — he was their victim too."',
+        tag:'best', next:'t8c_main',
+        youText:"Same power structure. Same religious manipulation. The elders you watched destroyed families — the religious establishment Jesus confronted destroyed him. He was their victim. Not their mascot." },
+      { label:'Cite the historical record', sub:'"Tacitus and Josephus confirm this — secular sources."',
+        tag:'good', next:'t8c_main',
+        youText:"Tacitus, a Roman historian with no reason to protect Christianity, confirmed the crucifixion under Pilate. This isn't theology — it's history. Jesus was killed by the same kind of institution you left." },
+      { label:'Let them process', sub:'"That might be worth sitting with."',
+        tag:'risky', next:'outcome_away_c',
+        youText:"That might be worth sitting with for a bit." },
+      { label:'Press forward quickly', sub:'"So that changes things, right?"',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"So that changes things — you can see he's on your side of this, right?" },
+    ]
+  },
+  t8c_main:{ type:'say', speaker:'them', tier:8,
+    text:"Not their mascot — their victim. I've been using the institution as the lens and it's been the wrong lens the whole time.",
+    next:'t9c_pick'
+  },
+  t9c_pick:{
+    type:'pick', tier:9, prompt:'They\'re re-examining 15 years. Handle it gently.',
+    choices:[
+      { label:'Affirm the insight and give space', sub:'"Read his actual words when you\'re ready. Not filtered through anyone."',
+        tag:'best', next:'outcome_away_c',
+        youText:"When you're ready — read his actual words. Not filtered through the institution that hurt you, not through anyone's agenda. Just the text. It's been preserved across 24,600 manuscripts. It can handle you coming to it fresh." },
+      { label:'Invite them back', sub:'"Would you ever be open to exploring it again?"',
+        tag:'good', next:'outcome_away_c',
+        youText:"Would you ever be open to exploring it again — not the institution, just Jesus himself?" },
+      { label:'Pray with them now', sub:'"Can we pray together right now?"',
+        tag:'risky', next:'outcome_pray_c',
+        youText:"Can we just stop right here and pray? Not for church, not for the institution — just a conversation between you and the real person." },
+      { label:'Give them books', sub:'"I can recommend some things that approach it outside the institution."',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"I can recommend some things that approach Jesus completely outside of the church context—" },
+    ]
+  },
+  t4c_risky:{ type:'say', speaker:'them', tier:4,
+    text:"Your experience was different. Mine wasn't. Fifteen years of watching damage will do that.",
+    next:'t5c_risky_pick'
+  },
+  t5c_risky_pick:{
+    type:'pick', tier:5, prompt:'They\'re not impressed by your story. Redirect.',
+    choices:[
+      { label:'Go back to asking about Jesus', sub:'"Fair. But let me ask specifically about Jesus, not churches."',
+        tag:'best', next:'t6c_main',
+        youText:"Fair enough — your experience is yours. But let me ask specifically about Jesus, separate from any institution. What do you think of him, the historical person?" },
+      { label:'Acknowledge their experience fully', sub:'"You\'re right. Let me stop making this about me."',
+        tag:'good', next:'t4c_main',
+        youText:"You're right. Let me stop making it about my experience. What you saw for fifteen years is what matters here. Can I ask — when you left, did you leave Jesus too, or just the institution?" },
+      { label:'Keep sharing your story', sub:'"But I also experienced—"',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"But I also grew up seeing both sides and—" },
+      { label:'Suggest they try again', sub:'"Maybe it\'s worth giving it another shot?"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"Maybe with time it's worth giving a different community a shot?" },
+    ]
+  },
+  t6c_ok:{ type:'say', speaker:'them', tier:6,
+    text:"Roman historians? I didn't know his existence was documented outside of Christian sources.",
+    next:'t7c_pick'
+  },
+  t6c_risky:{ type:'say', speaker:'them', tier:6,
+    text:"...I don't know what it would take. I haven't let myself think about it as two separate things in fifteen years.",
+    next:'outcome_away_c'
+  },
+
+  // ════════════════════════════════════════════════════════
+  //  PATH D — Abused by a church leader
+  // ════════════════════════════════════════════════════════
+  t2d:{ type:'say', speaker:'them', tier:2,
+    text:"A pastor abused me when I was fourteen. Told me it was God's will. I've spent twenty years trying to not hate everything connected to that name.",
+    next:'t3d_pick'
+  },
+  t3d_pick:{
+    type:'pick', tier:3, prompt:'This requires your most careful response.',
+    choices:[
+      { label:'Name it as a crime and show Jesus\'s position', sub:'"That was evil. And Jesus promised judgment for exactly that."',
+        tag:'best', next:'t4d_main',
+        youText:"I'm so sorry. What happened to you was a crime and it was evil. That person used God's name to cover their own sin — which is the exact opposite of Jesus, who promised the harshest judgment to anyone who harmed a child." },
+      { label:'Name it clearly without theology first', sub:'"That was abuse. Full stop. And the \'God\'s will\' claim was a lie."',
+        tag:'good', next:'t4d_ok',
+        youText:"What happened to you was abuse. Full stop. And what that person said about God's will — that was a lie designed to protect themselves and silence you. That's not scripture. That's predator language." },
+      { label:'Express sympathy only', sub:'"I\'m so sorry. I can\'t imagine carrying that."',
+        tag:'risky', next:'t4d_risky',
+        youText:"I'm so sorry. I can't imagine carrying something like that for twenty years." },
+      { label:'Minimize or rush past it', sub:'"God didn\'t want that to happen to you, but—"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"God never wanted that to happen to you, but there's still hope if—" },
+    ]
+  },
+  t4d_main:{ type:'say', speaker:'them', tier:4,
+    text:"He promised judgment for that? I was told God allowed it. That's the lie that's lived in my head for twenty years — that God allowed it or approved.",
+    next:'t5d_pick'
+  },
+  t5d_pick:{
+    type:'pick', tier:5, prompt:'A 20-year lie is cracking. Be precise.',
+    choices:[
+      { label:'Cite Jesus\'s exact words about children', sub:'"Matthew 18:6 — a millstone. He named what should happen to people like that."',
+        tag:'best', next:'t6d_main',
+        youText:"Matthew 18:6 — Jesus said whoever causes harm to one of these little ones, it would be better for them to have a millstone tied around their neck and be thrown into the sea. Word for word. He was describing what should happen to people exactly like the one who hurt you." },
+      { label:'Identify the lie directly', sub:'"The \'God allowed it\' lie is the oldest weapon abusers use."',
+        tag:'good', next:'t6d_main',
+        youText:"The lie that 'God allowed it' is the oldest weapon abusers use. It's not in scripture. It's designed to make you feel God is complicit — to trap you in shame and silence. Jesus would call it exactly what it is." },
+      { label:'Ask if they\'ve had support', sub:'"Have you been able to get any support for this?"',
+        tag:'risky', next:'t6d_risky',
+        youText:"Have you been able to get any counseling or support for what happened?" },
+      { label:'Move to forgiveness', sub:'"Part of healing is being able to forgive—"',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"Part of healing, eventually, might involve being able to forgive—" },
+    ]
+  },
+  t6d_main:{ type:'say', speaker:'them', tier:6,
+    text:"A millstone around his neck. That's graphic. That's actually Jesus saying that? About someone like the one who hurt me?",
+    next:'t7d_pick'
+  },
+  t7d_pick:{
+    type:'pick', tier:7, prompt:'Let Jesus\'s anger on their behalf sink in.',
+    choices:[
+      { label:'Confirm it was about protecting children', sub:'"He was talking specifically about children. He was angry on your behalf."',
+        tag:'best', next:'t8d_main',
+        youText:"Word for word. He was talking specifically about children. He's angrier about what happened to you than you may even be. He didn't stand on the side of the person who did this. He stood on yours." },
+      { label:'Connect it to Jesus\'s character', sub:'"The Jesus of the Bible protected the vulnerable and confronted abusers."',
+        tag:'good', next:'t8d_main',
+        youText:"The Jesus of the Bible consistently protected the vulnerable and confronted the powerful who abused them. That's not my interpretation — it's the pattern of everything he did." },
+      { label:'Give them space', sub:'"That\'s a lot. You don\'t have to respond to that right now."',
+        tag:'risky', next:'t8d_risky',
+        youText:"That's a lot to sit with. You don't have to respond to that right now." },
+      { label:'Ask about their faith journey', sub:'"What did you believe about God before this happened?"',
+        tag:'risky', next:'t8d_risky',
+        youText:"What did you believe about God before all of this happened?" },
+    ]
+  },
+  t8d_main:{ type:'say', speaker:'them', tier:8,
+    text:"...I've spent twenty years assuming God either didn't care or approved. If He was angry about it too — if He's actually on my side — I don't know what to do with that.",
+    next:'t9d_pick'
+  },
+  t9d_pick:{
+    type:'pick', tier:9, prompt:'Twenty years of a lie begins to unravel. Be careful and warm.',
+    choices:[
+      { label:'Separate the real God from the false one', sub:'"You were handed a false picture. The real God is the opposite of what was used against you."',
+        tag:'best', next:'t10d_main',
+        youText:"You don't have to know yet. But the God who was used as a weapon against you is not the God the Bible describes. You were handed a false picture of Him — by someone who needed God to be complicit in order to silence you. That's not who He is." },
+      { label:'Acknowledge 20 years of pain', sub:'"There\'s no rush. You\'ve been carrying this alone for twenty years."',
+        tag:'good', next:'t10d_ok',
+        youText:"There's no rush here. You've been carrying this alone for twenty years. There's no pressure in this conversation." },
+      { label:'Offer to pray', sub:'"Can I pray for you right now? Just receive it."',
+        tag:'risky', next:'outcome_pray_d',
+        youText:"Can I pray for you right now? You don't have to do anything. Just receive it if you want." },
+      { label:'Tell them God can heal this', sub:'"God can heal this if you open yourself to it."',
+        tag:'wrong', next:'outcome_pushed',
+        youText:"God can heal this if you're willing to open yourself to it." },
+    ]
+  },
+  t10d_main:{ type:'say', speaker:'them', tier:10,
+    text:"A false picture. That's exactly what it was. I've been running from a monster that someone else put on God's face. For twenty years.",
+    next:'t11d_pick'
+  },
+  t11d_pick:{
+    type:'pick', tier:11, prompt:'Twenty years ends here or begins again. Choose carefully.',
+    choices:[
+      { label:'Invite them to meet the real God', sub:'"He\'s been waiting for you to find out He\'s different."',
+        tag:'best', next:'outcome_pray_d',
+        youText:"The real God — the one who protects children, who calls abuse by its name, who wept — He's been waiting for you to find out He's different from the monster that was put on his face. You can meet him now if you want." },
+      { label:'Give them space and a door', sub:'"Take your time. Read His actual words when you\'re ready."',
+        tag:'good', next:'outcome_away_d',
+        youText:"Take your time. When you're ready — read His actual words. Not through that pastor, not through any institution. Just the text. What He actually said about children, about the powerful, about the vulnerable. You might recognize something." },
+      { label:'Sit with them', sub:'"You\'ve been incredibly brave in this conversation."',
+        tag:'good', next:'outcome_away_soft_d',
+        youText:"You've been incredibly brave in this conversation. Twenty years is a long time to carry something this heavy." },
+      { label:'Press for a decision', sub:'"Are you ready to reconnect with God now?"',
+        tag:'wrong', next:'outcome_pushed',
+        youText:"Are you ready to reconnect with God now?" },
+    ]
+  },
+  t4d_ok:{ type:'say', speaker:'them', tier:4,
+    text:"Predator language. Yes. That's what it was. I could never name it like that before — but that's what it was.",
+    next:'t5d_pick'
+  },
+  t4d_risky:{ type:'say', speaker:'them', tier:4,
+    text:"Everyone's sorry. The church was sorry. They moved him to another congregation. That's what 'sorry' looks like.",
+    next:'t5d_risky_pick'
+  },
+  t5d_risky_pick:{
+    type:'pick', tier:5, prompt:'They\'ve been failed by every system. How do you respond?',
+    choices:[
+      { label:'Acknowledge the systemic failure directly', sub:'"What the church did after is a second crime. And inexcusable."',
+        tag:'best', next:'t6d_main',
+        youText:"Moving him to another congregation is a second crime, and inexcusable. The institution protected itself at your expense. That is the opposite of what Jesus said to do. He said it would be better to drown than to harm a child and walk away unpunished." },
+      { label:'Separate God from the institution\'s response', sub:'"God didn\'t make that decision. The institution did."',
+        tag:'good', next:'t6d_main',
+        youText:"God didn't make that decision — the institution did, to protect itself. The God of the Bible would be the one demanding accountability, not sweeping it under the rug." },
+      { label:'Express anger on their behalf', sub:'"That makes me angry too. It should never have happened that way."',
+        tag:'risky', next:'t6d_risky',
+        youText:"That makes me angry too. It should never have happened that way. The institution failed you twice." },
+      { label:'Move to forgiveness too quickly', sub:'"Forgiveness isn\'t for them — it\'s for you."',
+        tag:'wrong', next:'outcome_shutdown',
+        youText:"I know forgiveness isn't about excusing them — it's actually for your own healing—" },
+    ]
+  },
+  t6d_risky:{ type:'say', speaker:'them', tier:6,
+    text:"I've had therapy. I've processed the trauma. The God question is different — I can't therapize my way through that.",
+    next:'t7d_pick'
+  },
+  t8d_risky:{ type:'say', speaker:'them', tier:8,
+    text:"...Before it happened I thought God was safe. Then everything I believed got used as a weapon against me.",
+    next:'t9d_pick'
+  },
+  t10d_ok:{ type:'say', speaker:'them', tier:10,
+    text:"Twenty years is a long time. I didn't know I'd still be thinking about this at the end of a random conversation today.",
+    next:'outcome_away_soft_d'
+  },
+
+  // ════════════════════════════════════════════════════════
+  //  OUTCOMES
+  // ════════════════════════════════════════════════════════
+  outcome_pray_a:{
+    type:'outcome', outcome:'pray',
+    icon:'🙏',
+    title:'They Kneel',
+    quote:'"I\'ve been blaming Jesus for what people did in His name. I don\'t want to do that anymore. Can we pray right now?"',
+    note:'The institution that hurt them never had His face. They found that out today.',
+    path:'Path A · Best Route'
+  },
+  outcome_away_a:{
+    type:'outcome', outcome:'away',
+    icon:'🚶',
+    title:'They Walk — But the Door is Open',
+    quote:'"I need time. But I want to read His actual words for myself — not through anyone else\'s filter. Not through the people who hurt my family."',
+    note:'They leave — but the question they\'re walking toward is the right one.',
+    path:'Path A · Good Route'
+  },
+  outcome_away_soft_a:{
+    type:'outcome', outcome:'away_soft',
+    icon:'🌱',
+    title:'A Quiet Opening',
+    quote:'"Not today. But I hear you. And I\'m not as angry as I was when we started."',
+    note:'Fifteen years of anger softened by three minutes of honesty.',
+    path:'Path A · Gentle Route'
+  },
+  outcome_pray_b:{
+    type:'outcome', outcome:'pray',
+    icon:'🙏',
+    title:'They Kneel',
+    quote:'"If Jesus stands against what that pastor did... I\'ve spent five years angry at God for something He would have opposed. Can we pray?"',
+    note:'The anger finds its real target — and it was never God.',
+    path:'Path B · Best Route'
+  },
+  outcome_away_b:{
+    type:'outcome', outcome:'away',
+    icon:'🚶',
+    title:'They Walk — Processing',
+    quote:'"I need to sit with this. The God I\'ve been angry at might not be the God in this conversation."',
+    note:'Five years of misdirected anger begins to find its proper address.',
+    path:'Path B · Good Route'
+  },
+  outcome_away_c:{
+    type:'outcome', outcome:'away',
+    icon:'🚶',
+    title:'Fifteen Years Re-examined',
+    quote:'"I\'ve been using the wrong lens. I need to go back and read his actual words — not through the institution. For the first time."',
+    note:'The walk away becomes a walk toward something.',
+    path:'Path C · Route'
+  },
+  outcome_pray_c:{
+    type:'outcome', outcome:'pray',
+    icon:'🙏',
+    title:'They Kneel',
+    quote:'"Not church. Not the institution. Just... Him. Okay. Let\'s do that."',
+    note:'Fifteen years of distance closes in a moment of honesty.',
+    path:'Path C · Best Route'
+  },
+  outcome_pray_d:{
+    type:'outcome', outcome:'pray',
+    icon:'🙏',
+    title:'They Kneel',
+    quote:'"I want to meet the real one. Not the one that was used against me. Can we do this?"',
+    note:'The deepest wound becomes the deepest door.',
+    path:'Path D · Best Route'
+  },
+  outcome_away_d:{
+    type:'outcome', outcome:'away',
+    icon:'🚶',
+    title:'They Walk Toward the Truth',
+    quote:'"I\'m going to read His actual words. Not through that pastor. Not through anyone\'s agenda. Just what He said. Then I\'ll know."',
+    note:'Twenty years of a false picture — and now they know to look for the real one.',
+    path:'Path D · Good Route'
+  },
+  outcome_away_soft_d:{
+    type:'outcome', outcome:'away_soft',
+    icon:'🌱',
+    title:'A Heavy Load Sets Down',
+    quote:'"Twenty years is a long time. I didn\'t think a conversation today would crack something open. But it did."',
+    note:'Brave enough to name it. That\'s the beginning.',
+    path:'Path D · Gentle Route'
+  },
+  outcome_away_cold:{
+    type:'outcome', outcome:'cold',
+    icon:'🌫️',
+    title:'They Step Back',
+    quote:'"I appreciate the effort. But I\'m not ready for this. Not today."',
+    note:'The conversation ran out of road. The seed is still planted — but approach next time with more empathy before evidence.',
+    path:'Route ended early'
+  },
+  outcome_shutdown:{
+    type:'outcome', outcome:'shutdown',
+    icon:'🚪',
+    title:'They Shut Down',
+    quote:'"I\'m done with this conversation."',
+    note:'Something in the approach closed the door. Try leading with empathy before evidence — and never minimize pain with a counterpoint.',
+    path:'Conversation ended early'
+  },
+  outcome_pushed:{
+    type:'outcome', outcome:'pushed',
+    icon:'↩️',
+    title:'They Felt Pushed',
+    quote:'"Don\'t push me. I\'ll figure this out on my own timeline."',
+    note:'You were close — but the final push felt like pressure. Next time, hold the door open instead of pulling them through.',
+    path:'Near miss'
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+//  GAME ENGINE
+// ═══════════════════════════════════════════════════════════
+
+let currentNode = null;
+let currentTier = 0;
+let pathTaken = [];
+
+function buildTierTrack(){
+  const track = document.getElementById('tier-track');
+  track.innerHTML = '';
+  for(let i=1;i<=11;i++){
+    const d = document.createElement('div');
+    d.className='tier-dot';
+    d.id='dot-'+i;
+    track.appendChild(d);
+  }
+  const sep = document.createElement('div');
+  sep.style.cssText='width:1px;height:12px;background:#2a2a3a;margin:0 2px';
+  track.appendChild(sep);
+  const od = document.createElement('div');
+  od.className='tier-dot outcome-dot';
+  od.id='dot-outcome';
+  track.appendChild(od);
+  const lbl = document.createElement('div');
+  lbl.id='tier-label';
+  lbl.textContent='Tier 1 / 11';
+  track.appendChild(lbl);
+}
+
+function updateTierTrack(tier){
+  for(let i=1;i<=11;i++){
+    const d = document.getElementById('dot-'+i);
+    if(!d) continue;
+    d.className='tier-dot';
+    if(i<tier) d.classList.add('done');
+    else if(i===tier) d.classList.add('active');
+  }
+  const lbl = document.getElementById('tier-label');
+  if(lbl) lbl.textContent = tier<=11 ? `Tier ${tier} / 11` : 'Outcome';
+}
+
+function appendBubble(speaker, text, tier, sourceHtml){
+  const chat = document.getElementById('chat-area');
+  const wrap = document.createElement('div');
+  wrap.className = `bubble-wrap ${speaker==='you'?'you-wrap':'them-wrap'}`;
+  const bub = document.createElement('div');
+  const tc = TIER_COLORS[tier]||'tb-1';
+  bub.className = `bubble ${tc}`;
+  const pip = document.createElement('span');
+  pip.className='tier-pip';
+  pip.style.cssText = getBorderColor(tc);
+  pip.textContent = `${TIER_LABELS[tier]} · ${speaker==='you'?'You':'Them'}`;
+  bub.appendChild(pip);
+  bub.appendChild(document.createElement('br'));
+  const t = document.createElement('span');
+  t.textContent = text;
+  bub.appendChild(t);
+  if(sourceHtml){
+    const s=document.createElement('span');
+    s.className='src'; s.innerHTML=sourceHtml;
+    bub.appendChild(s);
+  }
+  wrap.appendChild(bub);
+  chat.appendChild(wrap);
+  requestAnimationFrame(()=>{ wrap.classList.add('visible'); });
+  setTimeout(()=>{ chat.scrollTop=chat.scrollHeight; },50);
+  return wrap;
+}
+
+function getBorderColor(tc){
+  const map = {
+    'tb-1':'color:#6ab8d4;border-color:#6ab8d440;background:#6ab8d415',
+    'tb-2':'color:#d46a6a;border-color:#d46a6a40;background:#d46a6a15',
+    'tb-3':'color:#6ad490;border-color:#6ad49040;background:#6ad49015',
+    'tb-4':'color:#d4a86a;border-color:#d4a86a40;background:#d4a86a15',
+    'tb-5':'color:#6a90d4;border-color:#6a90d440;background:#6a90d415',
+    'tb-6':'color:#b06ad4;border-color:#b06ad440;background:#b06ad415',
+    'tb-7':'color:#d4d06a;border-color:#d4d06a40;background:#d4d06a15',
+    'tb-8':'color:#d46aaa;border-color:#d46aaa40;background:#d46aaa15',
+    'tb-9':'color:#6ad4d4;border-color:#6ad4d440;background:#6ad4d415',
+    'tb-10':'color:#d4906a;border-color:#d4906a40;background:#d4906a15',
+    'tb-11':'color:#9a8fd4;border-color:#9a8fd440;background:#9a8fd415',
+  };
+  return map[tc]||'';
+}
+
+function showTyping(){
+  const chat = document.getElementById('chat-area');
+  const wrap = document.createElement('div');
+  wrap.className='typing-wrap';
+  wrap.id='typing-indicator';
+  wrap.innerHTML='<div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  chat.appendChild(wrap);
+  requestAnimationFrame(()=>{ wrap.classList.add('visible'); });
+  chat.scrollTop=chat.scrollHeight;
+  return wrap;
+}
+
+function removeTyping(){
+  const el=document.getElementById('typing-indicator');
+  if(el){ el.style.opacity='0'; setTimeout(()=>el.remove(),300); }
+}
+
+function showChoices(node){
+  const panel=document.getElementById('choices-panel');
+  const prompt=document.getElementById('choices-prompt');
+  const grid=document.getElementById('choices-grid');
+  prompt.textContent = node.prompt || 'Choose a response...';
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div><span class="tag-flash">${c.tag||''}</span>`;
+    if(c.tag) btn.dataset.tag=c.tag;
+    btn.onclick=()=>handleChoice(node, c, i);
+    grid.appendChild(btn);
+  });
+  panel.style.visibility='visible';
+}
+
+function hideChoices(){
+  document.getElementById('choices-panel').style.visibility='hidden';
+  document.getElementById('choices-grid').innerHTML='';
+  document.getElementById('choices-prompt').textContent='';
+}
+
+async function handleChoice(node, choice, idx){
+  // Style buttons
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,i)=>{
+    if(i===idx){ b.classList.add('selected','tag-'+(choice.tag||'good')); }
+    else { b.classList.add('unselected'); }
+  });
+  // Show YOU bubble if youText exists
+  if(choice.youText){
+    await sleep(300);
+    appendBubble('you', choice.youText, node.tier);
+    pathTaken.push({tier:node.tier, tag:choice.tag, label:choice.label});
+  }
+  await sleep(600);
+  hideChoices();
+  await sleep(200);
+  processNode(choice.next);
+}
+
+async function processNode(nodeId){
+  if(!nodeId){ return; }
+  const node = nodes[nodeId];
+  if(!node){ console.warn('Missing node:',nodeId); return; }
+  currentNode = node;
+
+  if(node.type==='say'){
+    currentTier = node.tier;
+    updateTierTrack(node.tier);
+    if(node.speaker==='them'){
+      const typer=showTyping();
+      await sleep(900+node.text.length*8);
+      removeTyping();
+      await sleep(100);
+    }
+    appendBubble(node.speaker, node.text, node.tier, node.src||null);
+    await sleep(500);
+    if(node.next){ processNode(node.next); }
+  }
+  else if(node.type==='pick'){
+    currentTier = node.tier;
+    updateTierTrack(node.tier);
+    showChoices(node);
+  }
+  else if(node.type==='outcome'){
+    await sleep(400);
+    showOutcome(node);
+  }
+}
+
+function showOutcome(node){
+  updateTierTrack(12);
+  const dot=document.getElementById('dot-outcome');
+  if(dot){ dot.classList.add('active'); }
+  const lbl=document.getElementById('tier-label');
+  if(lbl) lbl.textContent='Outcome';
+
+  document.getElementById('out-icon').textContent=node.icon||'';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+
+  const pathSummary = pathTaken.map(p=>`T${p.tier}:${p.tag||'?'}`).join(' → ');
+  document.getElementById('out-path').textContent = (node.path||'') + (pathSummary?' · '+pathSummary:'');
+
+  const screen=document.getElementById('outcome-screen');
+  screen.classList.add('show');
+
+  const icon=document.getElementById('out-icon');
+  if(node.outcome==='pray'){
+    screen.style.borderTop='3px solid #6ad490';
+  } else if(node.outcome==='shutdown'){
+    screen.style.borderTop='3px solid #d46a6a';
+  } else {
+    screen.style.borderTop='3px solid #555';
+  }
+}
+
+function closeOutcome(){
+  document.getElementById('outcome-screen').classList.remove('show');
+  const chat=document.getElementById('chat-area');
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function restartGame(){
+  document.getElementById('outcome-screen').classList.remove('show');
+  document.getElementById('chat-area').innerHTML='';
+  pathTaken=[];
+  currentTier=0;
+  hideChoices();
+  buildTierTrack();
+  updateTierTrack(1);
+  sleep(300).then(()=>processNode('start'));
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ── Init ──
+buildTierTrack();
+processNode('start');
+</script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tree I · My Child Died</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:10px 14px;flex-shrink:0}
+#title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#back-btn{color:#58a6ff;text-decoration:none;font-size:.85rem}
+#back-btn:hover{text-decoration:underline}
+#game-title{font-size:.9rem;font-weight:600;color:#8b949e}
+#restart-btn{background:#21262d;border:1px solid #30363d;color:#cdd9e5;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.8rem}
+#restart-btn:hover{background:#30363d}
+#tier-track{display:flex;gap:4px;align-items:center;justify-content:center;flex-wrap:wrap}
+.pip{width:20px;height:20px;border-radius:50%;background:#21262d;border:2px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:700;color:#8b949e;transition:all .3s}
+.pip.active{border-color:#58a6ff;color:#58a6ff;background:#0d2040}
+.pip.done{background:#196c2e;border-color:#3fb950;color:#3fb950}
+.tp1.done,.tp1.active{border-color:#6ab8d4;color:#6ab8d4;background:#0d1f26}
+.tp2.done,.tp2.active{border-color:#d46a6a;color:#d46a6a;background:#26100d}
+.tp3.done,.tp3.active{border-color:#6ad490;color:#6ad490;background:#0d2617}
+.tp4.done,.tp4.active{border-color:#d4a86a;color:#d4a86a;background:#261e0d}
+.tp5.done,.tp5.active{border-color:#6a90d4;color:#6a90d4;background:#0d1826}
+.tp6.done,.tp6.active{border-color:#b06ad4;color:#b06ad4;background:#1e0d26}
+.tp7.done,.tp7.active{border-color:#d4d06a;color:#d4d06a;background:#26250d}
+.tb-8{background:#2e1a24;border:1.5px solid #d46aaa;color:#e8b8d4}
+.tp8.done,.tp8.active{border-color:#d46aaa;color:#d46aaa;background:#260d1a}
+.tb-9{background:#1a2e2e;border:1.5px solid #6ad4d4;color:#b8e8e8}
+.tp9.done,.tp9.active{border-color:#6ad4d4;color:#6ad4d4;background:#0d2626}
+.tb-10{background:#2e221a;border:1.5px solid #d4906a;color:#e8ccb8}
+.tp10.done,.tp10.active{border-color:#d4906a;color:#d4906a;background:#261a0d}
+.tb-11{background:#1e1a2e;border:1.5px solid #9a8fd4;color:#ccc8e8}
+.tp11.done,.tp11.active{border-color:#9a8fd4;color:#9a8fd4;background:#160d26}
+#chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bubble-row{display:flex;animation:fadeUp .3s ease}
+.bubble-row.you{justify-content:flex-start}
+.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
+.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.them .bubble{border-bottom-right-radius:3px}
+.tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
+.tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
+.tb-3{background:#1a2e22;border:1.5px solid #6ad490;color:#b8e8c8}
+.tb-4{background:#2e271a;border:1.5px solid #d4a86a;color:#e8d8b8}
+.tb-5{background:#1a222e;border:1.5px solid #6a90d4;color:#b8c8e8}
+.tb-6{background:#2a1f2e;border:1.5px solid #b06ad4;color:#ddb8e8}
+.tb-7{background:#2e2a1a;border:1.5px solid #d4d06a;color:#e8e4b8}
+.src-badge{display:inline-block;margin-top:5px;font-size:.7rem;background:#0d2040;border:1px solid #58a6ff;color:#58a6ff;padding:2px 7px;border-radius:10px}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:7px;height:7px;background:#58a6ff;border-radius:50%;animation:bounce .9s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#choices-panel{background:#161b22;border-top:1px solid #30363d;padding:12px;flex-shrink:0}
+#choices-prompt{font-size:.78rem;color:#8b949e;margin-bottom:9px;text-align:center;font-style:italic}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{background:#21262d;border:1.5px solid #30363d;color:#cdd9e5;padding:10px 11px;border-radius:10px;cursor:pointer;text-align:left;font-size:.82rem;line-height:1.4;transition:all .2s;position:relative}
+.choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}
+.choice-btn:disabled{cursor:default;opacity:.85}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}
+.choice-sub{font-size:.75rem;color:#8b949e}
+.tag-best{border-color:#3fb950!important;background:#0d2a14!important}
+.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}
+.tag-risky{border-color:#e3b341!important;background:#2d2008!important}
+.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.tag-label{font-size:.7rem;font-weight:800;letter-spacing:.04em;margin-left:6px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#196c2e;color:#3fb950}
+.tag-good .tag-label{background:#0d2040;color:#58a6ff}
+.tag-risky .tag-label{background:#4a3000;color:#e3b341}
+.tag-wrong .tag-label{background:#4a0f0e;color:#f85149}
+#choices-panel.hidden{display:none}
+#outcome-screen{display:none;position:fixed;inset:0;background:#0d1117;z-index:100;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;text-align:center}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3.5rem;margin-bottom:16px}
+.outcome-title{font-size:1.6rem;font-weight:800;margin-bottom:10px}
+.outcome-quote{font-size:.95rem;color:#8b949e;font-style:italic;max-width:480px;margin-bottom:14px;line-height:1.6}
+.outcome-note{font-size:.85rem;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;max-width:480px;margin-bottom:14px;color:#cdd9e5;line-height:1.5}
+.outcome-path{font-size:.75rem;color:#58a6ff;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:600}
+.btn-primary{background:#238636;color:#fff}
+.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#cdd9e5;border:1px solid #30363d}
+.btn-secondary:hover{background:#30363d}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title-row">
+      <a id="back-btn" href="index.html">← All Trees</a>
+      <span id="game-title">Tree I · "My Child Died"</span>
+      <button id="restart-btn" onclick="restartGame()">↺ Restart</button>
+    </div>
+    <div id="tier-track"></div>
+  </div>
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
+    <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ All Trees</button>
+  </div>
+</div>
+
+<script>
+const TIER_COLORS=['','tb-1','tb-2','tb-3','tb-4','tb-5','tb-6','tb-7','tb-8','tb-9','tb-10','tb-11'];
+const TIER_PIP=['','tp1','tp2','tp3','tp4','tp5','tp6','tp7','tp8','tp9','tp10','tp11'];
+const MAX_TIERS=11;
+
+const nodes={
+  start:{type:'say',speaker:'you',tier:1,text:"God has a plan for you.",next:'t2_pick'},
+
+  t2_pick:{type:'pick',tier:2,prompt:'Choose the situation they\'re in...',choices:[
+    {label:'Baby died — fresh grief',sub:'"Please don\'t tell me God has a plan."',next:'t2a'},
+    {label:'Lost a son — years of silence',sub:'Faith went quiet after.',next:'t2b'},
+    {label:'Furious at God directly',sub:'"God took my daughter. I hate Him."',next:'t2c'},
+    {label:'Child is dying right now',sub:'"She\'s 7. Don\'t talk to me about God."',next:'t2d'},
+  ]},
+
+  t2a:{type:'say',speaker:'them',tier:2,text:"My baby died three months ago. Please — please don't tell me God has a plan. I can't hear that right now.",next:'t3_pick'},
+  t2b:{type:'say',speaker:'them',tier:2,text:"I lost my son five years ago. He was nine. I haven't been able to pray since. I don't know who I'd be praying to.",next:'t3_pick'},
+  t2c:{type:'say',speaker:'them',tier:2,text:"God took my daughter. She was four years old. I hate Him for it and I don't care if that's wrong. I will never forgive Him.",next:'t3_pick'},
+  t2d:{type:'say',speaker:'them',tier:2,text:"My daughter is dying right now. Leukemia. She's seven years old. Don't talk to me about God's plan. Don't. Just don't.",next:'t3_pick'},
+
+  t3_pick:{type:'pick',tier:3,prompt:'How do you respond?',choices:[
+    {label:'I won\'t say "God has a plan"',sub:'Acknowledge the wound first — no theology.',tag:'best',next:'t3_best_say',youText:"I won't say that. I'm so sorry. I'm not going to offer an explanation right now — there isn't one that would be right to say. I'm just here with you."},
+    {label:'Tell me about them',sub:'Ask about the child — make them real.',tag:'good',next:'t3_good_say',youText:"I'm so sorry. Can I ask — what was their name?"},
+    {label:'I can\'t imagine what you\'re carrying',sub:'Stay in the pain with them.',tag:'risky',next:'t3_risky_say',youText:"I can't imagine what you're carrying. I'm not going to try to say something that makes it better. Nothing does that. I'm just sorry."},
+    {label:'God doesn\'t cause these things',sub:'Too quick — defensive.',tag:'wrong',next:'t3_wrong_say',youText:"God didn't cause this. He doesn't take children. Death came into the world through brokenness, not through God's will —"},
+  ]},
+
+  t3_best_say:{type:'say',speaker:'them',tier:3,text:"Thank you. Everyone keeps saying that — 'God has a plan' — and I want to scream. You're the first person who didn't.",next:'t4_pick'},
+  t3_good_say:{type:'say',speaker:'them',tier:3,text:"…Elijah. His name was Elijah. Nobody asks that. Everyone talks around him like saying his name will break me. It won't. I say it every day.",next:'t4_name_pick'},
+  t3_risky_say:{type:'say',speaker:'them',tier:3,text:"I don't need it to get better. I need someone to not try to fix it. Everyone tries to fix it.",next:'t4_pick'},
+  t3_wrong_say:{type:'say',speaker:'them',tier:3,text:"Stop. Just stop. I don't want theology. I want my child back. Please leave me alone.",next:'outcome_shutdown'},
+
+  t4_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'I\'m not going anywhere',sub:'Presence, not platitudes.',tag:'best',next:'t4_best_say',youText:"I'm not going anywhere. And I'm not going to try to explain it. Can I just sit here with you for a minute?"},
+    {label:'What do you need most right now?',sub:'Ask, don\'t assume.',tag:'good',next:'t4_good_say',youText:"What do you need most right now? Not spiritually — practically, humanly. What would actually help?"},
+    {label:'Tell me about them',sub:'Make the child real in the conversation.',tag:'risky',next:'t4_risky_say',youText:"Would you tell me about your child? What were they like?"},
+    {label:'God is furious about this too',sub:'Careful — don\'t pivot to theology yet.',tag:'wrong',next:'t4_wrong_say',youText:"God is just as furious about this as you are. This is not what He wanted —"},
+  ]},
+
+  t4_name_pick:{type:'pick',tier:4,prompt:'How do you respond?',choices:[
+    {label:'Tell me about Elijah',sub:'Invite the story.',tag:'best',next:'t4_name_best_say',youText:"Tell me about Elijah. What was he like?"},
+    {label:'His name matters — and so does he',sub:'Honor the child.',tag:'good',next:'t4_name_good_say',youText:"Elijah. That name means 'my God is the Lord.' I don't say that to start a theological conversation — I just think he deserved a name that big."},
+    {label:'You say his name every day',sub:'That\'s love. Honor it.',tag:'risky',next:'t4_name_risky_say',youText:"You say his name every day. That's one of the most faithful things I've heard. He's not past tense to you."},
+    {label:'Elijah is with God now',sub:'Too soon — don\'t rush to comfort.',tag:'wrong',next:'t4_name_wrong_say',youText:"Elijah is with God. I believe that with everything I have — your son is safe, he's whole, he's not —"},
+  ]},
+
+  t4_best_say:{type:'say',speaker:'them',tier:4,text:"…Okay. Yeah. You can stay. Most people run from grief. I understand why. It's uncomfortable. But it's so lonely.",next:'t5_pick'},
+  t4_good_say:{type:'say',speaker:'them',tier:4,text:"What I need is for someone to not try to solve it. To not hand me Scripture. Just — be a person with me.",next:'t5_pick'},
+  t4_risky_say:{type:'say',speaker:'them',tier:4,text:"She loved horses. She called every horse 'my horse' even if she'd never met it. She laughed so loud it embarrassed me in restaurants. God, I miss that laugh.",next:'t5_laugh_pick'},
+  t4_wrong_say:{type:'say',speaker:'them',tier:4,text:"Please don't. I've heard all of it. I can't take any more. I'm just trying to get through today.",next:'outcome_shutdown'},
+
+  t4_name_best_say:{type:'say',speaker:'them',tier:4,text:"He was obsessed with trains. Not just liking them — OBSESSED. He could name every locomotive built after 1940. He was nine years old. Nine.",next:'t5_name_pick'},
+  t4_name_good_say:{type:'say',speaker:'them',tier:4,text:"'My God is the Lord.' I didn't know that. His grandmother named him. She would have loved hearing that.",next:'t5_name_pick'},
+  t4_name_risky_say:{type:'say',speaker:'them',tier:4,text:"He's not past tense. I can't make him past tense. My wife uses past tense and I understand why, but I can't do it. Not yet.",next:'t5_name_pick'},
+  t4_name_wrong_say:{type:'say',speaker:'them',tier:4,text:"Don't. Please. I don't know if he's with God. I want to believe it. But saying it out loud feels like giving up the fight for him somehow. I'm not ready for that.",next:'t5_name_pick'},
+
+  t5_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Loneliness in grief is real — and wrong',sub:'The church should do better.',tag:'best',next:'t5_best_say',youText:"The loneliness of grief is one of the cruelest parts of it — and honestly, one of the ways the church fails people. People don't know how to stay. You deserved better than that."},
+    {label:'I\'ll just be a person with you',sub:'Accept what they asked for.',tag:'good',next:'t5_good_say',youText:"That's what I'll be. No Scripture unless you ask for it. No fixing. Just a person, here, with you."},
+    {label:'How long ago was it?',sub:'Keep them talking.',tag:'risky',next:'t5_risky_say',youText:"How long ago did you lose them?"},
+    {label:'Jesus was lonely in grief too',sub:'Too soon for theology.',tag:'wrong',next:'t5_wrong_say',youText:"Jesus knew this loneliness — Gethsemane, the disciples asleep while He agonized —"},
+  ]},
+
+  t5_laugh_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Tell me another one',sub:'Keep the child alive in the conversation.',tag:'best',next:'t5_laugh_best_say',youText:"She laughed so loud it embarrassed you in restaurants. That's amazing. Tell me another one — what else was she like?"},
+    {label:'That laugh is not gone',sub:'Resurrection hope, very gently.',tag:'good',next:'t5_laugh_good_say',youText:"That laugh. I believe she still has it. Somewhere, she's still that loud."},
+    {label:'You gave her a good life',sub:'Honor the parent.',tag:'risky',next:'t5_laugh_risky_say',youText:"She had a mom who let her love horses and laugh too loud. That's a good life. That was you."},
+    {label:'God loved her too',sub:'Too soon.',tag:'wrong',next:'t5_laugh_wrong_say',youText:"God loved her too. More than you did, even — and He holds her now —"},
+  ]},
+
+  t5_name_pick:{type:'pick',tier:5,prompt:'How do you respond?',choices:[
+    {label:'Tell me more about the trains',sub:'Keep Elijah present in the conversation.',tag:'best',next:'t5_name_best_say',youText:"Every locomotive after 1940. What was his favorite? Did he have one he talked about the most?"},
+    {label:'His grandmother knew something',sub:'Plant the seed gently.',tag:'good',next:'t5_name_good_say',youText:"His grandmother who named him knew something. That name — it's a prayer she gave him before he was born."},
+    {label:'He can stay present tense',sub:'Don\'t force past tense.',tag:'risky',next:'t5_name_risky_say',youText:"He doesn't have to be past tense. Not in how you talk about him, not in how you carry him. That's not denial — that's love."},
+    {label:'Not ready is okay',sub:'Don\'t rush the grief.',tag:'wrong',next:'t5_name_wrong_say',youText:"You don't have to be ready for anything you're not ready for. Take all the time you need."},
+  ]},
+
+  t5_best_say:{type:'say',speaker:'them',tier:5,text:"The church failed me after. I don't blame the people — they didn't know what to do. But the silence was so loud. Six weeks and then it was like it never happened.",next:'t6_pick'},
+  t5_good_say:{type:'say',speaker:'them',tier:5,text:"Thank you. I think I just needed someone to hear that. That I'm still here. Still carrying it. That it's not over for me even if the world moved on.",next:'t6_pick'},
+  t5_risky_say:{type:'say',speaker:'them',tier:5,text:"Three months. It feels like yesterday and forever at the same time. I don't know how to put one foot in front of the other and I'm doing it anyway.",next:'t6_pick'},
+  t5_wrong_say:{type:'say',speaker:'them',tier:5,text:"I'm sorry — I just can't. Not today. Maybe another time.",next:'outcome_shutdown'},
+
+  t5_laugh_best_say:{type:'say',speaker:'them',tier:5,text:"She was terrified of drains. In the bathtub. She thought something lived in there. We had to cover it with a washcloth every single bath. It was ridiculous and I'd give anything to do it one more time.",next:'t6_laugh_pick'},
+  t5_laugh_good_say:{type:'say',speaker:'them',tier:5,text:"Somewhere she's still that loud. I've never let myself believe that because it hurts too much. But I want to believe it.",next:'t6_laugh_pick'},
+  t5_laugh_risky_say:{type:'say',speaker:'them',tier:5,text:"I gave her a good life. I've been so buried in guilt — what I should have caught, what I could have done. I haven't let myself believe that we did right by her.",next:'t6_laugh_pick'},
+  t5_laugh_wrong_say:{type:'say',speaker:'them',tier:5,text:"Please. I need you to stop. I know you mean well but I can't take that right now. Please.",next:'outcome_shutdown'},
+
+  t5_name_best_say:{type:'say',speaker:'them',tier:5,text:"The GG-1 electric locomotive. Pennsylvania Railroad. He had a poster of it on his wall and he'd stand in front of it like other kids stand in front of sports players. He was so particular. So himself.",next:'t6_name_pick'},
+  t5_name_good_say:{type:'say',speaker:'them',tier:5,text:"A prayer she gave him before he was born. She passed two years before he did. Maybe she's with him right now. I hope that's true. I hope that so much.",next:'t6_name_pick'},
+  t5_name_risky_say:{type:'say',speaker:'them',tier:5,text:"That's not denial — that's love. I've never had someone say that. I've been told I need to 'move through the stages.' Like he's a stage to get past.",next:'t6_name_pick'},
+  t5_name_wrong_say:{type:'say',speaker:'them',tier:5,text:"I've been given a lot of time. Five years. And I'm still here, still broken. I don't know if time actually heals it or just moves it further from the surface.",next:'t6_name_pick'},
+
+  t6_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'Jesus wept — He doesn\'t handle grief from above',sub:'John 11:35 — the shortest verse.',tag:'best',next:'t6_best_say',youText:"The shortest verse in the Bible — John 11:35 — 'Jesus wept.' At Lazarus's tomb. He didn't arrive with an explanation. He arrived and cried. That's the God I believe in — not one who watches from above and says 'it's all part of the plan.' One who stands at the tomb and weeps."},
+    {label:'The church\'s silence was a failure — not God\'s',sub:'Distinguish institution from person.',tag:'good',next:'t6_good_say',youText:"The silence from the church — that was human failure, not God's absence. The God in Scripture shows up most in the broken places. He was in the silence even when the church wasn't."},
+    {label:'You\'re still standing — that\'s not nothing',sub:'Honor the survival.',tag:'risky',next:'t6_risky_say',youText:"'I'm doing it anyway.' That matters. You're still standing under the weight of something most people never have to carry. I don't know what keeps you standing — but something does."},
+    {label:'Grief is proof of love',sub:'C.S. Lewis: the price we pay.',tag:'wrong',next:'t6_wrong_say',youText:"C.S. Lewis wrote that grief is the price we pay for love — the deeper the love, the heavier the grief. What you're carrying is proportional to what you had."},
+  ]},
+
+  t6_laugh_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'She sounds extraordinary',sub:'Honor the child fully.',tag:'best',next:'t6_laugh_best_say',youText:"She sounds extraordinary. Terrified of drains, loved horses, laughed too loud. That's a full person. She was completely herself in those few years."},
+    {label:'Guilt is a robber — what you did right was real',sub:'Push back on self-condemnation gently.',tag:'good',next:'t6_laugh_good_say',youText:"The guilt you're carrying — it's stealing from you something real: the years you gave her. The horses. The covered drain. The loud laugh in restaurants. You gave her that. No diagnosis changes what you gave her."},
+    {label:'What do you want people to know about her?',sub:'Give grief a voice.',tag:'risky',next:'t6_laugh_risky_say',youText:"What do you want people to know about her? If you could make sure one thing about her wasn't forgotten, what would it be?"},
+    {label:'She\'s with God — and she\'s not afraid anymore',sub:'Resurrection hope.',tag:'wrong',next:'t6_laugh_wrong_say',youText:"She's not afraid of anything now. No drains, no fear. She's whole and free and —"},
+  ]},
+
+  t6_name_pick:{type:'pick',tier:6,prompt:'How do you respond?',choices:[
+    {label:'His grandmother may have known',sub:'Speak hope gently.',tag:'best',next:'t6_name_best_say',youText:"What if she did know something? She gave him that name — 'my God is the Lord' — before she knew what he'd face. Maybe it was a promise she prayed over him. Maybe they're together right now, and she's showing him something better than the GG-1."},
+    {label:'He\'s not a stage to get past',sub:'Validate their instinct.',tag:'good',next:'t6_name_good_say',youText:"He's not a stage. Grief isn't a process you complete and file away. He was your son. What you're carrying isn't disorder — it's loyalty. And there's nothing wrong with you for still carrying it at five years."},
+    {label:'Time moves the grief — faith can change its shape',sub:'Gentle bridge.',tag:'risky',next:'t6_name_risky_say',youText:"You're right — time doesn't heal it. But I've seen faith change the shape of grief. Not make it smaller. Change it from something that just tears at you into something that still connects you. Does that make sense?"},
+    {label:'You\'ve carried this alone too long',sub:'Invite them into community.',tag:'wrong',next:'t6_name_wrong_say',youText:"You've been carrying this alone for five years. That's too long for one person. There are communities — groups of parents who've lost children — who are carrying the same thing."},
+  ]},
+
+  t6_best_say:{type:'say',speaker:'them',tier:6,text:"'Jesus wept.' He came and He cried. I've heard that verse a thousand times and I've never heard it mean that. He didn't come with answers. He came with tears.",next:'t7_pick'},
+  t6_good_say:{type:'say',speaker:'them',tier:6,text:"God was in the silence. I've been blaming Him for the silence when maybe He was the only one there. I don't know what to do with that.",next:'t7_pick'},
+  t6_risky_say:{type:'say',speaker:'them',tier:6,text:"Something keeps me standing. I've thought about that. I don't know what it is. Some days I think it might be stubborn love for them. Like they're still worth showing up for.",next:'t7_pick'},
+  t6_wrong_say:{type:'say',speaker:'them',tier:6,text:"Proportional to what I had. I had everything. So yes. The weight is everything.",next:'t7_pick'},
+
+  t6_laugh_best_say:{type:'say',speaker:'them',tier:6,text:"She was completely herself. I've never thought about it that way. She got to be all the way herself in those years. That's more than some people get in eighty.",next:'t7_laugh_pick'},
+  t6_laugh_good_say:{type:'say',speaker:'them',tier:6,text:"The years I gave her. You're right. I've been so focused on what I didn't do that I couldn't see what I did. She had a good life. And I was the one who made that.",next:'t7_laugh_pick'},
+  t6_laugh_risky_say:{type:'say',speaker:'them',tier:6,text:"I want people to know she was brave. She was scared of a drain but she was brave. She would walk right up to horses twice her size. She was braver than me.",next:'t7_laugh_pick'},
+  t6_laugh_wrong_say:{type:'say',speaker:'them',tier:6,text:"I can't. I'm sorry. I can't right now.",next:'outcome_away'},
+
+  t6_name_best_say:{type:'say',speaker:'them',tier:6,text:"Something better than the GG-1. I've never let myself imagine what he might be doing now. But he loved things so specifically, so completely. If there's something to love where he is, he's fully in it.",next:'t7_name_pick'},
+  t6_name_good_say:{type:'say',speaker:'them',tier:6,text:"Loyalty. That's what it is. I've been told it's unhealthy. But it's loyalty. Thank you for saying that.",next:'t7_name_pick'},
+  t6_name_risky_say:{type:'say',speaker:'them',tier:6,text:"Faith changing the shape of grief — not making it smaller. That's the only version of 'faith helps with grief' I've ever been able to imagine. Tell me what you mean.",next:'t7_name_pick'},
+  t6_name_wrong_say:{type:'say',speaker:'them',tier:6,text:"I tried a grief group once. I lasted one session. I didn't want to move on. I wanted to remember. They were all trying to move on.",next:'t7_name_pick'},
+
+  t7_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'He came and He cried — that\'s enough to start',sub:'The incarnation as the answer.',tag:'best',next:'t7_best_say',youText:"That's enough to start with. Not theology, not answers — a God who showed up and cried. Whatever else you believe or don't believe about God, that image is real. He came to a funeral and He wept. He's not above your grief. He's in it."},
+    {label:'You don\'t have to decide anything today',sub:'Hold the space open.',tag:'good',next:'t7_good_say',youText:"You don't have to figure anything out today. I just want to leave you with this: the God who appeared at that tomb and wept is the same one who's available to you right now. Not to explain. Just to be there. Just like I'm trying to be."},
+    {label:'Stubborn love is a kind of faith',sub:'Name what they already have.',tag:'risky',next:'t7_risky_say',youText:"'Stubborn love for them.' Do you know what that is? That's faith. Not in doctrine, not in church — in the worth of your child. And the God I believe in is the author of that stubborn love. You've been practicing something holy this whole time."},
+    {label:'Let me pray for them by name',sub:'Ask first.',tag:'wrong',next:'t7_wrong_say',youText:"Can I pray for your child by name — right now? Just a sentence. Nothing formal. Just acknowledging that they mattered."},
+  ]},
+
+  t7_laugh_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'What do you believe about where she is?',sub:'Open the door gently.',tag:'best',next:'t7_laugh_best_say',youText:"Can I ask — what do you believe about where she is now? Not what you're supposed to believe. What you actually feel when you think about her?"},
+    {label:'You were enough — you were more than enough',sub:'Speak grace over the guilt.',tag:'good',next:'t7_laugh_good_say',youText:"You were enough. The horses, the drain, the loud laugh in restaurants — you were exactly the parent she needed. Whatever the guilt says: it's a liar. You were more than enough."},
+    {label:'Brave and loved — that\'s a full life',sub:'Honor the child\'s story.',tag:'risky',next:'t7_laugh_risky_say',youText:"Brave and loved. That's a full life. She knew she was loved — you can tell from the way you talk about her. And she was brave. That's everything."},
+    {label:'Would you let me pray for her?',sub:'Ask permission.',tag:'wrong',next:'outcome_pray',youText:"Would you let me pray for her? Just saying her name out loud, in prayer. She deserves to be spoken to God."},
+  ]},
+
+  t7_name_pick:{type:'pick',tier:7,prompt:'How do you respond?',choices:[
+    {label:'Loyalty can become the door back',sub:'Faith starts with love for the person.',tag:'best',next:'t7_name_best_say',youText:"That loyalty — to Elijah, to who he was — might be the thing that eventually leads you back. Not through doctrine. Through him. The God I believe in is someone your son would have thought was worth loving. He was thorough, precise, all-in. So is God."},
+    {label:'Grief that connects vs. grief that tears',sub:'What changed for people.',tag:'good',next:'t7_name_good_say',youText:"The difference I've seen: people who find faith again after losing a child don't grieve less. They grieve differently. They talk to God about the child. Directly. Angrily if needed. And something in the grief changes from a wound to a conversation."},
+    {label:'They didn\'t want to move on — neither do you',sub:'Validate the instinct.',tag:'risky',next:'t7_name_risky_say',youText:"You wanted to remember — not move on. That group was trying to solve grief. You were trying to hold on. Those are different things, and yours isn't wrong. Elijah doesn't have to be a problem to be solved."},
+    {label:'Would you tell me one more thing about Elijah?',sub:'Keep him present.',tag:'wrong',next:'t7_name_wrong_say',youText:"Before I say anything else — would you tell me one more thing about Elijah? Something small. Something only you know."},
+  ]},
+
+  t7_best_say:{type:'say',speaker:'them',tier:7,text:"He came to a funeral and wept. That's the God you're talking about. I think I could approach that version of God. The one who's in the grief with me, not above it.",next:'t8_pick'},
+  t7_good_say:{type:'say',speaker:'them',tier:7,text:"The God who wept, available to me — not to explain, just to be there. That's different from what I thought God offered. I thought it was answers or nothing.",next:'t8_pick'},
+  t7_risky_say:{type:'say',speaker:'them',tier:7,text:"Practicing something holy this whole time. I've been ashamed of how I carry this. But if it's faithfulness rather than disorder… that changes something.",next:'t8_pick'},
+  t7_wrong_say:{type:'say',speaker:'them',tier:7,text:"…Okay. You can pray for them. Just don't tell me why it happened. Just say their name.",next:'outcome_pray'},
+
+  t7_laugh_best_say:{type:'say',speaker:'them',tier:7,text:"I feel like she's somewhere loud and brave. I can't justify it. But I feel it. When it's quiet and I stop fighting, I feel her somewhere still being herself.",next:'t8_laugh_pick'},
+  t7_laugh_good_say:{type:'say',speaker:'them',tier:7,text:"You were more than enough. I've never had someone say that without a 'but' after it. Just — you were more than enough.",next:'t8_laugh_pick'},
+  t7_laugh_risky_say:{type:'say',speaker:'them',tier:7,text:"Brave and loved. She knew. I think she knew. The way she ran at those horses — that wasn't fear. That was trust.",next:'t8_laugh_pick'},
+
+  t7_name_best_say:{type:'say',speaker:'them',tier:7,text:"A God Elijah would have thought was worth loving. He had standards. He wouldn't have loved anything halfway. If God is thorough and precise — that's a God Elijah would have respected.",next:'t8_name_pick'},
+  t7_name_good_say:{type:'say',speaker:'them',tier:7,text:"Talking to God about Elijah. Directly. Angrily if needed. I've never prayed since he died. But I've talked to Elijah. Maybe I've been talking to God through him without knowing it.",next:'t8_name_pick'},
+  t7_name_risky_say:{type:'say',speaker:'them',tier:7,text:"Elijah isn't a problem to solve. He's my son. He's not a wound to close — he's a person I love. Thank you for that. Nobody says that.",next:'t8_name_pick'},
+  t7_name_wrong_say:{type:'say',speaker:'them',tier:7,text:"He thought he could understand machines better than people. He was probably right. He would have been a spectacular engineer. He was building things in his head that I couldn't follow.",next:'t8_name_pick'},
+
+  t8_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'What if you talked to that God tonight?',sub:'Not a prayer — a conversation.',tag:'best',next:'t8_best_say',youText:"What if tonight — not a formal prayer, nothing religious — you just talked to that God. The one who weeps. About your child. About the silence. About what you needed and didn't get. Not to resolve anything. Just to say it out loud to someone who can actually hold it."},
+    {label:'Can I pray for you right now?',sub:'Ask permission.',tag:'good',next:'outcome_pray',youText:"Can I pray for you right now? For your child — by name if you'll tell me — and for you. Not that it all makes sense. Just that you're not alone in this."},
+    {label:'Your faithfulness kept you here',sub:'Name the grace in survival.',tag:'risky',next:'t8_risky_say',youText:"The fact that you're still here, still standing, still saying their name — whatever kept you through this, it looks like grace. Not cheap grace that makes it easier. Hard grace that just kept you on your feet."},
+    {label:'Jesus asked the same question on the cross',sub:'Matthew 27:46.',tag:'wrong',next:'t8_wrong_say',youText:"On the cross — Matthew 27:46 — Jesus asked the same question you're asking: 'My God, my God, why have you forsaken me?' He was inside your question, not above it."},
+  ]},
+
+  t8_laugh_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'That feeling is real — trust it',sub:'Don\'t dismiss the felt sense.',tag:'best',next:'t8_laugh_best_say',youText:"That feeling — when the fighting stops and you sense her somewhere still being herself — I think that's real. Not wishful thinking. Something you actually know. I think she's still loud, still brave, still her."},
+    {label:'Can I pray for her by name?',sub:'An offer.',tag:'good',next:'outcome_pray',youText:"Can I say her name in a prayer — just to acknowledge that she existed, that she mattered, that someone believes she's still out there being loud and brave? Would you tell me her name?"},
+    {label:'She trusted you completely',sub:'Honor the relationship.',tag:'risky',next:'t8_laugh_risky_say',youText:"She ran at horses because she trusted. And the person she trusted most was you — the one she brought every fear to, the one who covered the drain so she could feel safe. You were her safety."},
+    {label:'Would you be open to hope?',sub:'Gentle invitation.',tag:'wrong',next:'t8_laugh_wrong_say',youText:"Would you be open — even a little — to the hope that she's still somewhere? That the loud laugh didn't just stop?"},
+  ]},
+
+  t8_name_pick:{type:'pick',tier:8,prompt:'How do you respond?',choices:[
+    {label:'Talk to Elijah\'s God tonight',sub:'The door is through the child.',tag:'best',next:'t8_name_best_say',youText:"You've been talking to Elijah. Try talking to his God. Same conversation. 'I miss my son. I'm angry. I don't understand. If you know him, take care of him.' That's a prayer. That's enough."},
+    {label:'An engineer of something extraordinary',sub:'Speak hope over what Elijah would be doing.',tag:'good',next:'t8_name_good_say',youText:"A spectacular engineer building things in his head. I think he's still building. Something he couldn't even have imagined here. Precise, thorough, completely himself."},
+    {label:'Would you let me say his name in prayer?',sub:'Ask permission.',tag:'risky',next:'outcome_pray',youText:"Would you let me say his name — Elijah — in a prayer? Not to explain anything. Just to tell God he mattered and his father loves him. One sentence."},
+    {label:'Your loyalty to him honors God too',sub:'Name the sanctity of the grief.',tag:'wrong',next:'t8_name_wrong_say',youText:"Your loyalty to Elijah — refusing to make him past tense — that honors God too. God doesn't ask you to forget. He remembers every sparrow."},
+  ]},
+
+  t8_best_say:{type:'say',speaker:'them',tier:8,text:"Not a formal prayer. Just talking. About the silence. About what I needed. To someone who can hold it. I think I could try that tonight.",next:'t9_pick'},
+  t8_risky_say:{type:'say',speaker:'them',tier:8,text:"Hard grace that kept me on my feet. I've been fighting it — fighting the idea that anything good was operating. But something kept me standing. I don't know what else to call it.",next:'t9_pick'},
+  t8_wrong_say:{type:'say',speaker:'them',tier:8,text:"'Why have you forsaken me.' He asked it. From inside the worst moment. That's in the Bible? That's not a crisis of faith — that's His last recorded words?",next:'t9_pick'},
+
+  t8_laugh_best_say:{type:'say',speaker:'them',tier:8,text:"Still out there being loud and brave. I want that to be true more than I've wanted almost anything. I don't know if I believe it but I want to.",next:'t9_laugh_pick'},
+  t8_laugh_risky_say:{type:'say',speaker:'them',tier:8,text:"I was her safety. She ran at horses because she trusted me. And I was there when — I was with her at the end. She wasn't alone. I was her safety till the last second.",next:'t9_laugh_pick'},
+  t8_laugh_wrong_say:{type:'say',speaker:'them',tier:8,text:"Open to hope. Yes. I'm open to hope. I think I've been afraid to be open to it because what if I'm wrong.",next:'t9_laugh_pick'},
+
+  t8_name_best_say:{type:'say',speaker:'them',tier:8,text:"'If you know him, take care of him.' That's a prayer I could actually say. It doesn't require me to resolve everything. It's just — if you're real, I trust you with my son.",next:'t9_name_pick'},
+  t8_name_good_say:{type:'say',speaker:'them',tier:8,text:"Still building. Precise and thorough and completely himself. That's the best version of hope I've ever heard for him. Not clouds and harps. Just Elijah, fully himself, going further than I could follow.",next:'t9_name_pick'},
+  t8_name_wrong_say:{type:'say',speaker:'them',tier:8,text:"He remembers every sparrow. Elijah was always picking up sparrows if they fell. He carried one home once. My wife was horrified.",next:'t9_name_pick'},
+
+  t9_pick:{type:'pick',tier:9,prompt:'How do you respond?',choices:[
+    {label:'That conversation might be the beginning',sub:'Don\'t predict the outcome — just open the door.',tag:'best',next:'t9_best_say',youText:"That conversation tonight — just try it. Don't expect anything. Don't filter it. Say what's real. I've seen that kind of conversation change people's grief from isolation into something else. I'll be praying for you while you do."},
+    {label:'Psalm 22 — Jesus\'s last words on the cross',sub:'The forsaken psalm ends in praise.',tag:'good',next:'t9_good_say',youText:"That quote from the cross — 'My God, why have you forsaken me' — it's the opening line of Psalm 22. The psalm ends in praise. Not because the abandonment went away. But because something on the other side of the forsaken place was real. That's the arc."},
+    {label:'Hard grace is the only kind worth having',sub:'Name the quality of what carried them.',tag:'risky',next:'t9_risky_say',youText:"Hard grace — not the kind that makes it easier, but the kind that keeps you present anyway. That's the only kind I think is real. The cheap version dissolves under pressure. What you're carrying proves something hard and real was operating."},
+    {label:'Let me pray for your child right now',sub:'Direct offer.',tag:'wrong',next:'outcome_pray',youText:"I want to pray for your child right now — just say their name to God, just for a moment. Would you give me that?"},
+  ]},
+
+  t9_laugh_pick:{type:'pick',tier:9,prompt:'How do you respond?',choices:[
+    {label:'Wanting is enough to start',sub:'Faith begins with the longing.',tag:'best',next:'t9_laugh_best_say',youText:"Wanting it to be true is enough to start. You don't need certainty. You just need to not close the door. 'I want this to be real' is a prayer. That's what it is."},
+    {label:'She wasn\'t alone — you were there',sub:'Honor what they gave at the end.',tag:'good',next:'t9_laugh_good_say',youText:"You were there at the end. She wasn't alone. Whatever happened — she had you. You were the last thing she saw, and it was love. That matters more than you'll ever know."},
+    {label:'Afraid to hope in case you\'re wrong',sub:'Name the fear.',tag:'risky',next:'t9_laugh_risky_say',youText:"Afraid to hope because what if you're wrong. That's the bravest, most honest thing you could have said. Most people won't name that. The courage to hope despite fear — that's the same courage she had with horses."},
+    {label:'Would you pray with me?',sub:'Direct invitation.',tag:'wrong',next:'outcome_pray',youText:"Would you pray with me right now? Just one sentence: 'If she's with you, tell her I love her.' That's all. You don't have to believe it. Just say it."},
+  ]},
+
+  t9_name_pick:{type:'pick',tier:9,prompt:'How do you respond?',choices:[
+    {label:'"If you\'re real, I trust you with my son"',sub:'That sentence is already a prayer.',tag:'best',next:'outcome_pray',youText:"'If you're real, I trust you with my son.' Do you know what that is? That's a prayer. And I think if you say it tonight — just that sentence, in the quiet — something will happen. I can't tell you what. But that sentence deserves to be said out loud."},
+    {label:'Elijah and the sparrow',sub:'God remembers what Elijah remembered.',tag:'good',next:'t9_name_good_say',youText:"Elijah carried home a sparrow. The God I believe in says He knows every sparrow, every one that falls. Your son already understood something about that. And the God who made that instinct in him — I think He knows Elijah very well."},
+    {label:'Would you let me say his name?',sub:'Final offer.',tag:'risky',next:'outcome_pray',youText:"Would you let me say his name — just once — to God? 'God — this is Elijah's father. He loves his son. Elijah loved trains and sparrows and was building something none of us could follow. Take care of him.' That's all. Would you let me say that?"},
+    {label:'You\'ve never stopped being his father',sub:'Honor the ongoing relationship.',tag:'wrong',next:'t9_name_wrong_say',youText:"Five years of refusing past tense — you've never stopped being his father. Death didn't end that. And I believe the God who invented fatherhood sees that and honors it."},
+  ]},
+
+  t9_best_say:{type:'say',speaker:'them',tier:9,text:"I'll try it tonight. No filter, no formality. Just telling the truth to whatever is there. If there's nothing there — it cost me nothing. If there's something there — then it was real.",next:'t10_pick'},
+  t9_good_say:{type:'say',speaker:'them',tier:9,text:"The forsaken psalm ends in praise. The ending is real even when you can't see it from inside the abandonment. I've been living inside the opening line. I didn't know there was a rest of the psalm.",next:'t10_pick'},
+  t9_risky_say:{type:'say',speaker:'them',tier:9,text:"Hard grace. Proof of something real by the quality of what it cost. I've never thought about my survival as evidence. But you're right — it cost too much to have come from nothing.",next:'t10_pick'},
+
+  t9_laugh_best_say:{type:'say',speaker:'them',tier:9,text:"'I want this to be real' is a prayer. I've been saying that in my heart without knowing what to do with it. That's been a prayer this whole time.",next:'t10_laugh_pick'},
+  t9_laugh_good_say:{type:'say',speaker:'them',tier:9,text:"She had me. She wasn't alone. I know that. But I've needed to hear it from outside myself. You have no idea how much I needed that.",next:'t10_laugh_pick'},
+  t9_laugh_risky_say:{type:'say',speaker:'them',tier:9,text:"The same courage she had with horses. I never — that's exactly what it is. She would have run straight at the hope. She wouldn't have waited until she was sure.",next:'t10_laugh_pick'},
+
+  t9_name_good_say:{type:'say',speaker:'them',tier:9,text:"God knows every sparrow, and Elijah knew sparrows. He understood them. If there's a God who made that instinct in him — they must have something in common.",next:'t10_name_pick'},
+  t9_name_wrong_say:{type:'say',speaker:'them',tier:9,text:"Death didn't end it. I'm still his father. That hasn't been taken. I've been so focused on what was taken that I forgot what wasn't.",next:'t10_name_pick'},
+
+  t10_pick:{type:'pick',tier:10,prompt:'How do you respond?',choices:[
+    {label:'If there\'s something there — it was real',sub:'That\'s faith. Just let it start.',tag:'best',next:'t10_best_say',youText:"That's exactly right. If there's nothing — it cost you nothing. If there's something — you started a conversation that changes everything. That question — 'if there's something there' — is the most honest question a person can ask. And honest questions always find their answers eventually."},
+    {label:'The rest of the psalm is real',sub:'Walk them toward the end of Psalm 22.',tag:'good',next:'t10_good_say',youText:"The end of Psalm 22 — 'they shall come and shall declare His righteousness unto a people that shall be born.' Even the worst forsaking becomes a story someone tells. Your grief, your survival — it becomes testimony. Not yet. Maybe not for years. But eventually."},
+    {label:'Hard grace has been with you all along',sub:'Name what has always been operating.',tag:'risky',next:'t10_risky_say',youText:"The hard grace that kept you standing — it was there at the beginning of this too. Before you had words for it, before you knew what to call it. You haven't been as alone in this as it felt."},
+    {label:'Pray with me right now',sub:'Final offer.',tag:'wrong',next:'outcome_pray',youText:"Will you pray with me right now? Just for your child — by name. Just saying they existed and they mattered and they are loved."},
+  ]},
+
+  t10_laugh_pick:{type:'pick',tier:10,prompt:'How do you respond?',choices:[
+    {label:'Run straight at the hope — like she would',sub:'Use her courage as the invitation.',tag:'best',next:'outcome_pray',youText:"She didn't wait until she was sure. She ran at the horses anyway. Would you do what she would have done? Run straight at the hope — one sentence, tonight: 'If she's with you, she's the loud brave one. Take care of her.'"},
+    {label:'Would you let me pray for her?',sub:'Direct offer.',tag:'good',next:'outcome_pray',youText:"Would you let me pray for her right now? I'll say her name if you'll tell me. Just acknowledging to God: she was here. She mattered. She was brave and loud and completely herself."},
+    {label:'You can be open to hope and still be wrecked',sub:'Both are true at once.',tag:'risky',next:'t10_laugh_risky_say',youText:"You can hope and still be wrecked. They're not opposites. You don't have to be healed to be open. You just have to stop keeping the door locked from the inside."},
+    {label:'What would she want for you?',sub:'Ask the most important question.',tag:'wrong',next:'t10_laugh_wrong_say',youText:"What would she want for you — your daughter? If she could see you right now, what would she want for you?"},
+  ]},
+
+  t10_name_pick:{type:'pick',tier:10,prompt:'How do you respond?',choices:[
+    {label:'You\'re still his father — and God knows that',sub:'The relationship is real and witnessed.',tag:'best',next:'outcome_pray',youText:"You're still his father. That hasn't been taken. And I believe God — who invented fatherhood — is watching that and knows your name. Would you let me say both your names tonight? You and Elijah. In prayer. Just a sentence."},
+    {label:'What if there\'s more of Elijah to know?',sub:'Speak future-tense hope.',tag:'good',next:'t10_name_good_say',youText:"What if there's more of Elijah to know? Not instead of what you had — in addition to it. The train obsession, the sparrows, the GG-1 poster — that was the beginning of who he is. What if the rest of him is still being revealed?"},
+    {label:'He would have loved you finding your way back',sub:'Use the child as the invitation.',tag:'risky',next:'t10_name_risky_say',youText:"Elijah — precise, thorough, all-in. I think he would have wanted you to find your way back. Not to a building, not to doctrine. To the God who made him the way he was."},
+    {label:'You haven\'t lost what matters most',sub:'What was never taken.',tag:'wrong',next:'t10_name_wrong_say',youText:"What death didn't take: that you were his father. That he was loved. That he was completely himself. Those aren't past — they're permanent."},
+  ]},
+
+  t10_best_say:{type:'say',speaker:'them',tier:10,text:"Honest questions find their answers eventually. I've been angry for so long that I stopped asking honestly. I just indicted. Tonight — I'll try asking honestly.",next:'t11_pick'},
+  t10_good_say:{type:'say',speaker:'them',tier:10,text:"It becomes testimony. Not yet. But eventually. I never thought my survival could mean something to someone else. Maybe it could.",next:'t11_pick'},
+  t10_risky_say:{type:'say',speaker:'them',tier:10,text:"Not as alone as it felt. I've felt completely alone. But something kept me here. Something operating underneath the grief. If that's grace — then I've been in grace this whole time without knowing it.",next:'t11_pick'},
+
+  t10_laugh_risky_say:{type:'say',speaker:'them',tier:10,text:"Stop keeping the door locked from the inside. That's me. I locked it from inside. I thought I was protecting myself. But I've been alone in there.",next:'t11_laugh_pick'},
+  t10_laugh_wrong_say:{type:'say',speaker:'them',tier:10,text:"She would want me to laugh again. She would be furious at me for being sad this long. She'd say 'Mama, stop.' She called me Mama in this very certain voice when I was doing something wrong.",next:'t11_laugh_pick'},
+
+  t10_name_good_say:{type:'say',speaker:'them',tier:10,text:"The rest of him still being revealed. Trains, sparrows — the beginning of who he is. I've been thinking of him as complete and finished. But what if he's still going?",next:'t11_name_pick'},
+  t10_name_risky_say:{type:'say',speaker:'them',tier:10,text:"He would have wanted me to find my way back. He wasn't the kind of person who liked loose ends. He would have wanted this resolved.",next:'t11_name_pick'},
+  t10_name_wrong_say:{type:'say',speaker:'them',tier:10,text:"Permanent. What was never taken is permanent. I've been so focused on the loss that I forgot what's permanent. The love is permanent. He was loved and that's not over.",next:'t11_name_pick'},
+
+  t11_pick:{type:'pick',tier:11,prompt:'How do you close?',choices:[
+    {label:'Pray with them right now',sub:'Ask permission and just do it.',tag:'best',next:'outcome_pray',youText:"Would you let me pray right now — just for you, and for your child by name if you'll give it to me? No agenda. Just saying: this person is loved, this child is remembered. You don't have to close your eyes. Just let me say it."},
+    {label:'Take them to Psalm 23',sub:'Read the valley verse out loud.',tag:'good',next:'outcome_away',youText:"One thing before you go — Psalm 23:4: 'Even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me.' Not around the valley. Through it. With you. That's the God I've been describing. I'll be praying for you."},
+    {label:'Ask them to try the honest conversation tonight',sub:'One low-commitment step.',tag:'risky',next:'outcome_away_soft',youText:"Tonight — try the honest conversation. No filter, no formality. Just tell the truth to whatever is there. If it's nothing, it cost you nothing. If it's something — you started something real. I'll be praying for you while you try."},
+    {label:'Ask if they want to pray together',sub:'Let them set the terms.',tag:'wrong',next:'outcome_pushed',youText:"Would you want to pray together? I'll follow your lead — your words, your terms. Just say what's real."},
+  ]},
+
+  t11_laugh_pick:{type:'pick',tier:11,prompt:'How do you close?',choices:[
+    {label:'Unlock the door — run at the hope',sub:'Use her courage as the final image.',tag:'best',next:'outcome_pray',youText:"She ran at horses. She didn't wait to be sure. Would you do what she would do — unlock the door from inside, just once, tonight? One sentence: 'If you're there, I want to know.' She would have run straight at that."},
+    {label:'She\'d want you to laugh again',sub:'Honor the child\'s voice.',tag:'good',next:'outcome_away',youText:"She'd be furious at you for being sad this long. She'd use that voice — 'Mama, stop.' I'll pray for you — that the laugh comes back. Yours. Because hers hasn't gone anywhere."},
+    {label:'You don\'t have to decide today',sub:'Leave the door open.',tag:'risky',next:'outcome_away_soft',youText:"You don't have to decide anything today. Just stop keeping the door locked from inside. That's enough. I'll be praying for you."},
+    {label:'She was brave — so can you be',sub:'Final image.',tag:'wrong',next:'outcome_pushed',youText:"She ran at horses because she was brave. You raised her to be brave. Don't you think you have some of that in you too?"},
+  ]},
+
+  t11_name_pick:{type:'pick',tier:11,prompt:'How do you close?',choices:[
+    {label:'Say his name to God tonight',sub:'That sentence is the beginning.',tag:'best',next:'outcome_pray',youText:"Tonight — say his name to God. 'Elijah. He was mine and I loved him and I don't understand. If you know him, he liked trains and sparrows. Take care of him.' That's a prayer. That's enough. I'll be praying for you while you do."},
+    {label:'He wouldn\'t want loose ends',sub:'Use Elijah\'s character as the invitation.',tag:'good',next:'outcome_away',youText:"He didn't like loose ends. He was thorough, all-in. I think he'd want you to follow this to wherever it leads. Don't leave it unresolved — for him. I'll be praying for you."},
+    {label:'The love is permanent — that\'s the foundation',sub:'Build from what was never taken.',tag:'risky',next:'outcome_away_soft',youText:"What was never taken is the foundation. The love is permanent. Elijah is loved — by you, and I believe by God. Start from there. Take your time. I'll be praying for you."},
+    {label:'Would you let me pray right now?',sub:'Final offer.',tag:'wrong',next:'outcome_pray',youText:"Would you let me pray for Elijah right now? Just say his name out loud to God — that he existed, that he was loved, that his father is still standing. Just that."},
+  ]},
+
+  outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'Something Real Started',quote:'"Blessed are those who mourn, for they will be comforted." — Matthew 5:4',note:'You did the hardest thing in apologetics: you led with presence, not argument. You let the person\'s child be real in the conversation before you said a single theological word. You never said "God has a plan." You let the grief lead — and then, only then, you pointed to the God who weeps. That\'s faithfulness.',path:'Best Route · T11 ✓'},
+  outcome_away:{type:'outcome',outcome:'away',icon:'🕊️',title:'Something Cracked Open',quote:'"He heals the brokenhearted and binds up their wounds." — Psalm 147:3',note:'They left with something they didn\'t have: the image of a God who weeps, who doesn\'t handle grief from above. That may work on them for weeks. You planted in the most fertile soil there is — a heart that still hurts.',path:'Good Route'},
+  outcome_away_soft:{type:'outcome',outcome:'soft',icon:'🌱',title:'Door Unlocked a Little',quote:'"Come to me, all who are weary and burdened." — Matthew 11:28',note:'A gentle close is often the most powerful one in a grief conversation. You honored the weight without rushing past it. The honest conversation you asked them to try tonight — that might be the beginning of everything.',path:'Soft Route'},
+  outcome_shutdown:{type:'outcome',outcome:'shutdown',icon:'🚪',title:'Not Today',quote:'"A time to be silent and a time to speak." — Ecclesiastes 3:7',note:'With deep grief, sometimes the only faithful thing is to stop. You moved to theology too quickly — before the wound had any room to breathe. Next time: stay in the grief longer. Presence before argument. Always.',path:'Closed · T3:WRONG or T4:WRONG'},
+};
+
+let pathLog=[];
+let currentOutcome=null;
+
+function buildTrack(){
+  const t=document.getElementById('tier-track');
+  t.innerHTML='';
+  for(let i=1;i<=MAX_TIERS;i++){
+    const d=document.createElement('div');
+    d.className=`pip ${TIER_PIP[i]}`;
+    d.id=`pip-${i}`;
+    d.textContent=i;
+    t.appendChild(d);
+  }
+}
+function updateTrack(tier){
+  for(let i=1;i<=MAX_TIERS;i++){
+    const p=document.getElementById(`pip-${i}`);
+    if(!p)continue;
+    p.classList.remove('active','done');
+    if(i<tier)p.classList.add('done');
+    else if(i===tier)p.classList.add('active');
+  }
+}
+function addBubble(speaker,text,tier,src){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className=`bubble-row ${speaker}`;
+  const b=document.createElement('div');
+  b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  b.textContent=text;
+  if(src){
+    const badge=document.createElement('div');
+    badge.className='src-badge';
+    badge.textContent='📎 '+src;
+    b.appendChild(badge);
+  }
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function showTyping(){
+  const area=document.getElementById('chat-area');
+  const row=document.createElement('div');
+  row.className='bubble-row them';
+  row.id='typing-row';
+  const b=document.createElement('div');
+  b.className='bubble tb-1 typing-indicator';
+  b.innerHTML='<span></span><span></span><span></span>';
+  row.appendChild(b);
+  area.appendChild(row);
+  area.scrollTop=area.scrollHeight;
+}
+function removeTyping(){
+  const r=document.getElementById('typing-row');
+  if(r)r.remove();
+}
+function showChoices(node){
+  const panel=document.getElementById('choices-panel');
+  const prompt=document.getElementById('choices-prompt');
+  const grid=document.getElementById('choices-grid');
+  panel.classList.remove('hidden');
+  prompt.textContent=node.prompt||'Choose your response...';
+  grid.innerHTML='';
+  node.choices.forEach((c,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;
+    btn.onclick=()=>pick(node,c,i);
+    grid.appendChild(btn);
+  });
+}
+function hideChoices(){
+  document.getElementById('choices-panel').classList.add('hidden');
+  document.getElementById('choices-grid').innerHTML='';
+}
+async function pick(node,choice,idx){
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach((b,i)=>{
+    b.disabled=true;
+    if(i===idx&&choice.tag){
+      b.classList.add(`tag-${choice.tag}`);
+      const tl=document.createElement('span');
+      tl.className='tag-label';
+      tl.textContent=choice.tag.toUpperCase();
+      b.querySelector('.choice-label').appendChild(tl);
+    }
+  });
+  if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);
+  await sleep(420);
+  hideChoices();
+  if(choice.youText){
+    addBubble('you',choice.youText,node.tier,choice.src||null);
+    await sleep(500);
+  }
+  await run(choice.next);
+}
+function showOutcome(node){
+  currentOutcome=node;
+  document.getElementById('out-icon').textContent=node.icon||'✓';
+  document.getElementById('out-title').textContent=node.title||'';
+  document.getElementById('out-quote').textContent=node.quote||'';
+  document.getElementById('out-note').textContent=node.note||'';
+  document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');
+  document.getElementById('outcome-screen').classList.add('visible');
+}
+function readConversation(){
+  document.getElementById('outcome-screen').classList.remove('visible');
+}
+async function run(id){
+  const node=nodes[id];
+  if(!node){console.warn('Missing node:',id);return;}
+  updateTrack(node.tier||1);
+  if(node.type==='say'){
+    if(node.speaker==='them'){
+      showTyping();
+      await sleep(900);
+      removeTyping();
+    }
+    addBubble(node.speaker,node.text,node.tier||1,node.src||null);
+    await sleep(node.speaker==='them'?400:300);
+    if(node.next)await run(node.next);
+  } else if(node.type==='pick'){
+    showChoices(node);
+  } else if(node.type==='outcome'){
+    await sleep(300);
+    showOutcome(node);
+  }
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function restartGame(){
+  document.getElementById('chat-area').innerHTML='';
+  document.getElementById('outcome-screen').classList.remove('visible');
+  hideChoices();
+  pathLog=[];
+  currentOutcome=null;
+  buildTrack();
+  run('start');
+}
+buildTrack();
+run('start');
+</script>
+</body>
+</html>
