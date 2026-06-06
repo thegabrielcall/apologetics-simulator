@@ -233,7 +233,7 @@ const nodes = {
         tag:'good', next:'t6a_ok',
         youText:"What if the institution got it completely wrong — and Jesus is actually on your side of this?" },
       { label:'Ask what happened', sub:'"Can you tell me what they actually did?"',
-        tag:'risky', next:'t6a_risky',
+        tag:'risky', next:'t6a_story',
         youText:"Can you tell me more about what they actually did to your family?" },
       { label:'Validate their frustration', sub:'"You\'re right to be angry. The church has failed people."',
         tag:'wrong', next:'t6a_wrong',
@@ -278,7 +278,7 @@ const nodes = {
         tag:'risky', next:'t10a_risky',
         youText:"What would it mean to you, if Jesus turned out to be completely different from what hurt you?" },
       { label:'Pivot to making it right', sub:'"What would you need to see to trust again?"',
-        tag:'risky', next:'t10a_risky',
+        tag:'risky', next:'t10a_trust',
         youText:"What would you need to see to be able to trust again?" },
     ]
   },
@@ -399,6 +399,56 @@ const nodes = {
     text:"He predicted it? Like — Jesus actually said false prophets would show up inside the church?",
     next:'t7a_pick'
   },
+  t6a_story:{ type:'say', speaker:'them', tier:6,
+    text:"...They convinced my wife over years that I was spiritually dangerous. That God was telling her to leave. The pastor wrote her letters. Met with her privately. All of it hidden from me until she was already gone. I never got to defend myself — not to her, not to anyone. The whole community just... disappeared.",
+    next:'t7a_story_pick'
+  },
+  t7a_story_pick:{
+    type:'pick', tier:7, prompt:'They just trusted you with real pain. How do you respond?',
+    choices:[
+      { label:'Sit with it first', sub:'"That is a profound betrayal. I\'m so sorry."',
+        tag:'best', next:'t8a_story_main',
+        youText:"That is a profound betrayal — of you, of trust, of everything the church is supposed to be. I'm so sorry that happened." },
+      { label:'Name what was done wrong', sub:'"What that pastor did was spiritual abuse. It has a name."',
+        tag:'good', next:'t8a_story_ok',
+        youText:"What that pastor did has a name — spiritual abuse. It is condemned everywhere in Scripture. That is not Christianity. That's someone using God as a weapon." },
+      { label:'Pivot to Jesus', sub:'"Jesus would have stood against that pastor."',
+        tag:'risky', next:'t8a_story_risky',
+        youText:"Jesus would have stood against that pastor — not with you, against him. That kind of manipulation is exactly what He condemned in the religious leaders of His own day." },
+      { label:'Ask about her', sub:'"Is your wife still part of that community?"',
+        tag:'wrong', next:'outcome_away_cold',
+        youText:"Is she still involved with that community?" },
+    ]
+  },
+  t8a_story_main:{ type:'say', speaker:'them', tier:8,
+    text:"...Nobody's ever just said that. Everyone wants to explain it or fix it. You're the first person who just... said it was wrong.",
+    next:'t9a_story_pick'
+  },
+  t8a_story_ok:{ type:'say', speaker:'them', tier:8,
+    text:"Spiritual abuse. I've never heard that term before. Is that actually in the Bible — people using God to control others?",
+    next:'t9a_story_pick'
+  },
+  t8a_story_risky:{ type:'say', speaker:'them', tier:8,
+    text:"How do you know what Jesus would have done? Everyone claims Jesus is on their side.",
+    next:'t9a_story_pick'
+  },
+  t9a_story_pick:{
+    type:'pick', tier:9, prompt:'Something shifted. Choose carefully.',
+    choices:[
+      { label:'Show Jesus condemning exactly this', sub:'"Matthew 23 — He called them out publicly."',
+        tag:'best', next:'outcome_away_a',
+        youText:"Matthew 23 — Jesus publicly called the religious leaders of His day frauds. 'Whitewashed tombs.' He was more furious at corrupt religious power than at any sinner. He's on the record." },
+      { label:'Invite them to read it themselves', sub:'"His actual words — not filtered through anyone."',
+        tag:'good', next:'outcome_away_a',
+        youText:"The Jesus in the Gospels — just his own words, not interpreted by anyone with an agenda — is worth reading. He might be different from what destroyed your marriage." },
+      { label:'Offer to pray for them', sub:'"Not to push anything. Just to be with you."',
+        tag:'risky', next:'outcome_pushed',
+        youText:"I won't push anything. But could I pray for you — not for conversion, just to stand with you in this?" },
+      { label:'Recommend a counsellor', sub:'"This sounds like it needs more than a conversation."',
+        tag:'wrong', next:'outcome_away_soft_a',
+        youText:"This sounds like something deeper than a street conversation can hold. Is there someone you\'re talking to about all of this?" },
+    ]
+  },
   t6a_wrong:{ type:'say', speaker:'them', tier:6,
     text:"Right. They've failed a lot of people. Including me. I don't see how that changes anything.",
     next:'outcome_away_cold'
@@ -417,6 +467,10 @@ const nodes = {
   },
   t10a_risky:{ type:'say', speaker:'them', tier:10,
     text:"...I don't know what it would mean. I haven't let myself think about it.",
+    next:'outcome_away_soft_a'
+  },
+  t10a_trust:{ type:'say', speaker:'them', tier:10,
+    text:"Nobody has ever asked me that. I've just assumed trust was gone forever. I don't know. Maybe... seeing someone who lives it differently. Someone who doesn't use it as a weapon.",
     next:'outcome_away_soft_a'
   },
 
