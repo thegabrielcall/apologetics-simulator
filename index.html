@@ -6,7 +6,7 @@
 <title>Apologetics Simulator</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;min-height:100dvh;padding-bottom:50px}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-serif;min-height:100dvh;padding-bottom:50px;cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg transform='rotate(-45 18 18)'%3E%3Cellipse cx='18' cy='18' rx='5' ry='12' fill='%23e8e8f0'/%3E%3Cellipse cx='18' cy='18' rx='12' ry='3.5' fill='%23d0d8f0'/%3E%3Cellipse cx='18' cy='25' rx='7' ry='2.2' fill='%23c8d0e8'/%3E%3Crect x='16.5' y='6' width='3' height='5' rx='1.5' fill='%23a0b0d8'/%3E%3C/g%3E%3C/svg%3E") 18 18, auto}
 
 /* ── HEADER ── */
 .header{text-align:center;padding:18px 16px 14px}
@@ -16,133 +16,192 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .hint{font-size:.78rem;color:#3fb950;animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
 
-/* ══════════════════════════════════════ SCENE */
+/* ══ SCENE ══════════════════════════════════════════════════════════════════ */
 #scene{
-  position:relative;width:100%;height:270px;overflow:hidden;cursor:default;
-  background:linear-gradient(180deg,#020610 0%,#08102a 40%,#121840 65%,#0e0c20 85%,#080610 100%);
+  position:relative;width:100%;height:290px;overflow:hidden;cursor:default;
+  animation:skyDayNight 90s linear infinite;
 }
-/* stars canvas sits behind everything */
-#star-canvas{position:absolute;inset:0;pointer-events:none}
 
-/* moon */
+@keyframes skyDayNight{
+  0%,100%{background:linear-gradient(180deg,#010509 0%,#060d1e 35%,#0d1838 60%,#0a0e1c 82%,#060508 100%)}
+  20%    {background:linear-gradient(180deg,#010509 0%,#060d1e 35%,#0d1838 60%,#0a0e1c 82%,#060508 100%)}
+  30%    {background:linear-gradient(180deg,#14062a 0%,#2e1040 35%,#5a2418 60%,#4a2c18 82%,#1c0c08 100%)}
+  40%    {background:linear-gradient(180deg,#0a4a90 0%,#1868b8 35%,#44a0d8 60%,#68b8e0 82%,#8acce8 100%)}
+  62%    {background:linear-gradient(180deg,#0a4a90 0%,#1868b8 35%,#44a0d8 60%,#68b8e0 82%,#8acce8 100%)}
+  72%    {background:linear-gradient(180deg,#280e04 0%,#601808 35%,#b84018 60%,#c85020 82%,#8a3818 100%)}
+  82%    {background:linear-gradient(180deg,#050410 0%,#090b1c 35%,#0e1430 60%,#0c0e1e 82%,#060608 100%)}
+}
+
+/* Stars */
+#star-canvas{position:absolute;inset:0;pointer-events:none;animation:starsFade 90s linear infinite}
+@keyframes starsFade{0%,20%{opacity:1}30%,70%{opacity:0}80%,100%{opacity:1}}
+
+/* Sun */
+#sun{
+  position:absolute;width:56px;height:56px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#fffde8 0%,#ffd740 35%,rgba(255,200,60,0) 100%);
+  box-shadow:0 0 50px 18px rgba(255,220,80,.35),0 0 100px 40px rgba(255,200,50,.12);
+  animation:sunArc 90s linear infinite;
+}
+@keyframes sunArc{
+  0%,25%    {left:-70px;top:320px;opacity:0}
+  28%       {left:4%;top:180px;opacity:0}
+  33%       {left:8%;top:55px;opacity:1}
+  47%       {left:44%;top:18px;opacity:1}
+  63%       {left:82%;top:55px;opacity:1}
+  68%       {left:93%;top:180px;opacity:0}
+  68.1%,100%{left:-70px;top:320px;opacity:0}
+}
+
+/* Moon */
 .moon{
-  position:absolute;top:16px;right:100px;
-  width:38px;height:38px;border-radius:50%;
-  background:radial-gradient(circle at 38% 38%,#fffde7,#fdd835 60%,#f9a825);
-  box-shadow:0 0 40px 10px rgba(253,216,53,.18),0 0 80px 20px rgba(253,216,53,.08);
+  position:absolute;width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle at 36% 36%,#fffde7,#fdd835 60%,#f9a825);
+  box-shadow:0 0 40px 10px rgba(253,216,53,.2),0 0 80px 22px rgba(253,216,53,.08);
+  animation:moonArc 90s linear infinite;
+}
+@keyframes moonArc{
+  0%     {right:80px;top:20px;opacity:1}
+  18%    {right:220px;top:40px;opacity:.8}
+  25%    {right:340px;top:120px;opacity:0}
+  25.1%  {right:-60px;top:320px;opacity:0}
+  72%    {right:-60px;top:320px;opacity:0}
+  74%    {right:30px;top:120px;opacity:0}
+  80%    {right:80px;top:20px;opacity:1}
+  100%   {right:80px;top:20px;opacity:1}
 }
 
-/* building silhouettes */
-#skyline{position:absolute;bottom:50px;left:0;width:100%;height:170px;pointer-events:none}
+/* Skyline */
+#skyline{position:absolute;bottom:52px;left:0;width:100%;height:220px;pointer-events:none}
 
-/* street lamps */
-.lamp{position:absolute;bottom:50px}
-.lamp-pole{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:60px;background:linear-gradient(180deg,#1e1e34,#141428)}
-.lamp-arm{position:absolute;top:0;left:50%;width:18px;height:3px;background:#1e1e34;border-radius:2px;transform:translateX(-2px) translateY(0px)}
-.lamp-bulb{position:absolute;top:-6px;left:calc(50% + 10px);transform:translateX(-50%);width:10px;height:10px;border-radius:50%;background:#ffe87a;box-shadow:0 0 12px 4px rgba(255,220,80,.5),0 0 30px 12px rgba(255,220,80,.18);animation:flicker 4s ease-in-out infinite}
-.lamp-cone{position:absolute;top:4px;left:calc(50% + 10px);transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:0px solid transparent;opacity:0;animation:coneOn 4s ease-in-out infinite}
+/* Window glow layer (night only) */
+#win-layer{position:absolute;bottom:52px;left:0;width:100%;height:220px;pointer-events:none;animation:winFade 90s linear infinite}
+@keyframes winFade{0%,20%{opacity:.75}30%,68%{opacity:0}78%,100%{opacity:.75}}
+
+/* Taxi */
+.taxi{position:absolute;bottom:56px;pointer-events:auto;cursor:pointer;animation:taxiRoll 22s linear infinite}
+.taxi:hover .taxi-bubble{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.taxi-bubble{position:absolute;top:-30px;left:50%;transform:translateX(-50%) translateY(0);background:#fff;color:#222;font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s,transform .18s;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.taxi-bubble::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#fff;border-bottom:none}
+@keyframes taxiRoll{from{right:-80px}to{right:110%}}
+.taxi2{animation-duration:35s;animation-delay:-12s}
+.taxi3{animation-duration:28s;animation-delay:-6s}
+
+/* Street lamps */
+.lamp{position:absolute;bottom:52px}
+.lamp-pole{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:62px;background:linear-gradient(180deg,#1e1e34,#141428)}
+.lamp-arm{position:absolute;top:0;left:50%;width:20px;height:3px;background:#1e1e34;border-radius:2px;transform:translateX(-2px)}
+.lamp-bulb{position:absolute;top:-7px;left:calc(50% + 11px);transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:#ffe87a;box-shadow:0 0 14px 5px rgba(255,220,80,.55),0 0 32px 14px rgba(255,220,80,.2);animation:flicker 4s ease-in-out infinite}
 @keyframes flicker{0%,100%{opacity:.85}47%{opacity:1}48%{opacity:.7}49%{opacity:1}50%{opacity:.95}}
-@keyframes coneOn{0%,100%{opacity:.12}50%{opacity:.25}}
 
-/* ground / sidewalk */
-.ground{position:absolute;bottom:0;width:100%;height:50px;background:linear-gradient(180deg,#0c0c1e,#06060f)}
-.sidewalk-line{position:absolute;bottom:46px;width:100%;height:2px;background:rgba(255,255,255,.05)}
-.sidewalk-line2{position:absolute;bottom:50px;width:100%;height:1px;background:rgba(255,255,255,.08)}
+/* Ground */
+.ground{position:absolute;bottom:0;width:100%;height:52px;background:linear-gradient(180deg,#111124,#08080f)}
+.sidewalk{position:absolute;bottom:50px;width:100%;height:3px;background:rgba(255,255,255,.07)}
+.sidewalk2{position:absolute;bottom:52px;width:100%;height:1px;background:rgba(255,255,255,.1)}
+/* Crosswalk stripes */
+.crosswalk{position:absolute;bottom:52px;display:flex;gap:5px}
+.cw-stripe{width:12px;height:50px;background:rgba(255,255,255,.08);border-radius:1px}
 
 /* ── WALKER ── */
 .walker{
-  position:absolute;
-  bottom:50px;
-  display:flex;flex-direction:column;align-items:center;
-  cursor:pointer;
-  --sz:14px; /* head size, overridden per walker */
+  position:absolute;bottom:52px;display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;--sz:14px;
   animation:walkAcross var(--dur,18s) var(--dly,0s) linear infinite;
 }
-@keyframes walkAcross{from{left:calc(-60px * var(--scale,1))}to{left:calc(100% + 60px * var(--scale,1))}}
-
+@keyframes walkAcross{from{left:calc(-70px * var(--scale,1))}to{left:calc(100% + 70px * var(--scale,1))}}
 .walker:hover .paper-note{transform:translateX(-50%) scale(1.25) translateY(-6px);box-shadow:0 0 18px 4px var(--col,#aaa);filter:brightness(1.1)}
-.walker:hover .figure{filter:drop-shadow(0 0 9px var(--col,#aaa)) brightness(1.35)!important}
+.walker:hover .figure{filter:drop-shadow(0 0 10px var(--col,#aaa)) brightness(1.4)!important}
 .walker.paused,.walker.paused .figure,.walker.paused .figure *{animation-play-state:paused!important}
 
-/* ── SVG HUMAN FIGURE ── */
+/* SVG figure */
 .figure{
-  width:calc(var(--sz) * 2.1);
-  height:calc(var(--sz) * 4);
-  display:block;
-  overflow:visible;
-  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--col,#aaa) 48%,transparent));
-  animation:figBob .5s ease-in-out infinite alternate;
+  width:calc(var(--sz)*2.2);height:calc(var(--sz)*4.2);display:block;overflow:visible;
+  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--col,#aaa) 40%,transparent));
+  animation:figBob .52s ease-in-out infinite alternate;
 }
 @keyframes figBob{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-3px) rotate(1deg)}}
-/* legs swing opposite each other, arms counter-swing */
-.figure .leg-l{transform-origin:10px 27px;animation:legFwd .5s ease-in-out infinite alternate}
-.figure .leg-r{transform-origin:14px 27px;animation:legBwd .5s ease-in-out infinite alternate}
-.figure .arm-l{transform-origin:7px 14px;animation:legBwd .5s ease-in-out infinite alternate}
-.figure .arm-r{transform-origin:17px 14px;animation:legFwd .5s ease-in-out infinite alternate}
-@keyframes legFwd{from{transform:rotate(22deg)}to{transform:rotate(-22deg)}}
-@keyframes legBwd{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+.figure .leg-l{transform-origin:10px 27px;animation:legFwd .52s ease-in-out infinite alternate}
+.figure .leg-r{transform-origin:14px 27px;animation:legBwd .52s ease-in-out infinite alternate}
+.figure .arm-l{transform-origin:7.5px 14px;animation:legBwd .52s ease-in-out infinite alternate}
+.figure .arm-r{transform-origin:16.5px 14px;animation:legFwd .52s ease-in-out infinite alternate}
+@keyframes legFwd{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}
+@keyframes legBwd{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}
 
-/* floating paper above person */
+/* Floating paper */
 .paper-note{
-  position:absolute;
-  top:calc(var(--sz) * -3.2);
-  left:50%;
-  transform:translateX(-50%);
-  width:calc(var(--sz) * 1.7);
-  height:calc(var(--sz) * 2.1);
-  background:linear-gradient(160deg,#fefcf6,#f0ebe0);
-  border-radius:2px 4px 2px 2px;
+  position:absolute;top:calc(var(--sz)*-3.4);left:50%;transform:translateX(-50%);
+  width:calc(var(--sz)*1.7);height:calc(var(--sz)*2.1);
+  background:linear-gradient(160deg,#fefcf6,#f0ebe0);border-radius:2px 4px 2px 2px;
   box-shadow:1px 2px 6px rgba(0,0,0,.55),0 0 8px color-mix(in srgb,var(--col,#aaa) 50%,transparent);
-  display:flex;align-items:center;justify-content:center;
-  font-size:calc(var(--sz) * 1.0);
-  line-height:1;
-  transition:all .2s;
-  animation:paperFloat 2.2s ease-in-out infinite;
-  animation-delay:var(--pdly,0s);
-  pointer-events:none;
+  display:flex;align-items:center;justify-content:center;font-size:calc(var(--sz)*1.0);
+  line-height:1;transition:all .2s;animation:paperFloat 2.2s ease-in-out infinite;
+  animation-delay:var(--pdly,0s);pointer-events:none;
 }
-/* folded corner */
 .paper-note::before{content:'';position:absolute;top:0;right:0;width:calc(var(--sz)*.5);height:calc(var(--sz)*.5);background:linear-gradient(225deg,#d8d0c0 50%,transparent 50%);border-radius:0 4px 0 0}
-/* ruled lines */
 .paper-note::after{content:'';position:absolute;inset:calc(var(--sz)*.6) calc(var(--sz)*.15) calc(var(--sz)*.2);background:repeating-linear-gradient(180deg,transparent,transparent calc(var(--sz)*.45),rgba(0,0,0,.12) calc(var(--sz)*.45),rgba(0,0,0,.12) calc(var(--sz)*.5));pointer-events:none}
+.paper-thread{position:absolute;left:50%;transform:translateX(-50%);width:1px;background:linear-gradient(180deg,rgba(255,255,255,.25) 0%,transparent 100%);top:calc(var(--sz)*-1.1);height:calc(var(--sz)*2.1);pointer-events:none}
+@keyframes paperFloat{0%,100%{transform:translateX(-50%) rotate(-3deg) translateY(0px)}50%{transform:translateX(-50%) rotate(3deg) translateY(-5px)}}
 
-/* thread from paper to person */
-.paper-thread{
+/* ── THOUGHT BUBBLES ── */
+.thought{
   position:absolute;
+  bottom:calc(100% + 4px);
   left:50%;transform:translateX(-50%);
-  width:1px;
-  background:linear-gradient(180deg,rgba(255,255,255,.25) 0%,transparent 100%);
-  top:calc(var(--sz) * -1.1);
-  height:calc(var(--sz) * 2.1);
+  background:rgba(10,8,22,.88);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px 12px 12px 3px;
+  padding:5px 9px;
+  font-size:9.5px;
+  font-family:'Georgia',serif;
+  font-style:italic;
+  color:rgba(230,220,255,.82);
+  white-space:nowrap;
   pointer-events:none;
+  opacity:0;
+  transform:translateX(-50%) translateY(6px);
+  transition:opacity .4s ease, transform .4s ease;
+  backdrop-filter:blur(4px);
+  box-shadow:0 4px 18px rgba(0,0,0,.5);
+  z-index:20;
+  max-width:160px;
+  white-space:normal;
+  text-align:center;
+  line-height:1.35;
 }
-
-@keyframes paperFloat{
-  0%,100%{transform:translateX(-50%) rotate(-3deg) translateY(0px)}
-  50%{transform:translateX(-50%) rotate(3deg) translateY(-5px)}
+.thought::after{
+  content:'';
+  position:absolute;
+  bottom:-6px;left:12px;
+  border:6px solid transparent;
+  border-top-color:rgba(255,255,255,.12);
+}
+.thought::before{
+  content:'';
+  position:absolute;
+  bottom:-4px;left:13px;
+  border:5px solid transparent;
+  border-top-color:rgba(10,8,22,.88);
+  z-index:1;
+}
+.thought.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+/* dim non-hovered walkers when one is focused */
+#walkers.focused .walker:not(.hovered){
+  filter:opacity(.35);
+  transition:filter .3s;
+}
+#walkers.focused .walker.hovered{
+  transition:filter .3s;
 }
 
 /* ── FLYING PAPER OVERLAY ── */
 #backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;backdrop-filter:blur(3px)}
-#paper-fly{
-  display:none;position:fixed;z-index:999;
-  transform-origin:center center;
-  pointer-events:none;
-  transition:left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease;
-}
+#paper-fly{display:none;position:fixed;z-index:999;transform-origin:center center;pointer-events:none;transition:left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease}
 #paper-fly.landed{pointer-events:auto}
-
-.fly-card{
-  width:265px;
-  background:linear-gradient(155deg,#fefcf7,#ede8dd);
-  border-radius:4px 10px 6px 6px;
-  padding:20px 18px 18px;
-  box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.6);
-  position:relative;
-}
-/* folded corner large */
+.fly-card{width:265px;background:linear-gradient(155deg,#fefcf7,#ede8dd);border-radius:4px 10px 6px 6px;padding:20px 18px 18px;box-shadow:0 24px 70px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.6);position:relative}
 .fly-card::before{content:'';position:absolute;top:0;right:0;width:28px;height:28px;background:linear-gradient(225deg,#c8c0b0 50%,transparent 50%);border-radius:0 10px 0 0}
-/* ruled lines background */
 .fly-card::after{content:'';position:absolute;inset:62px 18px 60px;background:repeating-linear-gradient(180deg,transparent,transparent 20px,rgba(0,0,0,.07) 20px,rgba(0,0,0,.07) 21px);pointer-events:none;border-radius:2px}
 .fly-letter{font-size:2.2rem;font-weight:900;line-height:1;margin-bottom:5px;position:relative}
 .fly-title{font-size:.95rem;font-weight:800;color:#181818;margin-bottom:6px;position:relative;line-height:1.3}
@@ -204,101 +263,285 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 <!-- ═══ SCENE ═══ -->
 <div id="scene">
   <canvas id="star-canvas"></canvas>
+  <div id="sun"></div>
   <div class="moon"></div>
 
-  <!-- buildings SVG -->
-  <svg id="skyline" viewBox="0 0 1200 170" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-    <!-- far buildings -->
-    <g fill="#0a0a1c" opacity="0.9">
-      <rect x="0"   y="90" width="38" height="80"/>
-      <rect x="34"  y="110" width="20" height="60"/>
-      <rect x="50"  y="60" width="28" height="110"/>
-      <rect x="74"  y="80" width="50" height="90"/>
-      <rect x="120" y="40" width="22" height="130"/>
-      <rect x="138" y="70" width="36" height="100"/>
-      <rect x="170" y="90" width="24" height="80"/>
-      <rect x="190" y="50" width="40" height="120"/>
-      <rect x="226" y="75" width="18" height="95"/>
-      <rect x="240" y="30" width="30" height="140"/>
-      <rect x="268" y="60" width="50" height="110"/>
-      <rect x="314" y="80" width="22" height="90"/>
-      <rect x="332" y="45" width="34" height="125"/>
-      <rect x="362" y="70" width="28" height="100"/>
-      <rect x="386" y="90" width="42" height="80"/>
-      <rect x="424" y="55" width="20" height="115"/>
-      <rect x="440" y="35" width="44" height="135"/>
-      <rect x="480" y="75" width="26" height="95"/>
-      <rect x="502" y="50" width="38" height="120"/>
-      <rect x="536" y="80" width="24" height="90"/>
-      <rect x="556" y="60" width="44" height="110"/>
-      <rect x="596" y="40" width="28" height="130"/>
-      <rect x="620" y="70" width="36" height="100"/>
-      <rect x="652" y="85" width="22" height="85"/>
-      <rect x="670" y="45" width="48" height="125"/>
-      <rect x="714" y="65" width="30" height="105"/>
-      <rect x="740" y="30" width="24" height="140"/>
-      <rect x="760" y="60" width="46" height="110"/>
-      <rect x="802" y="80" width="32" height="90"/>
-      <rect x="830" y="50" width="20" height="120"/>
-      <rect x="846" y="70" width="40" height="100"/>
-      <rect x="882" y="40" width="28" height="130"/>
-      <rect x="906" y="65" width="36" height="105"/>
-      <rect x="938" y="85" width="24" height="85"/>
-      <rect x="958" y="45" width="44" height="125"/>
-      <rect x="998" y="60" width="30" height="110"/>
-      <rect x="1024" y="30" width="22" height="140"/>
-      <rect x="1042" y="75" width="48" height="95"/>
-      <rect x="1086" y="50" width="34" height="120"/>
-      <rect x="1116" y="65" width="26" height="105"/>
-      <rect x="1138" y="80" width="40" height="90"/>
-      <rect x="1174" y="45" width="26" height="125"/>
+  <!-- ── NYC SKYLINE ── -->
+  <svg id="skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="winPat" x="0" y="0" width="9" height="6" patternUnits="userSpaceOnUse">
+        <rect x="1" y="1" width="4" height="3.5" fill="#ffe490" rx="0.5"/>
+      </pattern>
+      <pattern id="winPatSm" x="0" y="0" width="7" height="5" patternUnits="userSpaceOnUse">
+        <rect x="0.5" y="0.5" width="3.5" height="3" fill="#ffe490" rx="0.5"/>
+      </pattern>
+    </defs>
+
+    <!-- ════ FAR BACKGROUND (dark, recessed) ════ -->
+    <g fill="#070715" opacity="0.9">
+      <rect x="0"    y="165" width="28"  height="55"/>
+      <rect x="24"   y="148" width="16"  height="72"/>
+      <rect x="36"   y="158" width="22"  height="62"/>
+      <rect x="54"   y="140" width="18"  height="80"/>
+      <rect x="68"   y="155" width="26"  height="65"/>
+      <!-- between Flatiron and Chrysler -->
+      <rect x="215"  y="155" width="20"  height="65"/>
+      <rect x="232"  y="143" width="18"  height="77"/>
+      <rect x="246"  y="160" width="24"  height="60"/>
+      <rect x="264"  y="150" width="18"  height="70"/>
+      <!-- between Chrysler and ESB -->
+      <rect x="448"  y="150" width="22"  height="70"/>
+      <rect x="466"  y="138" width="20"  height="82"/>
+      <rect x="482"  y="155" width="18"  height="65"/>
+      <!-- between ESB and 30 Rock -->
+      <rect x="672"  y="158" width="16"  height="62"/>
+      <!-- right side -->
+      <rect x="852"  y="155" width="28"  height="65"/>
+      <rect x="876"  y="140" width="22"  height="80"/>
+      <rect x="894"  y="160" width="30"  height="60"/>
+      <rect x="920"  y="145" width="18"  height="75"/>
+      <rect x="936"  y="158" width="26"  height="62"/>
+      <rect x="958"  y="138" width="20"  height="82"/>
+      <rect x="975"  y="152" width="30"  height="68"/>
+      <rect x="1002" y="142" width="22"  height="78"/>
+      <rect x="1020" y="158" width="28"  height="62"/>
+      <rect x="1044" y="135" width="18"  height="85"/>
+      <rect x="1058" y="150" width="32"  height="70"/>
+      <rect x="1086" y="138" width="24"  height="82"/>
+      <rect x="1106" y="155" width="20"  height="65"/>
+      <rect x="1122" y="142" width="36"  height="78"/>
+      <rect x="1154" y="158" width="26"  height="62"/>
+      <rect x="1176" y="135" width="24"  height="85"/>
     </g>
-    <!-- windows: tiny yellow dots -->
-    <g fill="rgba(255,240,160,0.35)" opacity="0.8">
-      <rect x="55" y="68" width="3" height="3"/><rect x="62" y="68" width="3" height="3"/>
-      <rect x="55" y="76" width="3" height="3"/><rect x="62" y="80" width="3" height="3"/>
-      <rect x="125" y="48" width="3" height="3"/><rect x="132" y="55" width="3" height="3"/>
-      <rect x="125" y="62" width="3" height="3"/><rect x="132" y="48" width="3" height="3"/>
-      <rect x="196" y="58" width="3" height="3"/><rect x="204" y="65" width="3" height="3"/>
-      <rect x="196" y="72" width="3" height="3"/>
-      <rect x="246" y="38" width="3" height="3"/><rect x="254" y="45" width="3" height="3"/>
-      <rect x="246" y="52" width="3" height="3"/><rect x="254" y="38" width="3" height="3"/>
-      <rect x="246" y="60" width="3" height="3"/>
-      <rect x="338" y="52" width="3" height="3"/><rect x="346" y="60" width="3" height="3"/>
-      <rect x="338" y="67" width="3" height="3"/><rect x="346" y="52" width="3" height="3"/>
-      <rect x="447" y="42" width="3" height="3"/><rect x="455" y="50" width="3" height="3"/>
-      <rect x="447" y="58" width="3" height="3"/><rect x="455" y="42" width="3" height="3"/>
-      <rect x="447" y="66" width="3" height="3"/>
-      <rect x="508" y="58" width="3" height="3"/><rect x="516" y="65" width="3" height="3"/>
-      <rect x="508" y="72" width="3" height="3"/>
-      <rect x="603" y="47" width="3" height="3"/><rect x="611" y="54" width="3" height="3"/>
-      <rect x="603" y="61" width="3" height="3"/>
-      <rect x="677" y="52" width="3" height="3"/><rect x="685" y="60" width="3" height="3"/>
-      <rect x="677" y="68" width="3" height="3"/><rect x="685" y="52" width="3" height="3"/>
-      <rect x="747" y="37" width="3" height="3"/><rect x="755" y="45" width="3" height="3"/>
-      <rect x="747" y="53" width="3" height="3"/>
-      <rect x="836" y="57" width="3" height="3"/><rect x="844" y="65" width="3" height="3"/>
-      <rect x="889" y="47" width="3" height="3"/><rect x="897" y="55" width="3" height="3"/>
-      <rect x="889" y="62" width="3" height="3"/>
-      <rect x="965" y="52" width="3" height="3"/><rect x="973" y="60" width="3" height="3"/>
-      <rect x="965" y="68" width="3" height="3"/>
-      <rect x="1031" y="37" width="3" height="3"/><rect x="1048" y="82" width="3" height="3"/>
-      <rect x="1092" y="57" width="3" height="3"/><rect x="1100" y="65" width="3" height="3"/>
-      <rect x="1092" y="72" width="3" height="3"/>
+
+    <!-- ════ MID BUILDINGS ════ -->
+    <g fill="#0a0a1e">
+      <!-- Left cluster -->
+      <rect x="90"  y="148" width="22" height="72"/>
+      <rect x="108" y="130" width="28" height="90"/>
+      <!-- Water tower on left building -->
+      <rect x="111" y="122" width="3"  height="10"/>
+      <rect x="118" y="122" width="3"  height="10"/>
+      <ellipse cx="117" cy="120" rx="8" ry="3.5"/>
+      <rect x="110" y="108" width="14" height="14" rx="2"/>
+      <polygon points="110,108 124,108 117,103"/>
+
+      <!-- Between Flatiron and Chrysler -->
+      <rect x="192" y="140" width="24" height="80"/>
+      <rect x="260" y="145" width="28" height="75"/>
+      <rect x="280" y="130" width="18" height="90"/>
+
+      <!-- Between Chrysler and ESB -->
+      <rect x="430" y="140" width="20" height="80"/>
+      <rect x="446" y="125" width="28" height="95"/>
+      <!-- Water tower -->
+      <rect x="449" y="117" width="3"  height="10"/>
+      <rect x="456" y="117" width="3"  height="10"/>
+      <ellipse cx="454" cy="115" rx="7" ry="3"/>
+      <rect x="448" y="104" width="12" height="13" rx="1.5"/>
+      <polygon points="448,104 460,104 454,99"/>
+
+      <!-- Right of 30 Rock -->
+      <rect x="840" y="135" width="26" height="85"/>
+      <rect x="862" y="148" width="20" height="72"/>
+    </g>
+
+    <!-- ════ FLATIRON BUILDING ════ -->
+    <!-- Centered around x=162. Famous triangular "prow" building, 22 floors, ~87m -->
+    <g fill="#0e0e28">
+      <!-- Main rectangular body -->
+      <rect x="148" y="84" width="50" height="136"/>
+      <!-- Prow (the triangular sharp end facing left) -->
+      <polygon points="148,220 148,84 112,180"/>
+      <!-- Broad cornice band at top -->
+      <rect x="108" y="79"  width="92" height="7"/>
+      <!-- Secondary trim -->
+      <rect x="112" y="73"  width="85" height="8"/>
+      <!-- Roof detail / small penthouse -->
+      <rect x="148" y="66"  width="48" height="9"/>
+    </g>
+
+    <!-- ════ CHRYSLER BUILDING ════ -->
+    <!-- Centered around x=360. Art Deco crown with sunburst, ~319m -->
+    <g fill="#0e0e28">
+      <!-- Needle spire tip -->
+      <polygon points="358,14 362,14 360,6" />
+      <!-- Crown tier 1 -->
+      <polygon points="350,14 370,14 368,25 352,25"/>
+      <!-- Crown tier 2 -->
+      <polygon points="341,25 379,25 377,37 343,37"/>
+      <!-- Crown tier 3 -->
+      <polygon points="332,37 388,37 386,50 334,50"/>
+      <!-- Eagle gargoyle tier (slight side notch effect) -->
+      <polygon points="321,50 399,50 397,58 323,58"/>
+      <!-- Eagle notches (barely hinted) -->
+      <rect x="321" y="56" width="8"   height="6"/>
+      <rect x="391" y="56" width="8"   height="6"/>
+      <!-- Upper shaft (tapers slightly) -->
+      <polygon points="329,58 391,58 388,80 332,80"/>
+      <!-- Setback 1 -->
+      <rect x="314" y="80"  width="92"  height="24"/>
+      <!-- Setback 2 -->
+      <rect x="300" y="104" width="120" height="22"/>
+      <!-- Main base -->
+      <rect x="286" y="126" width="148" height="94"/>
+    </g>
+
+    <!-- ════ EMPIRE STATE BUILDING ════ -->
+    <!-- Centered at x=580. Tallest, 443m with antenna, iconic stepped profile -->
+    <g fill="#0e0e28">
+      <!-- Lightning rod / TV antenna -->
+      <rect x="578" y="1"  width="4"   height="26"/>
+      <!-- Mooring mast -->
+      <polygon points="566,27 594,27 592,36 568,36"/>
+      <!-- Observatory crown -->
+      <rect x="563" y="36" width="34"  height="17"/>
+      <!-- Step 1 -->
+      <rect x="552" y="53" width="56"  height="19"/>
+      <!-- Step 2 -->
+      <rect x="538" y="72" width="84"  height="19"/>
+      <!-- Step 3 -->
+      <rect x="522" y="91" width="116" height="21"/>
+      <!-- Step 4 (broadest setback) -->
+      <rect x="504" y="112" width="152" height="19"/>
+      <!-- Base -->
+      <rect x="490" y="131" width="180" height="89"/>
+    </g>
+
+    <!-- ════ ROCKEFELLER CENTER / 30 ROCK ════ -->
+    <!-- Centered at x=750. Art Deco, clean stepped crown, ~259m -->
+    <g fill="#0e0e28">
+      <!-- Crown steps (Art Deco triangular steps) -->
+      <rect x="748" y="44" width="14" height="8"/>
+      <rect x="743" y="52" width="24" height="8"/>
+      <rect x="736" y="60" width="38" height="8"/>
+      <rect x="730" y="68" width="50" height="8"/>
+      <!-- Main tower shaft -->
+      <rect x="718" y="76" width="74" height="144"/>
+      <!-- Side buildings of the Rockefeller complex -->
+      <rect x="690" y="100" width="28" height="120"/>
+      <rect x="792" y="105" width="30" height="115"/>
+      <!-- Lower plaza buildings -->
+      <rect x="670" y="135" width="20" height="85"/>
+      <rect x="822" y="138" width="22" height="82"/>
+    </g>
+
+    <!-- ════ RIGHT SIDE BUILDINGS ════ -->
+    <g fill="#0d0d22">
+      <rect x="848"  y="128" width="36" height="92"/>
+      <rect x="880"  y="112" width="28" height="108"/>
+      <!-- Water tower -->
+      <rect x="883" y="104" width="3"  height="10"/>
+      <rect x="890" y="104" width="3"  height="10"/>
+      <ellipse cx="888" cy="102" rx="7" ry="3"/>
+      <rect x="882" y="91"  width="12" height="13" rx="1.5"/>
+      <polygon points="882,91 894,91 888,86"/>
+      <rect x="904"  y="120" width="32" height="100"/>
+      <rect x="932"  y="108" width="24" height="112"/>
+      <rect x="952"  y="125" width="38" height="95"/>
+      <rect x="986"  y="115" width="28" height="105"/>
+      <rect x="1010" y="130" width="34" height="90"/>
+      <rect x="1040" y="110" width="26" height="110"/>
+      <rect x="1062" y="128" width="32" height="92"/>
+      <rect x="1090" y="120" width="22" height="100"/>
+      <rect x="1108" y="112" width="38" height="108"/>
+      <rect x="1142" y="132" width="28" height="88"/>
+      <rect x="1166" y="115" width="34" height="105"/>
+    </g>
+
+    <!-- ════ WINDOW DETAILS (tiny yellow in windows, always drawn but parent layer fades) ════ -->
+    <!-- These are drawn inside the buildings as decorative fills -->
+    <!-- Subtle window hint rows on Chrysler -->
+    <g fill="rgba(255,220,120,0.06)">
+      <rect x="300" y="126" width="120" height="22"/>
+      <rect x="314" y="80"  width="92"  height="24"/>
+      <!-- ESB windows subtle -->
+      <rect x="490" y="131" width="180" height="89"/>
+      <rect x="504" y="112" width="152" height="19"/>
+      <!-- 30 Rock -->
+      <rect x="718" y="76"  width="74"  height="144"/>
+      <rect x="690" y="100" width="28"  height="120"/>
+      <rect x="792" y="105" width="30"  height="115"/>
     </g>
   </svg>
 
-  <!-- street lamps -->
-  <div class="lamp" style="left:15%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:42%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:70%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:93%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <!-- ── WINDOW GLOW LAYER (night effect) ── -->
+  <svg id="win-layer" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+    <!-- Flatiron windows -->
+    <rect x="150" y="85"  width="46"  height="132" fill="url(#winPat)" opacity="0.55"/>
+    <!-- Chrysler windows -->
+    <rect x="302" y="127" width="116" height="91"  fill="url(#winPat)" opacity="0.55"/>
+    <rect x="316" y="81"  width="88"  height="23"  fill="url(#winPat)" opacity="0.45"/>
+    <!-- ESB windows -->
+    <rect x="492" y="132" width="176" height="86"  fill="url(#winPat)" opacity="0.55"/>
+    <rect x="506" y="113" width="148" height="17"  fill="url(#winPat)" opacity="0.42"/>
+    <rect x="524" y="92"  width="112" height="19"  fill="url(#winPat)" opacity="0.35"/>
+    <!-- 30 Rock windows -->
+    <rect x="720" y="77"  width="70"  height="141" fill="url(#winPat)" opacity="0.55"/>
+    <rect x="692" y="101" width="26"  height="117" fill="url(#winPat)" opacity="0.45"/>
+    <rect x="794" y="106" width="26"  height="112" fill="url(#winPat)" opacity="0.45"/>
+    <!-- Right buildings -->
+    <rect x="850" y="129" width="34"  height="89"  fill="url(#winPatSm)" opacity="0.4"/>
+    <rect x="882" y="113" width="26"  height="105" fill="url(#winPatSm)" opacity="0.4"/>
+    <rect x="934" y="109" width="22"  height="109" fill="url(#winPatSm)" opacity="0.35"/>
+    <rect x="988" y="116" width="26"  height="102" fill="url(#winPatSm)" opacity="0.35"/>
+  </svg>
 
-  <div class="sidewalk-line"></div>
-  <div class="sidewalk-line2"></div>
+  <!-- Street lamps -->
+  <div class="lamp" style="left:12%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:30%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:52%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:72%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+  <div class="lamp" style="left:90%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
+
+  <!-- Crosswalks -->
+  <div class="crosswalk" style="left:22%;bottom:52px">
+    <div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div>
+  </div>
+  <div class="crosswalk" style="left:64%;bottom:52px">
+    <div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div>
+  </div>
+
+  <!-- Yellow taxis -->
+  <div class="taxi" style="bottom:56px;animation-delay:-4s" id="taxi1">
+    <div class="taxi-bubble">❓ Someone's driving</div>
+    <svg width="68" height="28" viewBox="0 0 68 28">
+      <rect x="2"  y="10" width="64" height="16" rx="3" fill="#f5c518"/>
+      <rect x="12" y="4"  width="38" height="10" rx="2" fill="#c8a010"/>
+      <rect x="16" y="2"  width="14" height="2.5" rx="1" fill="#f5c518"/>
+      <rect x="6"  y="11" width="8"  height="5" rx="1" fill="#87ceeb" opacity=".7"/>
+      <rect x="18" y="6"  width="10" height="6" rx="1" fill="#87ceeb" opacity=".7"/>
+      <rect x="32" y="6"  width="10" height="6" rx="1" fill="#87ceeb" opacity=".7"/>
+      <rect x="46" y="11" width="8"  height="5" rx="1" fill="#87ceeb" opacity=".7"/>
+      <circle cx="14" cy="26" r="4" fill="#222"/>
+      <circle cx="54" cy="26" r="4" fill="#222"/>
+      <circle cx="14" cy="26" r="2" fill="#444"/>
+      <circle cx="54" cy="26" r="2" fill="#444"/>
+      <rect x="28" y="11" width="12" height="5" rx="1" fill="#222" opacity=".5"/>
+      <!-- driver silhouette -->
+      <ellipse cx="22" cy="8.5" rx="2.6" ry="2.8" fill="#5a3a1a"/>
+      <rect x="19.5" y="10.5" width="5" height="3.5" rx="1" fill="#3a2a6a"/>
+    </svg>
+  </div>
+  <div class="taxi taxi2" style="bottom:56px" id="taxi2">
+    <div class="taxi-bubble">❓ Someone's driving</div>
+    <svg width="58" height="24" viewBox="0 0 58 24">
+      <rect x="2"  y="8"  width="54" height="14" rx="3" fill="#f5c518"/>
+      <rect x="10" y="3"  width="32" height="8"  rx="2" fill="#c8a010"/>
+      <rect x="14" y="1.5" width="10" height="2" rx="1" fill="#f5c518"/>
+      <circle cx="12" cy="22" r="3.5" fill="#222"/>
+      <circle cx="46" cy="22" r="3.5" fill="#222"/>
+      <!-- driver silhouette -->
+      <ellipse cx="20" cy="6" rx="2.2" ry="2.4" fill="#c8885a"/>
+      <rect x="17.8" y="8" width="4.4" height="3" rx="1" fill="#2a4a2a"/>
+    </svg>
+  </div>
+
+  <div class="sidewalk2"></div>
+  <div class="sidewalk"></div>
   <div class="ground"></div>
 
-  <!-- 12 walkers injected by JS -->
+  <!-- 15 walkers injected by JS -->
   <div id="walkers"></div>
 </div>
 
@@ -365,177 +608,312 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 </div>
 
 <script>
-// ── TREE DATA ──────────────────────────────────────────────────────────────
+// ── TREE DATA ─────────────────────────────────────────────────────────────
 const TREES = [
-  {letter:'A',emoji:'😤',title:'There Is No God',        sub:'"There\'s no evidence for God — science explains everything."',   file:'tree-a-game.html',color:'#6ab8d4'},
-  {letter:'B',emoji:'🧐',title:'Show Me Proof',           sub:'"I need evidence — you can\'t just have faith in a book."',        file:'tree-b-game.html',color:'#6ad490'},
-  {letter:'C',emoji:'😏',title:'Jesus Was a Myth',        sub:'"Jesus is just a rehash of older myths — Horus, Mithras."',        file:'tree-c-game.html',color:'#d4a86a'},
-  {letter:'D',emoji:'😒',title:'The Bible Is Propaganda', sub:'"The Bible was written by men to control people."',                file:'tree-d-game.html',color:'#6a90d4'},
-  {letter:'E',emoji:'🤓',title:'Science Explains Everything',sub:'"I believe in science, not fairy tales."',                       file:'tree-e-game.html',color:'#b06ad4'},
-  {letter:'F',emoji:'🙃',title:"That's Just Your Belief", sub:'"All religions are equally valid — truth is relative."',           file:'tree-f-game.html',color:'#d4d06a'},
-  {letter:'G',emoji:'😔',title:'Have You Heard the Good News?',sub:'"The church destroyed my family…"',                           file:'tree-g-game.html',color:'#d46aaa'},
-  {letter:'H',emoji:'😢',title:'If God Is Good, Why Evil?',sub:'"Evil proves God is powerless — or cruel."',                      file:'tree-h-game.html',color:'#6ad4d4'},
-  {letter:'I',emoji:'💔',title:'My Child Died',           sub:'"Don\'t you dare tell me God has a plan."',                        file:'tree-i-game.html',color:'#d4906a'},
-  {letter:'J',emoji:'🙄',title:'Christians Are Hypocrites',sub:'"They preach love and live judgment."',                           file:'tree-j-game.html',color:'#9a8fd4'},
-  {letter:'K',emoji:'🤲',title:"I'm Muslim",              sub:'"Jesus was a prophet — Christians made him into God."',            file:'tree-k-game.html',color:'#d46a6a'},
-  {letter:'L',emoji:'😌',title:"I'm Buddhist",            sub:'"Buddhism gives me inner peace — I don\'t need a personal God."',  file:'tree-l-game.html',color:'#88e060'},
-  {letter:'M',emoji:'😠',title:'Why Is There Evil?',       sub:'"If God is real and good, He would stop it."',                     file:'tree-m-game.html',color:'#e8a050'},
-  {letter:'N',emoji:'😔',title:'Why Does God Allow Suffering?',sub:'"An all-powerful God could end it. He doesn\'t."',             file:'tree-n-game.html',color:'#50b8e8'},
-  {letter:'O',emoji:'🥺',title:'Children Born Sick',       sub:'"Why are innocent children born with cancer or Down syndrome?"',   file:'tree-o-game.html',color:'#e86888'},
+  {letter:'A',emoji:'😤',title:'There Is No God',           sub:'"There\'s no evidence for God — science explains everything."',  file:'tree-a-game.html',color:'#6ab8d4'},
+  {letter:'B',emoji:'🧐',title:'Show Me Proof',              sub:'"I need evidence — you can\'t just have faith in a book."',       file:'tree-b-game.html',color:'#6ad490'},
+  {letter:'C',emoji:'😏',title:'Jesus Was a Myth',           sub:'"Jesus is just a rehash of older myths — Horus, Mithras."',       file:'tree-c-game.html',color:'#d4a86a'},
+  {letter:'D',emoji:'😒',title:'The Bible Is Propaganda',    sub:'"The Bible was written by men to control people."',               file:'tree-d-game.html',color:'#6a90d4'},
+  {letter:'E',emoji:'🤓',title:'Science Explains Everything',sub:'"I believe in science, not fairy tales."',                        file:'tree-e-game.html',color:'#b06ad4'},
+  {letter:'F',emoji:'🙃',title:"That's Just Your Belief",    sub:'"All religions are equally valid — truth is relative."',          file:'tree-f-game.html',color:'#d4d06a'},
+  {letter:'G',emoji:'😔',title:'Have You Heard the Good News?',sub:'"The church destroyed my family…"',                            file:'tree-g-game.html',color:'#d46aaa'},
+  {letter:'H',emoji:'😢',title:'If God Is Good, Why Evil?',  sub:'"Evil proves God is powerless — or cruel."',                     file:'tree-h-game.html',color:'#6ad4d4'},
+  {letter:'I',emoji:'💔',title:'My Child Died',              sub:'"Don\'t you dare tell me God has a plan."',                       file:'tree-i-game.html',color:'#d4906a'},
+  {letter:'J',emoji:'🙄',title:'Christians Are Hypocrites',  sub:'"They preach love and live judgment."',                          file:'tree-j-game.html',color:'#9a8fd4'},
+  {letter:'K',emoji:'🤲',title:"I'm Muslim",                 sub:'"Jesus was a prophet — Christians made him into God."',           file:'tree-k-game.html',color:'#d46a6a'},
+  {letter:'L',emoji:'😌',title:"I'm Buddhist",               sub:'"Buddhism gives me inner peace — I don\'t need a personal God."', file:'tree-l-game.html',color:'#88e060'},
+  {letter:'M',emoji:'😠',title:'Why Is There Evil?',          sub:'"If God is real and good, He would stop it."',                   file:'tree-m-game.html',color:'#e8a050'},
+  {letter:'N',emoji:'😔',title:'Why Does God Allow Suffering?',sub:'"An all-powerful God could end it. He doesn\'t."',              file:'tree-n-game.html',color:'#50b8e8'},
+  {letter:'O',emoji:'🥺',title:'Children Born Sick',          sub:'"Why are innocent children born with cancer or Down syndrome?"',  file:'tree-o-game.html',color:'#e86888'},
 ];
 
-// Walker config: back lane (B), mid lane (M), front lane (F)
-// sz = head px, dur = walk duration sec, dly = start delay sec, bottom offset
+// Character appearance: coat, pants, shoe, skin, hair, hairH (0=bald)
+const CHARS = [
+  {coat:'#28304c',pants:'#1c202e',shoe:'#0e0e16',skin:'#d4a070',hair:'#120a00',hairH:2.8},  // A navy suit
+  {coat:'#2a5555',pants:'#1a1c28',shoe:'#141418',skin:'#e8b880',hair:'#2c1800',hairH:4.2},  // B teal coat
+  {coat:'#484e28',pants:'#20221a',shoe:'#1a1408',skin:'#f0c888',hair:'#2a1800',hairH:2.6},  // C olive jacket
+  {coat:'#5a3c1e',pants:'#1c1e28',shoe:'#160e08',skin:'#c88850',hair:'#0a0400',hairH:2.4},  // D brown coat
+  {coat:'#3a3a4c',pants:'#1e1e2c',shoe:'#141414',skin:'#f4d0a0',hair:'#909080',hairH:2.2},  // E gray blazer
+  {coat:'#6a1e2e',pants:'#1a1828',shoe:'#14100e',skin:'#eac090',hair:'#1c0800',hairH:4.0},  // F burgundy
+  {coat:'#28293a',pants:'#1c1e2c',shoe:'#121416',skin:'#c07840',hair:'#080400',hairH:2.4},  // G dark gray
+  {coat:'#1c1c28',pants:'#141420',shoe:'#0c0c10',skin:'#d4a070',hair:'#0c0800',hairH:3.8},  // H black coat
+  {coat:'#252530',pants:'#181820',shoe:'#101010',skin:'#b87040',hair:'#0a0600',hairH:2.8},  // I dark coat
+  {coat:'#1e2c50',pants:'#1a1e2c',shoe:'#161618',skin:'#f0c898',hair:'#1c1000',hairH:2.6},  // J navy hoodie
+  {coat:'#3a3e4c',pants:'#1c2030',shoe:'#181818',skin:'#b89060',hair:'#0c0800',hairH:2.0},  // K charcoal
+  {coat:'#6a4818',pants:'#3a2810',shoe:'#201408',skin:'#d4a058',hair:'#0a0600',hairH:2.8},  // L warm brown
+  {coat:'#2e3040',pants:'#1c1e2c',shoe:'#121216',skin:'#d4a070',hair:'#161008',hairH:2.4},  // M charcoal suit
+  {coat:'#383844',pants:'#1c1c28',shoe:'#141414',skin:'#eabc88',hair:'#2c1c00',hairH:3.8},  // N gray coat
+  {coat:'#2a3c6a',pants:'#1a1e2a',shoe:'#141418',skin:'#f0c888',hair:'#3c2408',hairH:2.8},  // O blue jacket
+];
+
+// Walker config — back lane, mid lane, front lane
 const WALKER_CFG = [
-  {t:0, sz:10, dur:48, dly:0,  bot:96},  // A back
-  {t:1, sz:10, dur:44, dly:6,  bot:92},  // B back
-  {t:2, sz:11, dur:40, dly:12, bot:90},  // C back
-  {t:3, sz:11, dur:50, dly:18, bot:94},  // D back
-  {t:4, sz:14, dur:34, dly:2,  bot:70},  // E mid
-  {t:5, sz:14, dur:32, dly:8,  bot:68},  // F mid
-  {t:6, sz:15, dur:36, dly:14, bot:72},  // G mid
-  {t:7, sz:14, dur:30, dly:4,  bot:66},  // H mid
-  {t:8, sz:19, dur:24, dly:1,  bot:50},  // I front
-  {t:9, sz:18, dur:26, dly:7,  bot:50},  // J front
-  {t:10,sz:20, dur:22, dly:3,  bot:50},  // K front
-  {t:11,sz:17, dur:28, dly:9,  bot:50},  // L front
-  {t:12,sz:13, dur:38, dly:5,  bot:86},  // M back
-  {t:13,sz:15, dur:33, dly:11, bot:68},  // N mid
-  {t:14,sz:18, dur:25, dly:15, bot:50},  // O front
+  {t:0,  sz:10, dur:48, dly:0,  bot:108, char:0},  // A back
+  {t:1,  sz:10, dur:44, dly:6,  bot:104, char:1},  // B back
+  {t:2,  sz:11, dur:40, dly:12, bot:102, char:2},  // C back
+  {t:3,  sz:11, dur:50, dly:18, bot:106, char:3},  // D back
+  {t:4,  sz:14, dur:34, dly:2,  bot:80,  char:4},  // E mid
+  {t:5,  sz:14, dur:32, dly:8,  bot:78,  char:5},  // F mid
+  {t:6,  sz:15, dur:36, dly:14, bot:84,  char:6},  // G mid
+  {t:7,  sz:14, dur:30, dly:4,  bot:76,  char:7},  // H mid
+  {t:8,  sz:19, dur:24, dly:1,  bot:56,  char:8},  // I front
+  {t:9,  sz:18, dur:26, dly:7,  bot:56,  char:9},  // J front
+  {t:10, sz:20, dur:22, dly:3,  bot:56,  char:10}, // K front
+  {t:11, sz:17, dur:28, dly:9,  bot:56,  char:11}, // L front
+  {t:12, sz:13, dur:38, dly:5,  bot:98,  char:12}, // M back
+  {t:13, sz:15, dur:33, dly:11, bot:80,  char:13}, // N mid
+  {t:14, sz:18, dur:25, dly:15, bot:56,  char:14}, // O front
 ];
 
-// ── BUILD STARS ────────────────────────────────────────────────────────────
+// ── BUILD STARS ───────────────────────────────────────────────────────────
 (function(){
-  const cvs = document.getElementById('star-canvas');
-  const scene = document.getElementById('scene');
-  cvs.width  = scene.offsetWidth  || window.innerWidth;
-  cvs.height = scene.offsetHeight || 270;
-  const ctx = cvs.getContext('2d');
-  for(let i=0;i<80;i++){
-    const x = Math.random()*cvs.width;
-    const y = Math.random()*(cvs.height*.62);
-    const r = Math.random()*1.1+.3;
-    ctx.beginPath();
-    ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(255,255,255,${Math.random()*.6+.2})`;
+  const cvs=document.getElementById('star-canvas');
+  const scene=document.getElementById('scene');
+  cvs.width=scene.offsetWidth||window.innerWidth;
+  cvs.height=scene.offsetHeight||290;
+  const ctx=cvs.getContext('2d');
+  for(let i=0;i<100;i++){
+    const x=Math.random()*cvs.width;
+    const y=Math.random()*(cvs.height*.58);
+    const r=Math.random()*1.2+.25;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*.65+.2})`;
     ctx.fill();
   }
 })();
 
 // ── BUILD WALKERS ─────────────────────────────────────────────────────────
-const container = document.getElementById('walkers');
+const container=document.getElementById('walkers');
 WALKER_CFG.forEach(cfg=>{
-  const tree = TREES[cfg.t];
-  const el = document.createElement('div');
-  el.className = 'walker';
-  el.id = 'walker-'+tree.letter.toLowerCase();
-  el.title = `${tree.letter}: ${tree.title}`;
-  el.style.cssText = [
+  const tree=TREES[cfg.t];
+  const ch=CHARS[cfg.char]||CHARS[0];
+  const el=document.createElement('div');
+  el.className='walker';
+  el.id='walker-'+tree.letter.toLowerCase();
+  el.title=`${tree.letter}: ${tree.title}`;
+  el.style.cssText=[
     `--col:${tree.color}`,
     `--sz:${cfg.sz}px`,
     `--dur:${cfg.dur}s`,
-    `--dly:-${cfg.dly}s`,        // negative delay = start mid-walk
+    `--dly:-${cfg.dly}s`,
     `--pdly:${cfg.dly*.3}s`,
     `bottom:${cfg.bot}px`,
   ].join(';');
-  el.innerHTML = `
+
+  // Hair layer (ellipse behind head)
+  const hairEl = ch.hairH>0
+    ? `<ellipse cx="12" cy="2.8" rx="4.5" ry="${ch.hairH}" fill="${ch.hair}"/>`
+    : '';
+
+  el.innerHTML=`
     <div class="paper-note">${tree.emoji}</div>
     <div class="paper-thread" style="height:calc(${cfg.sz}px * 1.6);top:calc(${cfg.sz}px * -1.2)"></div>
     <svg class="figure" viewBox="0 0 24 46" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="5" r="4.2" fill="var(--col)"/>
-      <rect x="10.5" y="9" width="3" height="2.2" rx="1" fill="var(--col)"/>
-      <path d="M7 11 Q12 9.5 17 11 L16.5 26.5 Q12 28 7.5 26.5 Z" fill="var(--col)" opacity="0.8"/>
-      <line class="arm-l" x1="7.5" y1="14" x2="1.5" y2="22.5" stroke="var(--col)" stroke-width="2.5" stroke-linecap="round" style="transform-origin:7.5px 14px"/>
-      <line class="arm-r" x1="16.5" y1="14" x2="22.5" y2="22.5" stroke="var(--col)" stroke-width="2.5" stroke-linecap="round" style="transform-origin:16.5px 14px"/>
-      <line class="leg-l" x1="10" y1="27" x2="6.5" y2="43" stroke="var(--col)" stroke-width="3" stroke-linecap="round" style="transform-origin:10px 27px"/>
-      <line class="leg-r" x1="14" y1="27" x2="17.5" y2="43" stroke="var(--col)" stroke-width="3" stroke-linecap="round" style="transform-origin:14px 27px"/>
+      ${hairEl}
+      <circle cx="12" cy="5.5" r="4.2" fill="${ch.skin}"/>
+      <rect x="10.5" y="9.5" width="3" height="2" rx="1" fill="${ch.skin}"/>
+      <path d="M7 11.5 Q12 10 17 11.5 L16.5 27 Q12 28.5 7.5 27 Z" fill="${ch.coat}"/>
+      <polygon points="12,12.5 10,11.5 11.2,17" fill="${ch.pants}" opacity=".6"/>
+      <polygon points="12,12.5 14,11.5 12.8,17" fill="${ch.pants}" opacity=".6"/>
+      <line class="arm-l" x1="7.5" y1="14" x2="1.5" y2="22.5" stroke="${ch.coat}" stroke-width="2.8" stroke-linecap="round" style="transform-origin:7.5px 14px"/>
+      <line class="arm-r" x1="16.5" y1="14" x2="22.5" y2="22.5" stroke="${ch.coat}" stroke-width="2.8" stroke-linecap="round" style="transform-origin:16.5px 14px"/>
+      <line class="leg-l" x1="10" y1="27" x2="6.5" y2="43" stroke="${ch.pants}" stroke-width="3.2" stroke-linecap="round" style="transform-origin:10px 27px"/>
+      <line class="leg-r" x1="14" y1="27" x2="17.5" y2="43" stroke="${ch.pants}" stroke-width="3.2" stroke-linecap="round" style="transform-origin:14px 27px"/>
+      <ellipse cx="5.5" cy="43.5" rx="2.8" ry="1.5" fill="${ch.shoe}"/>
+      <ellipse cx="18.5" cy="43.5" rx="2.8" ry="1.5" fill="${ch.shoe}"/>
     </svg>`;
-  el.addEventListener('click', ()=> receivePaper(tree, el, cfg.sz));
+  el.addEventListener('click',()=>receivePaper(tree,el,cfg.sz));
   container.appendChild(el);
 });
 
 // ── PAPER FLY INTERACTION ─────────────────────────────────────────────────
-let currentTree = null;
-let pausedWalker = null;
+let currentTree=null,pausedWalker=null;
 
-function receivePaper(tree, walkerEl, sz){
-  if(currentTree) return; // already open
-  currentTree = tree;
-  pausedWalker = walkerEl;
+function receivePaper(tree,walkerEl,sz){
+  if(currentTree)return;
+  currentTree=tree; pausedWalker=walkerEl;
   walkerEl.classList.add('paused');
-
-  // Get walker screen position
-  const rect = walkerEl.getBoundingClientRect();
-  const paperTop  = rect.top  - sz*3.2;
-  const paperLeft = rect.left + rect.width/2;
-
-  // Populate card
-  const letter = tree.letter;
-  document.getElementById('fly-letter').textContent = letter;
-  document.getElementById('fly-letter').style.color = tree.color;
-  document.getElementById('fly-title').textContent  = tree.title;
-  document.getElementById('fly-sub').textContent    = tree.sub;
-  const btn = document.getElementById('fly-go');
-  btn.style.background = tree.color;
-  btn.style.color = '#0d1117';
-  btn.onclick = ()=> window.location.href = tree.file;
-
-  // Card target: center of viewport
-  const vpW = window.innerWidth;
-  const vpH = window.innerHeight;
-  const cardW = 265, cardH = 200;
-  const destLeft = (vpW - cardW) / 2;
-  const destTop  = Math.min((vpH - cardH) / 2, vpH * .3);
-
-  // Start: at paper position, tiny scale
-  const fly = document.getElementById('paper-fly');
-  fly.style.transition = 'none';
-  fly.style.display = 'block';
-  fly.style.left  = paperLeft + 'px';
-  fly.style.top   = paperTop  + 'px';
-  fly.style.transform = 'translate(-50%,-50%) scale(0.1) rotate(8deg)';
-  fly.style.opacity = '1';
-  fly.classList.remove('landed');
-
-  // Show backdrop
-  const bd = document.getElementById('backdrop');
-  bd.style.display='block';
-  void bd.offsetWidth;
-  bd.style.opacity='0';
-  bd.style.transition='opacity .3s';
-  setTimeout(()=>{ bd.style.opacity='1'; },10);
-
-  // Fly to center
+  const rect=walkerEl.getBoundingClientRect();
+  const paperTop=rect.top-sz*3.2, paperLeft=rect.left+rect.width/2;
+  document.getElementById('fly-letter').textContent=tree.letter;
+  document.getElementById('fly-letter').style.color=tree.color;
+  document.getElementById('fly-title').textContent=tree.title;
+  document.getElementById('fly-sub').textContent=tree.sub;
+  const btn=document.getElementById('fly-go');
+  btn.style.background=tree.color; btn.style.color='#0d1117';
+  btn.onclick=()=>window.location.href=tree.file;
+  const vpW=window.innerWidth, vpH=window.innerHeight;
+  const cardW=265, cardH=200;
+  const destLeft=(vpW-cardW)/2, destTop=Math.min((vpH-cardH)/2,vpH*.3);
+  const fly=document.getElementById('paper-fly');
+  fly.style.transition='none'; fly.style.display='block';
+  fly.style.left=paperLeft+'px'; fly.style.top=paperTop+'px';
+  fly.style.transform='translate(-50%,-50%) scale(0.1) rotate(8deg)';
+  fly.style.opacity='1'; fly.classList.remove('landed');
+  const bd=document.getElementById('backdrop');
+  bd.style.display='block'; void bd.offsetWidth;
+  bd.style.opacity='0'; bd.style.transition='opacity .3s';
+  setTimeout(()=>{bd.style.opacity='1';},10);
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
-      fly.style.transition = 'left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1)';
-      fly.style.left  = destLeft + 'px';
-      fly.style.top   = destTop  + 'px';
-      fly.style.transform = 'translate(0,0) scale(1) rotate(0deg)';
-      setTimeout(()=>{ fly.classList.add('landed'); }, 560);
+      fly.style.transition='left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1)';
+      fly.style.left=destLeft+'px'; fly.style.top=destTop+'px';
+      fly.style.transform='translate(0,0) scale(1) rotate(0deg)';
+      setTimeout(()=>{fly.classList.add('landed');},560);
     });
   });
 }
 
 function dismissPaper(){
-  const fly = document.getElementById('paper-fly');
-  const bd  = document.getElementById('backdrop');
+  const fly=document.getElementById('paper-fly'), bd=document.getElementById('backdrop');
   fly.classList.remove('landed');
-  fly.style.transition = 'opacity .25s,transform .25s';
-  fly.style.opacity = '0';
-  fly.style.transform += ' scale(.9)';
-  bd.style.opacity = '0';
+  fly.style.transition='opacity .25s,transform .25s';
+  fly.style.opacity='0'; fly.style.transform+=' scale(.9)';
+  bd.style.opacity='0';
   setTimeout(()=>{
-    fly.style.display = 'none';
-    fly.style.opacity = '1';
-    bd.style.display = 'none';
-    if(pausedWalker){ pausedWalker.classList.remove('paused'); pausedWalker=null; }
-    currentTree = null;
-  }, 260);
+    fly.style.display='none'; fly.style.opacity='1';
+    bd.style.display='none';
+    if(pausedWalker){pausedWalker.classList.remove('paused');pausedWalker=null;}
+    currentTree=null;
+  },260);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissPaper();});
+
+// ── THOUGHT BUBBLES ──────────────────────────────────────────────────────
+const THOUGHTS = [
+  "why did she leave…",
+  "I want to end this",
+  "what's gonna happen next?",
+  "I don't know what comes next",
+  "why am I so alone?",
+  "nobody knows I'm struggling",
+  "is this all there is?",
+  "I miss who I used to be",
+  "what if I'm wrong about everything?",
+  "I haven't slept in weeks",
+  "I just need someone to listen",
+  "does anyone actually care?",
+  "I'm so tired",
+  "maybe it's all my fault",
+  "I don't want to go home",
+  "what's the point anymore?",
+  "I feel invisible",
+  "I keep pretending I'm fine",
+  "would anyone notice if I was gone?",
+  "I don't recognize myself",
+  "everything feels meaningless",
+  "I'm holding it together. barely.",
+  "I wish I could talk to someone",
+  "why can't I just be okay?",
+];
+
+// add a .thought div to every walker
+const walkerEls = [...document.querySelectorAll('#walkers .walker')];
+walkerEls.forEach(w => {
+  const t = document.createElement('div');
+  t.className = 'thought';
+  w.appendChild(t);
+});
+
+let thoughtTimer = null;
+
+function showThoughts(hoveredEl) {
+  clearTimeout(thoughtTimer);
+  const wc = document.getElementById('walkers');
+  wc.classList.add('focused');
+  hoveredEl.classList.add('hovered');
+
+  // pick 3–5 random OTHER walkers
+  const others = walkerEls.filter(w => w !== hoveredEl);
+  const shuffled = others.sort(() => Math.random() - .5);
+  const picked = shuffled.slice(0, 3 + Math.floor(Math.random() * 3));
+
+  // shuffle thought pool
+  const pool = [...THOUGHTS].sort(() => Math.random() - .5);
+
+  // hide all bubbles first
+  walkerEls.forEach(w => {
+    const t = w.querySelector('.thought');
+    t.classList.remove('show');
+    t.textContent = '';
+  });
+
+  // stagger appearance
+  picked.forEach((w, i) => {
+    const t = w.querySelector('.thought');
+    t.textContent = pool[i] || pool[0];
+    setTimeout(() => t.classList.add('show'), 60 + i * 120);
+  });
 }
 
-// Dismiss on Escape
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') dismissPaper(); });
+function hideThoughts(hoveredEl) {
+  const wc = document.getElementById('walkers');
+  // small delay so it doesn't flash when moving between walkers
+  thoughtTimer = setTimeout(() => {
+    wc.classList.remove('focused');
+    hoveredEl.classList.remove('hovered');
+    walkerEls.forEach(w => {
+      const t = w.querySelector('.thought');
+      t.classList.remove('show');
+    });
+  }, 200);
+}
+
+walkerEls.forEach(w => {
+  w.addEventListener('mouseenter', () => showThoughts(w));
+  w.addEventListener('mouseleave', () => hideThoughts(w));
+});
+
+// ── TAXI CLICK ────────────────────────────────────────────────────────────
+['taxi1','taxi2'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('click',()=>{
+    if(currentTree)return;
+    // pick a random tree; re-pick if same as last time
+    const tree=TREES[Math.floor(Math.random()*TREES.length)];
+    // position paper from taxi's current screen position
+    const rect=el.getBoundingClientRect();
+    const fakeSz=22;
+    // temporarily freeze the taxi so the card origin is stable
+    el.style.animationPlayState='paused';
+    const origDismiss=window.dismissPaper;
+    window.dismissPaper=function(){
+      el.style.animationPlayState='';
+      window.dismissPaper=origDismiss;
+      origDismiss();
+    };
+    // reuse receivePaper but with taxi element
+    currentTree=tree; pausedWalker=null;
+    const paperTop=rect.top-fakeSz*2, paperLeft=rect.left+rect.width/2;
+    document.getElementById('fly-letter').textContent=tree.letter;
+    document.getElementById('fly-letter').style.color=tree.color;
+    document.getElementById('fly-title').textContent=tree.title;
+    document.getElementById('fly-sub').textContent=tree.sub;
+    const btn=document.getElementById('fly-go');
+    btn.style.background=tree.color; btn.style.color='#0d1117';
+    btn.onclick=()=>window.location.href=tree.file;
+    const vpW=window.innerWidth,vpH=window.innerHeight;
+    const destLeft=(vpW-265)/2, destTop=Math.min((vpH-200)/2,vpH*.3);
+    const fly=document.getElementById('paper-fly');
+    fly.style.transition='none'; fly.style.display='block';
+    fly.style.left=paperLeft+'px'; fly.style.top=paperTop+'px';
+    fly.style.transform='translate(-50%,-50%) scale(0.1) rotate(-12deg)';
+    fly.style.opacity='1'; fly.classList.remove('landed');
+    const bd=document.getElementById('backdrop');
+    bd.style.display='block'; void bd.offsetWidth;
+    bd.style.opacity='0'; bd.style.transition='opacity .3s';
+    setTimeout(()=>{bd.style.opacity='1';},10);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      fly.style.transition='left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1)';
+      fly.style.left=destLeft+'px'; fly.style.top=destTop+'px';
+      fly.style.transform='translate(0,0) scale(1) rotate(0deg)';
+      setTimeout(()=>fly.classList.add('landed'),560);
+    }));
+    // patch backdrop close to also unfreeze taxi
+    document.getElementById('backdrop').onclick=window.dismissPaper;
+  });
+});
 </script>
 </body>
 </html>
