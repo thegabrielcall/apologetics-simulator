@@ -1078,7 +1078,7 @@ async function processNode(nodeId){
     currentTier = node.tier;
     updateTierTrack(node.tier);
     showChoices(node);
-  }else if(node.type==='auto_pick'){run(nodes[node.choices[Math.floor(Math.random()*node.choices.length)].next])}
+  }else if(node.type==='auto_pick'){processNode(node.choices[Math.floor(Math.random()*node.choices.length)].next);}
   else if(node.type==='outcome'){
     await sleep(400);
     showOutcome(node);
