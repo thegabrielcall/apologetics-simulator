@@ -229,7 +229,7 @@
   <div id="arrest-sub">You've been preaching on the street.<br>The officers have had complaints.<br>You are going to jail.</div>
   <div id="arrest-verse">"Blessed are you when people insult you and persecute you… rejoice and be glad." — Matthew 5:11–12</div>
   <div id="arrest-btns">
-    <button class="arrest-btn primary" id="arrest-next-btn">⊞ Approach Next Person</button>
+    <button class="arrest-btn primary" id="arrest-next-btn">🔒 Go to Jail</button>
     <a class="arrest-btn" href="index.html">← All Streets</a>
   </div>
 </div>
@@ -238,7 +238,7 @@
   document.body.appendChild(overlay);
 
   document.getElementById('arrest-next-btn').addEventListener('click', () => {
-    window.location.href = 'index.html';
+    window.location.href = 'jail.html';
   });
 
   /* ── TRIGGER LOGIC ───────────────────────────────────────────────────── */

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>County Jail · Cell Block C</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-serif;min-height:100dvh;overflow-x:hidden}
+
+/* ── CELL SCENE ── */
+#cell-scene{
+  position:relative;
+  width:100%;
+  height:340px;
+  background:linear-gradient(180deg,#0e0c10 0%,#141018 60%,#1a1520 100%);
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+/* Bars overlay */
+#bars{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:10;
+}
+.bar{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:10px;
+  background:linear-gradient(90deg,#222 0%,#3a3a3a 40%,#2a2a2a 60%,#1a1a1a 100%);
+  border-radius:2px;
+  box-shadow:2px 0 8px rgba(0,0,0,.6);
+}
+.bar-h{
+  position:absolute;
+  left:0;
+  right:0;
+  height:9px;
+  background:linear-gradient(180deg,#2a2a2a,#3a3a3a 50%,#2a2a2a);
+  border-radius:2px;
+  box-shadow:0 3px 8px rgba(0,0,0,.5);
+}
+
+/* Dim ambient light from high window */
+#cell-light{
+  position:absolute;
+  top:0;left:50%;
+  transform:translateX(-50%);
+  width:120px;height:160px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(180,160,100,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+
+/* Wall texture */
+#cell-wall{
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.02) 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(255,255,255,.015) 80px);
+}
+
+/* Floor */
+#cell-floor{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:80px;
+  background:linear-gradient(180deg,#141018 0%,#1a1520 100%);
+  border-top:2px solid #252030;
+}
+
+/* Small high window */
+#cell-window{
+  position:absolute;
+  top:18px;left:50%;
+  transform:translateX(-50%);
+  width:80px;height:40px;
+  background:linear-gradient(180deg,#1a2a3a,#0d1520);
+  border:3px solid #2a2a30;
+  border-radius:3px;
+  overflow:hidden;
+}
+#cell-window::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,#2a2a30 0%,#2a2a30 46%,transparent 47%,transparent 53%,#2a2a30 54%,#2a2a30 100%),
+    linear-gradient(180deg,#2a2a30 0%,#2a2a30 46%,transparent 47%,transparent 53%,#2a2a30 54%,#2a2a30 100%);
+}
+#window-light{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(120,140,180,.15) 0%,transparent 80%);
+  pointer-events:none;
+}
+
+/* Bunk bed */
+#bunk{
+  position:absolute;
+  right:30px;bottom:70px;
+}
+
+/* Toilet/sink fixture */
+#fixture{
+  position:absolute;
+  left:22px;bottom:72px;
+  opacity:.6;
+}
+
+/* ── CELLMATES ── */
+.cellmate{
+  position:absolute;
+  bottom:72px;
+  cursor:pointer;
+  transition:filter .25s, transform .25s;
+  z-index:5;
+}
+.cellmate:hover{filter:drop-shadow(0 0 14px rgba(200,180,100,.5));transform:scale(1.04);}
+.cellmate-label{
+  position:absolute;
+  bottom:-30px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  font-size:.65rem;
+  font-family:'Courier New',monospace;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:#666;
+  pointer-events:none;
+  transition:color .2s;
+}
+.cellmate:hover .cellmate-label{color:#c8b880;}
+.cellmate-hint{
+  position:absolute;
+  top:-28px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  font-size:.6rem;
+  font-family:'Courier New',monospace;
+  color:#554;
+  pointer-events:none;
+  animation:hintPulse 2.5s ease-in-out infinite;
+}
+@keyframes hintPulse{0%,100%{opacity:.4}50%{opacity:.9}}
+
+/* ── HEADER ── */
+#jail-header{
+  background:#0d0b10;
+  border-bottom:1px solid #1e1a28;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+#jail-title{
+  font-family:'Courier New',monospace;
+  font-size:.75rem;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:#444;
+}
+#jail-nav{
+  font-size:.75rem;
+  color:#333;
+  font-family:'Courier New',monospace;
+}
+#jail-nav a{color:#444;text-decoration:none;letter-spacing:.08em;font-size:.68rem;text-transform:uppercase;}
+#jail-nav a:hover{color:#c8b880;}
+
+/* ── STATUS TEXT ── */
+#cell-status{
+  text-align:center;
+  padding:18px 20px 6px;
+  font-family:'Georgia',serif;
+  font-size:.9rem;
+  color:#4a4438;
+  font-style:italic;
+  letter-spacing:.02em;
+}
+#cell-instruction{
+  text-align:center;
+  padding:4px 20px 14px;
+  font-family:'Courier New',monospace;
+  font-size:.62rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#333;
+  animation:hintPulse 3s ease-in-out infinite;
+}
+
+/* ── CONVERSATION PANEL ── */
+#convo-wrap{
+  display:none;
+  flex-direction:column;
+  height:calc(100dvh - 340px - 56px);
+  min-height:260px;
+}
+#convo-wrap.active{display:flex;}
+#chat-area{
+  flex:1;
+  overflow-y:auto;
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.bubble-row{display:flex;animation:fadeUp .3s ease}
+.bubble-row.you{justify-content:flex-start}
+.bubble-row.them{justify-content:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:.88rem;line-height:1.55}
+.bubble-row.you .bubble{background:#1e1a2e;border:1.5px solid #3a3050;color:#c0b8d8;border-bottom-left-radius:3px}
+.bubble-row.them.hostile .bubble{background:#2e1a1a;border:1.5px solid #6a3030;color:#e0b8b8;border-bottom-right-radius:3px}
+.bubble-row.them.curious .bubble{background:#1a2a1e;border:1.5px solid #3a6040;color:#b8d8c0;border-bottom-right-radius:3px}
+.speaker-tag{font-size:.6rem;font-family:'Courier New',monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;opacity:.6}
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;align-items:center}
+.typing-indicator span{width:6px;height:6px;border-radius:50%;animation:bounce .9s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+.hostile .typing-indicator span{background:#c06060}
+.curious .typing-indicator span{background:#60a070}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+#choices-panel{
+  background:#0d0b10;
+  border-top:1px solid #1e1a28;
+  padding:12px;
+  flex-shrink:0;
+}
+#choices-prompt{
+  font-size:.72rem;
+  color:#554;
+  margin-bottom:9px;
+  text-align:center;
+  font-style:italic;
+  font-family:'Georgia',serif;
+}
+#choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice-btn{
+  background:#0f0d14;
+  border:1.5px solid #2a2535;
+  color:#a09aaa;
+  padding:10px 11px;
+  border-radius:10px;
+  cursor:pointer;
+  text-align:left;
+  font-size:.8rem;
+  line-height:1.4;
+  transition:all .2s;
+}
+.choice-btn:hover:not(:disabled){background:#1a1525;border-color:#5a5070;transform:translateY(-1px)}
+.choice-btn:disabled{cursor:default;opacity:.7}
+.choice-label{font-weight:700;display:block;margin-bottom:2px}
+.choice-sub{font-size:.72rem;color:#554}
+.tag-best{border-color:#3a6a4a!important;background:#0a1e10!important}
+.tag-good{border-color:#3a5070!important;background:#0a1020!important}
+.tag-risky{border-color:#6a5020!important;background:#1a1400!important}
+.tag-wrong{border-color:#6a2a2a!important;background:#1a0808!important}
+.tag-label{font-size:.65rem;font-weight:800;letter-spacing:.04em;margin-left:5px;padding:1px 5px;border-radius:4px}
+.tag-best .tag-label{background:#1a4a28;color:#5ab870}
+.tag-good .tag-label{background:#0d2040;color:#5888c0}
+.tag-risky .tag-label{background:#3a2800;color:#c0902a}
+.tag-wrong .tag-label{background:#3a0f0e;color:#c04040}
+#choices-panel.hidden{display:none}
+
+/* ── OUTCOME ── */
+#outcome-screen{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(10,10,14,.97);
+  z-index:200;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:30px 24px;
+  text-align:center;
+  backdrop-filter:blur(4px);
+}
+#outcome-screen.visible{display:flex}
+.outcome-icon{font-size:3rem;margin-bottom:14px}
+.outcome-title{font-size:1.45rem;font-weight:800;margin-bottom:10px;color:#d0c8b8}
+.outcome-quote{font-size:.9rem;color:#6a6050;font-style:italic;max-width:460px;margin-bottom:14px;line-height:1.65}
+.outcome-note{font-size:.82rem;background:#0f0d14;border:1px solid #2a2535;border-radius:10px;padding:13px 18px;max-width:460px;margin-bottom:14px;color:#a09080;line-height:1.6}
+.outcome-path{font-size:.7rem;color:#4a4038;margin-bottom:22px;font-family:monospace}
+.outcome-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.outcome-btn{
+  background:none;
+  border:1.5px solid #2a2535;
+  color:#665;
+  border-radius:20px;
+  padding:9px 22px;
+  font-family:'Courier New',monospace;
+  font-size:.68rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+  text-decoration:none;
+  display:inline-block;
+}
+.outcome-btn:hover{color:#c8b880;border-color:#c8b88066}
+.outcome-btn.primary{border-color:rgba(90,180,110,.4);color:#7ac890}
+.outcome-btn.primary:hover{border-color:#5ab870;background:rgba(90,184,112,.08);color:#9ad8a8}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="jail-header">
+  <div id="jail-title">🔒 County Jail · Cell Block C</div>
+  <div id="jail-nav"><a href="index.html">← Back to streets</a></div>
+</div>
+
+<!-- CELL SCENE -->
+<div id="cell-scene">
+  <div id="cell-wall"></div>
+  <div id="cell-light"></div>
+  <div id="window-light"></div>
+
+  <!-- High window -->
+  <div id="cell-window"></div>
+
+  <!-- Bars -->
+  <div id="bars">
+    <div class="bar" style="left:0px"></div>
+    <div class="bar" style="left:40px"></div>
+    <div class="bar" style="left:80px"></div>
+    <div class="bar" style="left:120px"></div>
+    <div class="bar" style="left:160px"></div>
+    <div class="bar" style="left:200px"></div>
+    <div class="bar" style="left:240px"></div>
+    <div class="bar" style="left:280px"></div>
+    <div class="bar" style="left:320px"></div>
+    <div class="bar" style="left:360px"></div>
+    <div class="bar" style="left:400px"></div>
+    <div class="bar" style="left:440px"></div>
+    <div class="bar" style="left:480px"></div>
+    <div class="bar" style="left:520px"></div>
+    <div class="bar" style="left:560px"></div>
+    <div class="bar" style="left:600px"></div>
+    <div class="bar" style="left:640px"></div>
+    <div class="bar" style="left:680px"></div>
+    <div class="bar" style="left:720px"></div>
+    <div class="bar" style="left:760px"></div>
+    <div class="bar-h" style="top:60px"></div>
+    <div class="bar-h" style="top:120px"></div>
+    <div class="bar-h" style="top:180px"></div>
+    <div class="bar-h" style="top:240px"></div>
+    <div class="bar-h" style="top:300px"></div>
+  </div>
+
+  <!-- Bunk bed (right side) -->
+  <svg id="bunk" width="130" height="130" viewBox="0 0 130 130" xmlns="http://www.w3.org/2000/svg">
+    <!-- Frame posts -->
+    <rect x="0" y="0" width="8" height="130" rx="2" fill="#2a2520"/>
+    <rect x="122" y="0" width="8" height="130" rx="2" fill="#2a2520"/>
+    <!-- Top bunk surface -->
+    <rect x="0" y="20" width="130" height="10" rx="2" fill="#302820"/>
+    <rect x="4" y="22" width="122" height="6" rx="1" fill="#3a3028"/>
+    <!-- Bottom bunk surface -->
+    <rect x="0" y="80" width="130" height="10" rx="2" fill="#302820"/>
+    <rect x="4" y="82" width="122" height="6" rx="1" fill="#3a3028"/>
+    <!-- Mattress top -->
+    <rect x="4" y="12" width="122" height="10" rx="2" fill="#1e1a18" opacity=".8"/>
+    <!-- Mattress bottom -->
+    <rect x="4" y="72" width="122" height="10" rx="2" fill="#1e1a18" opacity=".8"/>
+    <!-- Ladder -->
+    <rect x="110" y="30" width="5" height="50" rx="1" fill="#252020"/>
+    <rect x="107" y="42" width="12" height="4" rx="1" fill="#2e2828"/>
+    <rect x="107" y="58" width="12" height="4" rx="1" fill="#2e2828"/>
+  </svg>
+
+  <!-- Toilet/sink (left) -->
+  <svg id="fixture" width="50" height="70" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sink -->
+    <rect x="5" y="0" width="40" height="8" rx="2" fill="#222"/>
+    <ellipse cx="25" cy="8" rx="18" ry="5" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+    <line x1="25" y1="0" x2="25" y2="20" stroke="#333" stroke-width="2"/>
+    <!-- Toilet -->
+    <ellipse cx="25" cy="55" rx="20" ry="12" fill="#1e1c1a" stroke="#2a2820" stroke-width="1.5"/>
+    <rect x="8" y="40" width="34" height="16" rx="3" fill="#1a1816"/>
+    <rect x="10" y="36" width="30" height="8" rx="2" fill="#222"/>
+  </svg>
+
+  <!-- Graffiti on wall -->
+  <div style="position:absolute;top:85px;left:18px;font-size:.55rem;color:#2a2530;font-family:'Courier New',monospace;transform:rotate(-3deg);pointer-events:none;z-index:3">DAY 47</div>
+  <div style="position:absolute;top:100px;left:16px;font-size:.5rem;color:#252030;font-family:'Courier New',monospace;transform:rotate(2deg);pointer-events:none;z-index:3">||||  ||||  |</div>
+
+  <!-- Cell floor -->
+  <div id="cell-floor"></div>
+
+  <!-- CELLMATE 1: MARCUS (hostile) — left side -->
+  <div class="cellmate" id="cm-hostile" style="left:80px" onclick="startConvo('hostile')">
+    <div class="cellmate-hint">click to talk</div>
+    <svg width="70" height="130" viewBox="0 0 70 130" xmlns="http://www.w3.org/2000/svg">
+      <!-- body — orange jumpsuit, arms crossed -->
+      <rect x="15" y="52" width="40" height="60" rx="6" fill="#8b4e10"/>
+      <!-- jumpsuit stripe -->
+      <rect x="15" y="52" width="40" height="4" rx="0" fill="#7a4408"/>
+      <!-- arms crossed -->
+      <path d="M15 70 Q5 75 10 85 Q25 80 30 78" stroke="#8b4e10" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M55 70 Q65 75 60 85 Q45 80 40 78" stroke="#8b4e10" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <!-- fist left -->
+      <circle cx="12" cy="85" r="7" fill="#a06830"/>
+      <!-- fist right -->
+      <circle cx="58" cy="85" r="7" fill="#a06830"/>
+      <!-- neck -->
+      <rect x="27" y="44" width="16" height="12" rx="4" fill="#9a7040"/>
+      <!-- head -->
+      <circle cx="35" cy="36" r="20" fill="#a07840"/>
+      <!-- buzz cut / shaved head -->
+      <ellipse cx="35" cy="20" rx="19" ry="8" fill="#8a6030"/>
+      <!-- scowl brows -->
+      <line x1="22" y1="30" x2="30" y2="33" stroke="#4a3010" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="48" y1="30" x2="40" y2="33" stroke="#4a3010" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- eyes -->
+      <circle cx="28" cy="36" r="3" fill="#2a1a08"/>
+      <circle cx="42" cy="36" r="3" fill="#2a1a08"/>
+      <!-- nose -->
+      <ellipse cx="35" cy="41" rx="3" ry="2" fill="#8a6030"/>
+      <!-- tight mouth -->
+      <line x1="29" y1="46" x2="41" y2="46" stroke="#5a3510" stroke-width="2" stroke-linecap="round"/>
+      <!-- tattoo on neck -->
+      <text x="22" y="52" font-size="5" fill="#5a3a18" font-family="serif">✝</text>
+      <!-- legs -->
+      <rect x="17" y="108" width="15" height="22" rx="4" fill="#7a4408"/>
+      <rect x="38" y="108" width="15" height="22" rx="4" fill="#7a4408"/>
+      <!-- shoes -->
+      <ellipse cx="24" cy="130" rx="10" ry="4" fill="#1a1410"/>
+      <ellipse cx="46" cy="130" rx="10" ry="4" fill="#1a1410"/>
+    </svg>
+    <div class="cellmate-label">Marcus · hostile</div>
+  </div>
+
+  <!-- CELLMATE 2: DANNY (curious) — right, sitting on bunk edge -->
+  <div class="cellmate" id="cm-curious" style="right:155px;bottom:120px" onclick="startConvo('curious')">
+    <div class="cellmate-hint">click to talk</div>
+    <svg width="65" height="110" viewBox="0 0 65 110" xmlns="http://www.w3.org/2000/svg">
+      <!-- sitting legs dangling -->
+      <rect x="14" y="70" width="14" height="30" rx="5" fill="#7a6040"/>
+      <rect x="36" y="70" width="14" height="30" rx="5" fill="#7a6040"/>
+      <!-- shoes dangling -->
+      <ellipse cx="21" cy="102" rx="9" ry="5" fill="#1a1410"/>
+      <ellipse cx="44" cy="102" rx="9" ry="5" fill="#1a1410"/>
+      <!-- body — jumpsuit, hunched slightly -->
+      <rect x="12" y="38" width="40" height="38" rx="6" fill="#8b6010"/>
+      <!-- left arm resting on knee -->
+      <path d="M12 55 Q2 65 14 78" stroke="#8b6010" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <circle cx="14" cy="78" r="6" fill="#a08040"/>
+      <!-- right arm resting -->
+      <path d="M52 55 Q62 65 50 78" stroke="#8b6010" stroke-width="9" fill="none" stroke-linecap="round"/>
+      <circle cx="50" cy="78" r="6" fill="#a08040"/>
+      <!-- neck -->
+      <rect x="25" y="30" width="14" height="12" rx="4" fill="#b09060"/>
+      <!-- head — looking slightly down -->
+      <circle cx="32" cy="22" r="18" fill="#c0a070"/>
+      <!-- hair -->
+      <ellipse cx="32" cy="8" rx="17" ry="7" fill="#3a2810"/>
+      <!-- gentle eyes, looking down -->
+      <ellipse cx="25" cy="22" rx="3" ry="2.5" fill="#2a1808"/>
+      <ellipse cx="39" cy="22" rx="3" ry="2.5" fill="#2a1808"/>
+      <!-- slight frown / neutral -->
+      <path d="M26 30 Q32 32 38 30" stroke="#8a6030" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- small Bible/book in lap -->
+      <rect x="18" y="70" width="28" height="18" rx="2" fill="#1a1814"/>
+      <line x1="32" y1="70" x2="32" y2="88" stroke="#111" stroke-width="1"/>
+      <rect x="19" y="72" width="12" height="2" rx="1" fill="#3a3028" opacity=".5"/>
+      <rect x="19" y="76" width="10" height="2" rx="1" fill="#3a3028" opacity=".4"/>
+    </svg>
+    <div class="cellmate-label">Danny · curious</div>
+  </div>
+
+</div>
+
+<!-- STATUS TEXT -->
+<div id="cell-status">You sit on the cold floor. The cell smells like disinfectant and old regret.</div>
+<div id="cell-instruction">↑ choose someone to talk to</div>
+
+<!-- CONVERSATION PANEL -->
+<div id="convo-wrap">
+  <div id="chat-area"></div>
+  <div id="choices-panel" class="hidden">
+    <div id="choices-prompt"></div>
+    <div id="choices-grid"></div>
+  </div>
+</div>
+
+<!-- OUTCOME SCREEN -->
+<div id="outcome-screen">
+  <div class="outcome-icon" id="out-icon"></div>
+  <div class="outcome-title" id="out-title"></div>
+  <div class="outcome-quote" id="out-quote"></div>
+  <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-path" id="out-path"></div>
+  <div class="outcome-btns">
+    <button class="outcome-btn" onclick="restartConvo()">↺ Try again</button>
+    <button class="outcome-btn" onclick="switchCellmate()">⇄ Talk to the other one</button>
+    <a class="outcome-btn primary" href="index.html">⊞ Back to streets</a>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════
+   CONVERSATION TREES
+═══════════════════════════════════════════════════ */
+
+const TREES = {
+
+/* ─────────────────────────────────────────────────
+   MARCUS  —  hostile, arms-crossed, ex-con
+   Background: grew up in church, saw hypocrisy,
+   hardened. Tattoo of a cross from childhood.
+───────────────────────────────────────────────── */
+hostile: {
+  speaker: 'Marcus',
+  colorClass: 'hostile',
+  startId: 'h_start',
+  nodes: {
+
+    h_start:{type:'say',speaker:'you',text:"You doing okay over there?",next:'h1'},
+    h1:{type:'say',speaker:'them',text:"Am I okay. Man's in a cage asking if I'm okay.",next:'h2_pick'},
+    h2_pick:{type:'pick',prompt:'How do you respond?',choices:[
+      {label:'Fair enough. I meant it though.',sub:'Stay warm.',tag:'good',next:'h2a',youText:"Fair enough. Stupid question. I meant it, but — fair enough."},
+      {label:'You\'re right, that was dumb.',sub:'Disarm with honesty.',tag:'best',next:'h2b',youText:"Yeah. That came out wrong. I don't know what to say in here yet."},
+      {label:'Just trying to be friendly.',sub:'Neutral.',tag:'risky',next:'h2c',youText:"Just trying to be friendly. You don't have to talk."},
+      {label:'I heard you preaching out there.',sub:'Go straight to it.',tag:'wrong',next:'h2d',youText:"I heard you preaching out there before they brought you in. What's that about?"},
+    ]},
+
+    h2a:{type:'say',speaker:'them',text:"What you in for anyway. Preaching? Ha. First time I seen somebody locked up for Jesus.",next:'h3_pick'},
+    h2b:{type:'say',speaker:'them',text:"At least you honest about it. Most people in here pretend they know what to say. Nobody knows what to say.",next:'h3_pick'},
+    h2c:{type:'say',speaker:'them',text:"Friendly. Sure. Last friendly preacher I met took my mama's rent money for a 'love offering.' So you'll understand if I'm not exactly warm.",next:'h3_pick'},
+    h2d:{type:'say',speaker:'them',text:"What it's about. I'll tell you what it's about. Nothing. It's about nothing. Wasting your time on a fairy tale that didn't help my family, didn't help me, didn't help nobody.",next:'h3_pick'},
+
+    h3_pick:{type:'pick',prompt:'He\'s got real wounds under that wall.',choices:[
+      {label:'The church hurt you.',sub:'Name what you see.',tag:'best',next:'h3a',youText:"Something about the church hurt you. That's not a guess — I can hear it."},
+      {label:'God and the church aren\'t the same thing.',sub:'Draw the distinction.',tag:'good',next:'h3b',youText:"I know the church has done real damage. But I don't think God and the church are the same thing."},
+      {label:'What happened to your family?',sub:'Ask directly.',tag:'risky',next:'h3c',youText:"What happened to your family?"},
+      {label:'I get it. Religion has a track record.',sub:'Validate broadly.',tag:'risky',next:'h3d',youText:"I hear you. Religion has a long, ugly track record. I won't pretend it doesn't."},
+    ]},
+
+    h3a:{type:'say',speaker:'them',text:"Hurt me. Yeah. My daddy was a deacon. Every Sunday, front row, big smile. Beat us Monday through Saturday. Pastor knew. Nobody said nothing. God was real quiet about all that.",next:'h4_pick'},
+    h3b:{type:'say',speaker:'them',text:"That's what they all say. Convenient. When the church does good, God gets the credit. When it does evil — 'oh that's just people.' You can't have it both ways.",next:'h4_pick'},
+    h3c:{type:'say',speaker:'them',text:"My sister died at nineteen. Overdose. She prayed every night. Every single night. And God — nothing. Silence. You tell me what that means.",next:'h4_pick'},
+    h3d:{type:'say',speaker:'them',text:"At least you admit it. Most church people get defensive. Act like I'm attacking God when I'm just telling them what happened to me.",next:'h4_pick'},
+
+    h4_pick:{type:'pick',prompt:'Don\'t minimize what he lived through.',choices:[
+      {label:'Your father was wrong. Full stop.',sub:'Don\'t qualify it.',tag:'best',next:'h4a',youText:"What your father did was wrong. What the pastor did by staying silent was wrong. That's not complicated. I'm not going to find a way to make that okay."},
+      {label:'I\'m so sorry about your sister.',sub:'Stay with the loss.',tag:'best',next:'h4b',youText:"I'm sorry about your sister. That's not a setup for an argument. That's just — I'm sorry."},
+      {label:'Silence isn\'t the same as absence.',sub:'Theological move.',tag:'risky',next:'h4c',youText:"I don't think God's silence in those moments means He wasn't there. I think sometimes He's present in the suffering itself."},
+      {label:'Those people failed you. God didn\'t create them to do that.',sub:'Shift blame.',tag:'wrong',next:'h4d',youText:"Those people acted on their own. God gave them free will and they used it to hurt people. That's on them, not God."},
+    ]},
+
+    h4a:{type:'say',speaker:'them',text:"…You just gonna say that? No 'but God had a plan' or whatever?",next:'h5_pick'},
+    h4b:{type:'say',speaker:'them',text:"…Nobody's said that in a long time. Most people try to explain it. You know what I mean? Like they need it to make sense more than I do.",next:'h5_pick'},
+    h4c:{type:'say',speaker:'them',text:"Present in the suffering. Man. My sister was present in her suffering. She didn't need God to be present in it too. She needed it to stop.",next:'h5_alt_pick'},
+    h4d:{type:'say',speaker:'them',text:"That's what I thought you'd say. Free will. Like God watched my sister die and said 'well, free will.' You comfortable with that God?",next:'h5_alt_pick'},
+
+    h5_pick:{type:'pick',prompt:'A crack in the wall. Don\'t rush it.',choices:[
+      {label:'No. No plan speech. What he did was evil.',sub:'Hold the line.',tag:'best',next:'h5a',youText:"No plan speech. What happened in your house was evil. I'm not going to wrap it in theology."},
+      {label:'I think God was angry about what happened to you.',sub:'Reframe God\'s position.',tag:'good',next:'h5b',youText:"I actually think God was angry about what happened in your house. Your father wasn't representing Him — he was defying Him."},
+      {label:'Can I ask — you still have that cross tattoo.',sub:'Notice the detail.',tag:'risky',next:'h5c',youText:"I notice you've got a cross on your neck. You got that from back then?"},
+    ]},
+
+    h5_alt_pick:{type:'pick',prompt:'He pushed back hard. Respond carefully.',choices:[
+      {label:'No. I\'m not comfortable with that God.',sub:'Honest.',tag:'good',next:'h5d',youText:"Honestly? No. A God who just watches and does nothing — I don't find that comforting either. That's not the God I believe in."},
+      {label:'I don\'t have a clean answer to that.',sub:'Sit with him.',tag:'best',next:'h5d',youText:"I don't have a clean answer to your sister's death. I'm not going to pretend I do. I just don't think the silence means what you think it means."},
+    ]},
+
+    h5a:{type:'say',speaker:'them',text:"…You know what. I appreciate that. Most preachers — soon as you push them, out comes the scripture. Like a shield. You the first one just said it was evil.",next:'h6_pick'},
+    h5b:{type:'say',speaker:'them',text:"God was angry. Hm. I heard that before. But if He was angry — where was He? Anger without action is just — feelings.",next:'h6_pick'},
+    h5c:{type:'say',speaker:'them',text:"…Yeah. I was twelve. My grandmama took me to get it. She was the real one. The one who actually lived like she believed it. She's gone now too.",next:'h6_pick'},
+    h5d:{type:'say',speaker:'them',text:"…You don't run from the hard stuff. I'll give you that. Most people do.",next:'h6_pick'},
+
+    h6_pick:{type:'pick',prompt:'One more step. What does he actually need to hear?',choices:[
+      {label:'What was your grandmama like?',sub:'Follow the warmth.',tag:'best',next:'h6a',youText:"Tell me about your grandmama."},
+      {label:'Jesus was also executed by the system.',sub:'Solidarity angle.',tag:'good',next:'h6b',youText:"You know what strikes me — Jesus was also arrested, falsely charged, executed by the state. He knows what a cage looks like from the inside."},
+      {label:'You haven\'t stopped believing. You\'re angry.',sub:'Name what you see.',tag:'risky',next:'h6c',youText:"I don't think you stopped believing. I think you're furious. Those are different things."},
+    ]},
+
+    h6a:{type:'say',speaker:'them',text:"She was — she was something else. Didn't preach at you. Just showed up. When my daddy was at his worst she'd come get us, take us to her place. Made biscuits. Prayed over us quiet, like she was just talking to somebody in the room.",next:'h7_pick'},
+    h6b:{type:'say',speaker:'them',text:"…Executed by the state. Yeah. I know that story. Never thought about it like that though. Like — He did time, basically.",next:'h7_pick'},
+    h6c:{type:'say',speaker:'them',text:"…Furious. Yeah. I'm furious. You got that right. Easier to be furious than — the other thing.",next:'h7_pick'},
+
+    h7_pick:{type:'pick',prompt:'You\'re close. Don\'t close the door too soon.',choices:[
+      {label:'She sounds like she actually knew Him.',sub:'Honor the grandmother.',tag:'best',next:'h7a',youText:"She sounds like she actually knew Him. Not a religion — a person. That's rare."},
+      {label:'He didn\'t just do time. He chose it.',sub:'Push further.',tag:'good',next:'h7b',youText:"He didn't just do time — He chose it. Because He wanted to be where the broken were. Not above them."},
+      {label:'What\'s the other thing?',sub:'Invite the real pain.',tag:'best',next:'h7c',youText:"What's the other thing? The thing underneath the fury?"},
+    ]},
+
+    h7a:{type:'say',speaker:'them',text:"Yeah. Yeah she did. And I used to think if that's what God is — that thing she had — maybe. But then she died and I couldn't find it again anywhere.",next:'h_outcome_near'},
+    h7b:{type:'say',speaker:'them',text:"He chose it. …My grandmama used to say something like that. That He came down. That He didn't have to. I haven't thought about her in a while.",next:'h_outcome_near'},
+    h7c:{type:'say',speaker:'them',text:"…The other thing is grief. I'm grieving. And I don't know who to give it to. I stopped believing in anybody to give it to.",next:'h_outcome_soft'},
+
+    h_outcome_near:{type:'outcome',outcome:'near',icon:'🕯️',title:'The Door Is Open',
+      quote:'"Even there your hand will guide me, your right hand will hold me fast." — Psalm 139:10',
+      note:'You didn\'t argue Marcus into faith. You found the real wound under the wall — the grief, the grandmother, the God he once almost believed in — and you stayed with it. He\'s not converted. But the door is open. That\'s holy work.',
+      path:'Hostile · Best Route'},
+    h_outcome_soft:{type:'outcome',outcome:'soft',icon:'🌫️',title:'Grief Named, Not Solved',
+      quote:'"He heals the brokenhearted and binds up their wounds." — Psalm 147:3',
+      note:'Marcus named his grief. That\'s further than most people get with him. You didn\'t fix it — grief doesn\'t get fixed in one conversation in a jail cell. But he felt heard. That matters.',
+      path:'Hostile · Good Route'},
+    h_outcome_away:{type:'outcome',outcome:'away',icon:'🧱',title:'The Wall Held',
+      quote:'"A brother wronged is more unyielding than a fortified city." — Proverbs 18:19',
+      note:'The theological defense went up too fast. Marcus has heard every argument — he grew up in it. What he needed wasn\'t doctrine. He needed someone to sit with him in the damage. The wall stayed up.',
+      path:'Hostile · Closed'},
+  }
+},
+
+/* ─────────────────────────────────────────────────
+   DANNY  —  curious, soft, reading a battered Bible
+   Background: wasn't raised religious, picked up a
+   Gideon Bible in the cell. First time reading it.
+   Genuinely scared. Three years left on sentence.
+───────────────────────────────────────────────── */
+curious: {
+  speaker: 'Danny',
+  colorClass: 'curious',
+  startId: 'd_start',
+  nodes: {
+
+    d_start:{type:'say',speaker:'you',text:"That a Bible you've got there?",next:'d1'},
+    d1:{type:'say',speaker:'them',text:"Yeah. Found it in the drawer. Gideon one. I've never actually read it. Starting to though. There's — a lot in here I don't understand.",next:'d2_pick'},
+    d2_pick:{type:'pick',prompt:'He\'s open. Meet him where he is.',choices:[
+      {label:'What part are you in?',sub:'Start with curiosity.',tag:'best',next:'d2a',youText:"What part are you reading?"},
+      {label:'What made you pick it up?',sub:'Ask about the moment.',tag:'best',next:'d2b',youText:"What made you pick it up?"},
+      {label:'I can help with that.',sub:'Offer directly.',tag:'good',next:'d2c',youText:"I know it pretty well. If you've got questions, I'm happy to try."},
+      {label:'What don\'t you understand?',sub:'Jump into content.',tag:'risky',next:'d2d',youText:"What parts don't you understand?"},
+    ]},
+
+    d2a:{type:'say',speaker:'them',text:"The Psalms mostly. Random ones. This one — Psalm 23. 'Even though I walk through the darkest valley.' I've read it six times. I'm in a valley, man. That's literally where I am.",next:'d3_pick'},
+    d2b:{type:'say',speaker:'them',text:"I don't know. I just — I've got three years left in here. And I started thinking, what if I get out the same way I came in? I don't want that. I picked it up hoping it would — I don't know. Help somehow.",next:'d3_pick'},
+    d2c:{type:'say',speaker:'them',text:"Yeah? You're a preacher right? I heard them say that when they brought you in. I've never actually talked to one before. Like really talked.",next:'d3_pick'},
+    d2d:{type:'say',speaker:'them',text:"All of it. But mostly — like, does any of this actually work? Or is it just stories? I want to know if it's real. Not if it's nice. Real.",next:'d3_pick'},
+
+    d3_pick:{type:'pick',prompt:'He\'s hungry for something real. Give it straight.',choices:[
+      {label:'That valley is exactly where this was written for.',sub:'Psalm 23 in context.',tag:'best',next:'d3a',youText:"Psalm 23 was written by a man who hid in caves from a king who wanted him dead. Not a metaphor — literally running for his life. He wrote that in an actual valley. It was meant for exactly where you are."},
+      {label:'The wanting to change — that\'s not nothing.',sub:'Honor the desire.',tag:'best',next:'d3b',youText:"That wanting — to not come out the same — that's not nothing. Most people don't even get there. That impulse is worth following."},
+      {label:'It\'s real. Not like magic. Like a person.',sub:'Frame it right.',tag:'good',next:'d3c',youText:"It's real. Not the way magic is real — like you say the words and things change. More like the way a person is real. Someone you have to actually meet."},
+      {label:'What do you believe right now?',sub:'Find the baseline.',tag:'risky',next:'d3d',youText:"Before I say anything — what do you actually believe right now? About God, any of it?"},
+    ]},
+
+    d3a:{type:'say',speaker:'them',text:"He was running? Like — literally? I thought it was all — kings and thrones. Not like that.",next:'d4_pick'},
+    d3b:{type:'say',speaker:'them',text:"I never thought about it like that. That the wanting itself means something. Like — where did it come from? I didn't decide to want to be different. It just started.",next:'d4_pick'},
+    d3c:{type:'say',speaker:'them',text:"A person. You mean like — Jesus is an actual person. Not just a concept.",next:'d4_pick'},
+    d3d:{type:'say',speaker:'them',text:"I don't know. I grew up not believing anything. My parents weren't religious at all. I just always assumed God was — something people made up because they were scared. But lately I'm not so sure.",next:'d4_pick'},
+
+    d4_pick:{type:'pick',prompt:'He\'s tracking. Keep it grounded.',choices:[
+      {label:'David was a fugitive, a murderer, an adulterer. And God called him beloved.',sub:'The full picture.',tag:'best',next:'d4a',youText:"David — the guy who wrote most of the Psalms — was a murderer and an adulterer. He had a man killed so he could take his wife. And God called him 'a man after my own heart.' That's in there."},
+      {label:'Where desire comes from is a real question.',sub:'Follow his thread.',tag:'best',next:'d4b',youText:"That's actually a serious question — where does the desire to be better come from? If we're just matter, just neurons, the impulse to change doesn't mean anything. But if it's put there by something — it means a lot."},
+      {label:'Yes. The resurrection is historical.',sub:'Go there.',tag:'good',next:'d4c',youText:"Yes. Jesus was a real person in history. And the claim is that he came back from the dead — and there are actual historical reasons to take that seriously, not just religious ones."},
+      {label:'What changed your mind?',sub:'Stay with his story.',tag:'good',next:'d4d',youText:"What shifted? What made you less sure?"},
+    ]},
+
+    d4a:{type:'say',speaker:'them',text:"A murderer. And God still — that's not what I expected. I thought the Bible was about people being good enough. I'm not good enough. Not even close.",next:'d5_pick'},
+    d4b:{type:'say',speaker:'them',text:"Put there by something. You mean — God put the desire in me? Even in here? Even with everything I've done?",next:'d5_pick'},
+    d4c:{type:'say',speaker:'them',text:"Historical reasons. Like what? I'm not trying to be difficult. I genuinely want to know.",next:'d5_pick'},
+    d4d:{type:'say',speaker:'them',text:"Being in here. Sitting in a cell for eight months with nothing to do but think. You start asking questions you never had time to ask on the outside.",next:'d5_pick'},
+
+    d5_pick:{type:'pick',prompt:'The door is wide open.',choices:[
+      {label:'The Bible isn\'t about being good enough. It\'s about being found.',sub:'The gospel in one sentence.',tag:'best',next:'d5a',youText:"The Bible isn't a story about people being good enough for God. It's about God coming to find people who aren't. That's the whole thing."},
+      {label:'Yes. Even in here. Especially in here.',sub:'Direct answer.',tag:'best',next:'d5b',youText:"Yes. Especially in here. There's a reason the Psalms were written in caves and prisons and deserts. That's where the signal comes through clearest."},
+      {label:'The empty tomb. The transformation of the disciples.',sub:'Two main evidences.',tag:'good',next:'d5c',youText:"Two things: the tomb was empty, and that's not disputed by anyone who was there — enemies included. And twelve ordinary men became willing to die for something they either saw or invented. People don't die for things they made up."},
+      {label:'That silence is where the real questions start.',sub:'Affirm the search.',tag:'good',next:'d5d',youText:"That silence — that's where the real questions start. Most people never stop long enough to hear them. You've been forced to stop."},
+    ]},
+
+    d5a:{type:'say',speaker:'them',text:"Coming to find people who aren't. …Is that really what it says?",next:'d6_pick'},
+    d5b:{type:'say',speaker:'them',text:"The signal comes through clearest. Yeah. Yeah I think I know what you mean. It's loud in here. In a different way than outside.",next:'d6_pick'},
+    d5c:{type:'say',speaker:'them',text:"People don't die for things they made up. …I've never heard it put like that. It's not proof. But it's — something.",next:'d6_pick'},
+    d5d:{type:'say',speaker:'them',text:"Yeah. I've had more real thoughts in eight months in here than in thirty years outside. That's — kind of messed up actually.",next:'d6_pick'},
+
+    d6_pick:{type:'pick',prompt:'What does he actually need to take with him?',choices:[
+      {label:'Read Luke next. It\'s written for someone exactly like you.',sub:'Give a next step.',tag:'best',next:'d6a',youText:"Read Luke next — after the Psalms. It was written by a doctor, for a Greek official who had never heard any of this. He writes it like a careful investigation. For someone coming to it fresh, it's the right door."},
+      {label:'Would you want to pray? Right now, just the two of us.',sub:'Invite.',tag:'best',next:'d6b',youText:"Would you want to pray? Not a church prayer — just talk to Him. Right now. I'll be there with you."},
+      {label:'The desire you have — feed it. Don\'t let it die when you get out.',sub:'Practical word.',tag:'good',next:'d6c',youText:"The thing you felt when you picked that Bible up — protect it. When you get out, the noise comes back fast. Find people who'll help you keep hearing."},
+    ]},
+
+    d6a:{type:'say',speaker:'them',text:"Luke. Okay. Written like an investigation. …Yeah. I can do that. I've got nothing but time. Thank you. Nobody's talked to me like this in — I don't know how long.",next:'d_outcome_best'},
+    d6b:{type:'say',speaker:'them',text:"…Yeah. Okay. I don't really know how. But — yeah.",next:'d_outcome_pray'},
+    d6c:{type:'say',speaker:'them',text:"The noise. Yeah. That's exactly it. It gets quiet in here and I can hear myself think. I'm scared what happens when it gets loud again.",next:'d_outcome_good'},
+
+    d_outcome_best:{type:'outcome',outcome:'near',icon:'📖',title:'A Reader, Now',
+      quote:'"You will seek me and find me when you seek me with all your heart." — Jeremiah 29:13',
+      note:'Danny came to the Bible with genuine questions and no defenses. You gave him a map that matched where he was — Psalm 23, then Luke as careful investigation. He has a next step. In three years, that next step could become a life.',
+      path:'Curious · Best Route'},
+    d_outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'First Prayer',
+      quote:'"The Lord is close to the brokenhearted and saves those who are crushed in spirit." — Psalm 34:18',
+      note:'He prayed for the first time in a jail cell. That\'s not strange — that\'s exactly where people have been finding God for as long as there have been people and cages. You gave him the door. He walked through it.',
+      path:'Curious · Best Route · Prayer'},
+    d_outcome_good:{type:'outcome',outcome:'soft',icon:'🌱',title:'Seeds in Thin Soil',
+      quote:'"The seed on good soil stands for those with a noble and good heart, who hear the word, retain it, and by persevering produce a crop." — Luke 8:15',
+      note:'Danny is afraid the noise will drown it out. That fear is honest and worth taking seriously. You named it with him. What happens next depends on what he does with the next three years. You planted something real.',
+      path:'Curious · Good Route'},
+  }
+}
+
+}; // end TREES
+
+/* ═══════════════════════════════════════════════════
+   ENGINE
+═══════════════════════════════════════════════════ */
+let currentTree = null;
+let currentSpeaker = '';
+let currentColorClass = '';
+
+function startConvo(type) {
+  currentTree = TREES[type];
+  currentSpeaker = currentTree.speaker;
+  currentColorClass = currentTree.colorClass;
+
+  // Hide cell scene UI, show convo
+  document.getElementById('cell-status').style.display = 'none';
+  document.getElementById('cell-instruction').style.display = 'none';
+  document.getElementById('cm-hostile').style.display = 'none';
+  document.getElementById('cm-curious').style.display = 'none';
+  document.getElementById('convo-wrap').classList.add('active');
+
+  document.getElementById('chat-area').innerHTML = '';
+  document.getElementById('choices-panel').classList.add('hidden');
+
+  run(currentTree.startId);
+}
+
+function restartConvo() {
+  document.getElementById('outcome-screen').classList.remove('visible');
+  document.getElementById('chat-area').innerHTML = '';
+  document.getElementById('choices-panel').classList.add('hidden');
+  run(currentTree.startId);
+}
+
+function switchCellmate() {
+  document.getElementById('outcome-screen').classList.remove('visible');
+  document.getElementById('convo-wrap').classList.remove('active');
+  document.getElementById('chat-area').innerHTML = '';
+  document.getElementById('choices-panel').classList.add('hidden');
+  document.getElementById('cell-status').style.display = '';
+  document.getElementById('cell-instruction').style.display = '';
+  document.getElementById('cm-hostile').style.display = '';
+  document.getElementById('cm-curious').style.display = '';
+  currentTree = null;
+}
+
+function run(nodeId) {
+  const nodes = currentTree.nodes;
+  const node = nodes[nodeId];
+  if (!node) { console.error('Missing node:', nodeId); return; }
+
+  if (node.type === 'say') {
+    const isYou = node.speaker === 'you';
+    addBubble(isYou ? 'You' : currentSpeaker, node.text, isYou ? 'you' : 'them');
+    setTimeout(() => run(node.next), 900 + node.text.length * 18);
+
+  } else if (node.type === 'pick') {
+    showTyping();
+    setTimeout(() => {
+      removeTyping();
+      showChoices(node);
+    }, 700);
+
+  } else if (node.type === 'outcome') {
+    showOutcome(node);
+  }
+}
+
+function addBubble(speaker, text, side) {
+  const chatArea = document.getElementById('chat-area');
+  const row = document.createElement('div');
+  row.className = `bubble-row ${side}${side === 'them' ? ' ' + currentColorClass : ''}`;
+
+  const inner = document.createElement('div');
+  inner.innerHTML = `<div class="speaker-tag">${speaker}</div><div class="bubble">${text}</div>`;
+  row.appendChild(inner);
+  chatArea.appendChild(row);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function showTyping() {
+  const chatArea = document.getElementById('chat-area');
+  const t = document.createElement('div');
+  t.className = `bubble-row them ${currentColorClass}`;
+  t.id = 'typing-row';
+  t.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+  chatArea.appendChild(t);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-row');
+  if (t) t.remove();
+}
+
+function showChoices(node) {
+  const panel = document.getElementById('choices-panel');
+  const prompt = document.getElementById('choices-prompt');
+  const grid = document.getElementById('choices-grid');
+
+  prompt.textContent = node.prompt || 'What do you say?';
+  grid.innerHTML = '';
+
+  node.choices.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.className = `choice-btn tag-${choice.tag}`;
+    btn.innerHTML = `<span class="choice-label">${choice.label} <span class="tag-label">${choice.tag.toUpperCase()}</span></span><span class="choice-sub">${choice.sub}</span>`;
+    btn.onclick = () => {
+      grid.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+      panel.classList.add('hidden');
+      // Show player's youText as a bubble
+      addBubble('You', choice.youText, 'you');
+      setTimeout(() => run(choice.next), 400);
+    };
+    grid.appendChild(btn);
+  });
+
+  panel.classList.remove('hidden');
+}
+
+function showOutcome(node) {
+  document.getElementById('choices-panel').classList.add('hidden');
+  document.getElementById('out-icon').textContent = node.icon || '·';
+  document.getElementById('out-title').textContent = node.title || '';
+  document.getElementById('out-quote').textContent = node.quote || '';
+  document.getElementById('out-note').textContent = node.note || '';
+  document.getElementById('out-path').textContent = node.path || '';
+  document.getElementById('outcome-screen').classList.add('visible');
+}
+</script>
+</body>
+</html>
