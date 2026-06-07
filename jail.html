@@ -308,6 +308,142 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
 .outcome-btn:hover{color:#c8b880;border-color:#c8b88066}
 .outcome-btn.primary{border-color:rgba(90,180,110,.4);color:#7ac890}
 .outcome-btn.primary:hover{border-color:#5ab870;background:rgba(90,184,112,.08);color:#9ad8a8}
+
+/* ── RELEASE COUNTDOWN BAR ── */
+#release-bar-wrap{
+  position:fixed;
+  top:56px;left:0;right:0;
+  height:3px;
+  z-index:50;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .4s;
+}
+#release-bar-wrap.show{opacity:1;}
+#release-bar{
+  height:3px;
+  width:100%;
+  background:linear-gradient(90deg,#3a6a4a,#7ac890);
+  transform-origin:left;
+  transform:scaleX(0);
+  transition:transform 60s linear;
+}
+#release-bar.go{transform:scaleX(1);}
+
+/* ── RELEASE OVERLAY ── */
+#release-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9950;
+  background:#0a0e08;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px 24px;
+  overflow:hidden;
+}
+#release-overlay.show{display:flex;}
+
+/* Sunlight bloom from top */
+#release-overlay::before{
+  content:'';
+  position:absolute;
+  top:-60px;left:50%;
+  transform:translateX(-50%);
+  width:400px;height:260px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(220,200,100,.18) 0%,rgba(140,200,80,.06) 40%,transparent 70%);
+  pointer-events:none;
+  animation:sunBloom 2s ease-out both;
+}
+@keyframes sunBloom{from{opacity:0;transform:translateX(-50%) scale(.6)}to{opacity:1;transform:translateX(-50%) scale(1)}}
+
+#release-scene{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+
+#release-graphic{
+  width:300px;
+  height:210px;
+  margin-bottom:8px;
+  animation:releaseDrop .7s cubic-bezier(.2,1.3,.4,1) both;
+}
+@keyframes releaseDrop{
+  from{opacity:0;transform:translateY(30px) scale(.92)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+#release-badge{
+  font-family:'Courier New',monospace;
+  font-size:.62rem;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:#3a6a4a;
+  border:1px solid #2a4a2a;
+  border-radius:20px;
+  padding:4px 14px;
+  margin-bottom:10px;
+  animation:fadeUp .5s .3s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+#release-headline{
+  font-size:1.5rem;
+  font-weight:800;
+  color:#c8d8a8;
+  margin-bottom:8px;
+  animation:fadeUp .5s .5s ease both;
+  letter-spacing:-.01em;
+}
+
+#release-sub{
+  font-family:'Georgia',serif;
+  font-size:.92rem;
+  color:#6a7858;
+  font-style:italic;
+  max-width:360px;
+  line-height:1.7;
+  margin-bottom:6px;
+  animation:fadeUp .5s .7s ease both;
+}
+
+#release-verse{
+  font-family:'Courier New',monospace;
+  font-size:.62rem;
+  color:#3a4a2a;
+  letter-spacing:.07em;
+  margin-bottom:28px;
+  animation:fadeUp .5s .9s ease both;
+}
+
+#release-btn-wrap{
+  animation:fadeUp .5s 1.2s ease both;
+  opacity:0;
+}
+#release-btn{
+  background:none;
+  border:1.5px solid rgba(100,180,80,.4);
+  color:#8ac870;
+  border-radius:20px;
+  padding:11px 28px;
+  font-family:'Courier New',monospace;
+  font-size:.72rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+}
+#release-btn:hover{
+  border-color:#7ac870;
+  background:rgba(100,180,80,.08);
+  color:#aad890;
+}
 </style>
 </head>
 <body>
@@ -489,6 +625,133 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
   <div id="choices-panel" class="hidden">
     <div id="choices-prompt"></div>
     <div id="choices-grid"></div>
+  </div>
+</div>
+
+<!-- RELEASE COUNTDOWN BAR -->
+<div id="release-bar-wrap"><div id="release-bar"></div></div>
+
+<!-- RELEASE OVERLAY -->
+<div id="release-overlay">
+  <div id="release-scene">
+    <svg id="release-graphic" viewBox="0 0 300 210" xmlns="http://www.w3.org/2000/svg">
+      <!-- Sky gradient -->
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a2a10"/>
+          <stop offset="100%" stop-color="#2a3a18"/>
+        </linearGradient>
+        <radialGradient id="sunGrad" cx="50%" cy="20%" r="40%">
+          <stop offset="0%" stop-color="#e8d870" stop-opacity=".9"/>
+          <stop offset="40%" stop-color="#c8b840" stop-opacity=".3"/>
+          <stop offset="100%" stop-color="transparent"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Sky -->
+      <rect x="0" y="0" width="300" height="150" fill="url(#skyGrad)"/>
+      <!-- Sun glow -->
+      <ellipse cx="150" cy="30" rx="80" ry="50" fill="url(#sunGrad)"/>
+      <!-- Sun disc -->
+      <circle cx="150" cy="18" r="14" fill="#e8d860" opacity=".85"/>
+      <!-- Sun rays -->
+      <g stroke="#d8c840" stroke-width="1.5" opacity=".4">
+        <line x1="150" y1="0" x2="150" y2="-8"/>
+        <line x1="168" y1="5" x2="174" y2="-1"/>
+        <line x1="175" y1="22" x2="183" y2="20"/>
+        <line x1="132" y1="5" x2="126" y2="-1"/>
+        <line x1="125" y1="22" x2="117" y2="20"/>
+      </g>
+      <!-- Clouds -->
+      <ellipse cx="70" cy="45" rx="30" ry="12" fill="#2a3a18" opacity=".6"/>
+      <ellipse cx="90" cy="40" rx="20" ry="10" fill="#2a3a18" opacity=".5"/>
+      <ellipse cx="230" cy="55" rx="28" ry="10" fill="#253518" opacity=".5"/>
+
+      <!-- Ground / street -->
+      <rect x="0" y="150" width="300" height="60" fill="#141810"/>
+      <line x1="0" y1="150" x2="300" y2="150" stroke="#1e2214" stroke-width="2"/>
+      <!-- Sidewalk line -->
+      <rect x="0" y="155" width="300" height="8" fill="#181e10" opacity=".6"/>
+      <!-- Street center stripe -->
+      <rect x="120" y="162" width="60" height="5" rx="2" fill="#c8b840" opacity=".25"/>
+      <rect x="120" y="172" width="60" height="5" rx="2" fill="#c8b840" opacity=".25"/>
+
+      <!-- Jail door (open, left side) — heavy metal door swung open -->
+      <rect x="18" y="70" width="46" height="90" rx="3" fill="#1a1e14" stroke="#2a3020" stroke-width="2"/>
+      <!-- Door bars -->
+      <line x1="30" y1="72" x2="30" y2="158" stroke="#2a3020" stroke-width="3"/>
+      <line x1="42" y1="72" x2="42" y2="158" stroke="#2a3020" stroke-width="3"/>
+      <line x1="54" y1="72" x2="54" y2="158" stroke="#2a3020" stroke-width="3"/>
+      <line x1="18" y1="100" x2="64" y2="100" stroke="#2a3020" stroke-width="2.5"/>
+      <line x1="18" y1="130" x2="64" y2="130" stroke="#2a3020" stroke-width="2.5"/>
+      <!-- Door hinge -->
+      <rect x="14" y="78" width="8" height="10" rx="1" fill="#3a4030"/>
+      <rect x="14" y="140" width="8" height="10" rx="1" fill="#3a4030"/>
+      <!-- Door handle -->
+      <circle cx="60" cy="115" r="4" fill="#3a4030"/>
+
+      <!-- Guard — standing at door (left), holding clipboard -->
+      <!-- legs -->
+      <rect x="82" y="130" width="11" height="28" rx="4" fill="#2a3a4a"/>
+      <rect x="97" y="130" width="11" height="28" rx="4" fill="#2a3a4a"/>
+      <!-- shoes -->
+      <ellipse cx="88" cy="159" rx="8" ry="4" fill="#111"/>
+      <ellipse cx="102" cy="159" rx="8" ry="4" fill="#111"/>
+      <!-- body — uniform -->
+      <rect x="79" y="95" width="32" height="38" rx="5" fill="#2a3a4a"/>
+      <!-- badge -->
+      <rect x="84" y="103" width="9" height="7" rx="1" fill="#c8b840" opacity=".7"/>
+      <!-- right arm — holding clipboard out -->
+      <line x1="111" y1="108" x2="128" y2="118" stroke="#2a3a4a" stroke-width="9" stroke-linecap="round"/>
+      <!-- clipboard -->
+      <rect x="124" y="112" width="18" height="22" rx="2" fill="#3a3020"/>
+      <rect x="126" y="115" width="12" height="2" rx="1" fill="#4a4030"/>
+      <rect x="126" y="119" width="10" height="2" rx="1" fill="#4a4030"/>
+      <rect x="126" y="123" width="8" height="2" rx="1" fill="#4a4030"/>
+      <!-- left arm down -->
+      <line x1="79" y1="108" x2="70" y2="120" stroke="#2a3a4a" stroke-width="9" stroke-linecap="round"/>
+      <!-- head -->
+      <circle cx="95" cy="86" r="14" fill="#c8a870"/>
+      <!-- cap -->
+      <rect x="82" y="75" width="26" height="8" rx="3" fill="#1e2e3e"/>
+      <rect x="79" y="80" width="32" height="3" rx="1" fill="#151e28"/>
+      <!-- slight smile -->
+      <path d="M89 92 Q95 95 101 92" stroke="#8a6030" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+      <!-- YOU — walking out, mid-step, facing right, free -->
+      <!-- back leg -->
+      <rect x="170" y="135" width="13" height="28" rx="5" fill="#8b5010" opacity=".7"/>
+      <!-- front leg step -->
+      <rect x="185" y="130" width="13" height="28" rx="5" fill="#8b5010"/>
+      <!-- shoes -->
+      <ellipse cx="192" cy="159" rx="9" ry="4" fill="#1a1410"/>
+      <ellipse cx="177" cy="160" rx="8" ry="4" fill="#1a1410" opacity=".7"/>
+      <!-- body -->
+      <rect x="165" y="96" width="36" height="40" rx="6" fill="#8b5010"/>
+      <!-- arms swinging (free walk) -->
+      <line x1="165" y1="108" x2="150" y2="125" stroke="#8b5010" stroke-width="9" stroke-linecap="round"/>
+      <line x1="201" y1="108" x2="216" y2="122" stroke="#8b5010" stroke-width="9" stroke-linecap="round"/>
+      <!-- head looking forward/up slightly -->
+      <circle cx="183" cy="84" r="16" fill="#c09060"/>
+      <!-- face looking right/forward -->
+      <circle cx="189" cy="82" r="2.5" fill="#2a1a08"/>
+      <!-- smile -->
+      <path d="M181 90 Q187 94 193 90" stroke="#8a5a28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- light rays on person — freedom glow -->
+      <circle cx="183" cy="84" r="22" fill="none" stroke="#c8b840" stroke-width="1" opacity=".15"/>
+      <circle cx="183" cy="84" r="28" fill="none" stroke="#c8b840" stroke-width=".5" opacity=".08"/>
+
+      <!-- Sunlight beam hitting the figure -->
+      <polygon points="130,0 170,0 210,150 90,150" fill="#e8d870" opacity=".03"/>
+    </svg>
+
+    <div id="release-badge">✦ Released · Good Behaviour</div>
+    <div id="release-headline">You're Free</div>
+    <div id="release-sub">The officer opens the cell door.<br>You step back into the light.</div>
+    <div id="release-verse">"He brought them out of darkness, the utter darkness, and broke away their chains." — Psalm 107:14</div>
+    <div id="release-btn-wrap">
+      <button id="release-btn" onclick="window.location.href='index.html'">⊞ Back to the Streets</button>
+    </div>
   </div>
 </div>
 
@@ -710,6 +973,8 @@ curious: {
 let currentTree = null;
 let currentSpeaker = '';
 let currentColorClass = '';
+let releaseTimer = null;
+let released = false;
 
 function startConvo(type) {
   currentTree = TREES[type];
@@ -726,18 +991,67 @@ function startConvo(type) {
   document.getElementById('chat-area').innerHTML = '';
   document.getElementById('choices-panel').classList.add('hidden');
 
+  startReleaseTimer();
   run(currentTree.startId);
+}
+
+function startReleaseTimer() {
+  clearTimeout(releaseTimer);
+  released = false;
+
+  // Show the thin progress bar at top
+  const barWrap = document.getElementById('release-bar-wrap');
+  const bar = document.getElementById('release-bar');
+  barWrap.classList.add('show');
+  bar.classList.remove('go');
+  // Force reflow so the transition restarts from 0
+  void bar.offsetWidth;
+  bar.classList.add('go');
+
+  // After 60s — trigger release
+  releaseTimer = setTimeout(triggerRelease, 60000);
+}
+
+function triggerRelease() {
+  if (released) return;
+  released = true;
+  clearTimeout(releaseTimer);
+
+  // Hide bar
+  document.getElementById('release-bar-wrap').classList.remove('show');
+
+  // Small knock-on-door delay for drama
+  const chatArea = document.getElementById('chat-area');
+  const notice = document.createElement('div');
+  notice.style.cssText = 'text-align:center;padding:14px 0;font-family:"Courier New",monospace;font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:#3a4a2a;animation:fadeUp .4s ease both';
+  notice.textContent = '— a guard knocks on the cell door —';
+  chatArea.appendChild(notice);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Hide choices if open
+  document.getElementById('choices-panel').classList.add('hidden');
+
+  // Show release overlay after brief pause
+  setTimeout(() => {
+    document.getElementById('release-overlay').classList.add('show');
+  }, 1800);
 }
 
 function restartConvo() {
   document.getElementById('outcome-screen').classList.remove('visible');
+  document.getElementById('release-overlay').classList.remove('show');
   document.getElementById('chat-area').innerHTML = '';
   document.getElementById('choices-panel').classList.add('hidden');
+  startReleaseTimer();
   run(currentTree.startId);
 }
 
 function switchCellmate() {
+  clearTimeout(releaseTimer);
+  released = false;
+  document.getElementById('release-bar-wrap').classList.remove('show');
   document.getElementById('outcome-screen').classList.remove('visible');
+  document.getElementById('release-overlay').classList.remove('show');
   document.getElementById('convo-wrap').classList.remove('active');
   document.getElementById('chat-area').innerHTML = '';
   document.getElementById('choices-panel').classList.add('hidden');
