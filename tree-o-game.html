@@ -111,6 +111,7 @@ html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',ser
   <div class="outcome-title" id="out-title"></div>
   <div class="outcome-quote" id="out-quote"></div>
   <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-streak" id="out-streak"></div>
   <div class="outcome-path" id="out-path"></div>
   <div class="outcome-btns">
     <button class="outcome-btn" onclick="restartGame()">↺ Try again</button>
@@ -390,6 +391,8 @@ function showOutcome(node){
   document.getElementById('out-note').textContent=node.note||'';
   const summary=pathTaken.map(p=>`T${p.tier}:${p.tag}`).join(' → ');
   document.getElementById('out-path').textContent=(node.path||'')+(summary?' · '+summary:'');
+  renderStreak(calcStreak(pathTaken));
+  try{localStorage.setItem('apol_done_tree-o-game.html','1');}catch(e){}
   document.getElementById('outcome-screen').classList.add('show');
 }
 function closeOutcome(){document.getElementById('outcome-screen').classList.remove('show');}
@@ -406,6 +409,55 @@ buildTrack();run('start');
 <script src="interruption.js"></script>
 <script src="verse-popup.js"></script>
 <script src="prayer-offer.js"></script>
+<script>
+
+function calcStreak(path) {
+  if (!path || !path.length) return { best: 0, maxStreak: 0, total: path.length };
+  let best = 0, maxStreak = 0, cur = 0;
+  path.forEach(p => {
+    // Handle both {tag:'best'} objects and "T1:BEST" strings
+    const tag = typeof p === 'string' ? (p.split(':')[1]||'').toLowerCase() : (p.tag||'');
+    if (tag === 'best') { best++; cur++; if (cur > maxStreak) maxStreak = cur; }
+    else cur = 0;
+  });
+  return { best, maxStreak, total: path.length };
+}
+function renderStreak(stats) {
+  const el = document.getElementById('out-streak');
+  if (!el) return;
+  const { best, maxStreak, total } = stats;
+  if (!total) { el.textContent = ''; return; }
+  if (maxStreak >= 3) {
+    el.className = 'outcome-streak streak-fire';
+    el.textContent = '🔥 ' + maxStreak + '-choice streak of best answers!';
+  } else if (best === total) {
+    el.className = 'outcome-streak streak-fire';
+    el.textContent = '🔥 Perfect run — every choice was the best!';
+  } else if (best >= Math.ceil(total * 0.6)) {
+    el.className = 'outcome-streak streak-good';
+    el.textContent = '✓ Strong run — ' + best + ' of ' + total + ' choices were optimal';
+  } else if (best > 0) {
+    el.className = 'outcome-streak streak-ok';
+    el.textContent = best + ' of ' + total + ' best choices';
+  } else {
+    el.className = 'outcome-streak streak-ok';
+    el.textContent = 'Try for the optimal path — replay to explore';
+  }
+}
+
+// Highlight chosen button
+document.addEventListener('DOMContentLoaded', function() {
+  const grid = document.getElementById('choices-grid');
+  if (!grid) return;
+  grid.addEventListener('click', function(e) {
+    const btn = e.target.closest('.choice-btn');
+    if (!btn || btn.disabled) return;
+    grid.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+    btn.classList.add('chosen');
+  }, true); // capture phase — fires before pick()
+});
+window.__chosenHooked = true;
+</script>
 <script src="skip-typing.js"></script>
 <script src="police-arrest.js"></script>
 </body>

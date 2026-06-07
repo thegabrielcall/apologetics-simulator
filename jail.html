@@ -358,22 +358,35 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
 #release-bar-wrap{
   position:fixed;
   top:56px;left:0;right:0;
-  height:3px;
   z-index:50;
   pointer-events:none;
   opacity:0;
   transition:opacity .4s;
 }
 #release-bar-wrap.show{opacity:1;}
-#release-bar{
-  height:3px;
+#release-bar-track{
+  height:8px;
   width:100%;
-  background:linear-gradient(90deg,#3a6a4a,#7ac890);
+  background:#111;
+}
+#release-bar{
+  height:8px;
+  width:100%;
+  background:linear-gradient(90deg,#2a5a3a,#7ac890);
   transform-origin:left;
   transform:scaleX(0);
   transition:transform 60s linear;
 }
 #release-bar.go{transform:scaleX(1);}
+#release-countdown{
+  text-align:center;
+  font-family:'Courier New',monospace;
+  font-size:.6rem;
+  letter-spacing:.12em;
+  color:#4a7a5a;
+  padding:3px 0 0;
+  opacity:.85;
+}
 
 /* ── RELEASE OVERLAY ── */
 #release-overlay{
@@ -674,7 +687,7 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
 </div>
 
 <!-- RELEASE COUNTDOWN BAR -->
-<div id="release-bar-wrap"><div id="release-bar"></div></div>
+<div id="release-bar-wrap"><div id="release-bar-track"><div id="release-bar"></div></div><div id="release-countdown"></div></div>
 
 <!-- RELEASE OVERLAY -->
 <div id="release-overlay">
@@ -1061,18 +1074,31 @@ function startConvo(type) {
   run(currentTree.startId);
 }
 
+let _countdownIv = null;
+
 function startReleaseTimer() {
   clearTimeout(releaseTimer);
+  if (_countdownIv) clearInterval(_countdownIv);
   released = false;
 
-  // Show the thin progress bar at top
+  // Show bar + countdown
   const barWrap = document.getElementById('release-bar-wrap');
   const bar = document.getElementById('release-bar');
+  const cdEl = document.getElementById('release-countdown');
   barWrap.classList.add('show');
   bar.classList.remove('go');
-  // Force reflow so the transition restarts from 0
   void bar.offsetWidth;
   bar.classList.add('go');
+
+  // Live countdown label
+  let secsLeft = 60;
+  const fmt = s => `⏱ released in ${s}s — good behaviour`;
+  if (cdEl) cdEl.textContent = fmt(secsLeft);
+  _countdownIv = setInterval(() => {
+    secsLeft--;
+    if (cdEl) cdEl.textContent = secsLeft > 0 ? fmt(secsLeft) : '— guard approaching —';
+    if (secsLeft <= 0) clearInterval(_countdownIv);
+  }, 1000);
 
   // After 60s — trigger release
   releaseTimer = setTimeout(triggerRelease, 60000);
@@ -1084,6 +1110,7 @@ function triggerRelease() {
   clearTimeout(releaseTimer);
 
   // Hide bar
+  if (_countdownIv) clearInterval(_countdownIv);
   document.getElementById('release-bar-wrap').classList.remove('show');
 
   // Small knock-on-door delay for drama

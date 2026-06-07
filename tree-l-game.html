@@ -43,6 +43,9 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .choice-btn:hover:not(:disabled){background:#2d3440;border-color:#58a6ff;transform:translateY(-1px)}.choice-btn:disabled{cursor:default;opacity:.85}
 .choice-label{font-weight:700;display:block;margin-bottom:2px}.choice-sub{font-size:.75rem;color:#8b949e}
 .tag-best{border-color:#3fb950!important;background:#0d2a14!important}.tag-good{border-color:#58a6ff!important;background:#0d1f35!important}.tag-risky{border-color:#e3b341!important;background:#2d2008!important}.tag-wrong{border-color:#f85149!important;background:#2d0f0e!important}
+.choice-btn.chosen{border-color:#58a6ff!important;background:#0d1f35!important;box-shadow:0 0 0 2px rgba(88,166,255,.25);opacity:1!important}
+.outcome-streak{font-size:.85rem;min-height:1.4em;margin-bottom:6px;font-weight:600;letter-spacing:.04em;animation:fadeUp .5s .2s ease both;opacity:0}
+.streak-fire{color:#f5a623}.streak-good{color:#3fb950}.streak-ok{color:#8b949e}
 .tag-label{display:none}
 
 #choices-panel.hidden{display:none}
@@ -75,6 +78,7 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
   <div class="outcome-title" id="out-title"></div>
   <div class="outcome-quote" id="out-quote"></div>
   <div class="outcome-note" id="out-note"></div>
+  <div class="outcome-streak" id="out-streak"></div>
   <div class="outcome-path" id="out-path"></div>
   <div class="outcome-btns">
     <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
@@ -226,7 +230,7 @@ function removeTyping(){const r=document.getElementById('typing-row');if(r)r.rem
 function showChoices(node){const panel=document.getElementById('choices-panel');const prompt=document.getElementById('choices-prompt');const grid=document.getElementById('choices-grid');panel.classList.remove('hidden');prompt.textContent=node.prompt||'Choose...';grid.innerHTML='';node.choices.forEach((c,i)=>{const btn=document.createElement('button');btn.className='choice-btn';btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;btn.onclick=()=>pick(node,c,i);grid.appendChild(btn);});}
 function hideChoices(){document.getElementById('choices-panel').classList.add('hidden');document.getElementById('choices-grid').innerHTML='';}
 async function pick(node,choice,idx){const btns=document.querySelectorAll('.choice-btn');btns.forEach((b,i)=>{b.disabled=true;if(i===idx&&choice.tag){b.classList.add(`tag-${choice.tag}`);}});if(choice.tag)pathLog.push(`T${node.tier}:${choice.tag.toUpperCase()}`);await sleep(420);hideChoices();if(choice.youText){addBubble('you',choice.youText,node.tier,choice.src||null);await sleep(500);}await run(choice.next);}
-function showOutcome(node){document.getElementById('out-icon').textContent=node.icon||'✓';document.getElementById('out-title').textContent=node.title||'';document.getElementById('out-quote').textContent=node.quote||'';document.getElementById('out-note').textContent=node.note||'';document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');document.getElementById('outcome-screen').classList.add('visible');}
+function showOutcome(node){document.getElementById('out-icon').textContent=node.icon||'✓';document.getElementById('out-title').textContent=node.title||'';document.getElementById('out-quote').textContent=node.quote||'';document.getElementById('out-note').textContent=node.note||'';document.getElementById('out-path').textContent=node.path||pathLog.join(' → ');renderStreak(calcStreak(typeof pathTaken!=='undefined'&&pathTaken.length?pathTaken:pathLog));try{localStorage.setItem('apol_done_tree-l-game.html','1');}catch(e){}document.getElementById('outcome-screen').classList.add('visible');}
 function readConversation(){document.getElementById('outcome-screen').classList.remove('visible');}
 async function run(id){const node=nodes[id];if(!node){console.warn('Missing:',id);return;}updateTrack(node.tier||1);if(node.type==='say'){if(node.speaker==='them'){showTyping();await sleep(500);removeTyping();}addBubble(node.speaker,node.text,node.tier||1,node.src||null);await sleep(node.speaker==='them'?400:300);if(node.next)await run(node.next);}else if(node.type==='pick'){showChoices(node);}else if(node.type==='auto_pick'){run(node.choices[Math.floor(Math.random()*node.choices.length)].next)}else if(node.type==='outcome'){await sleep(300);showOutcome(node);}}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -235,6 +239,55 @@ buildTrack();run('start');
 </script>
 <script src="verse-popup.js"></script>
 <script src="prayer-offer.js"></script>
+<script>
+
+function calcStreak(path) {
+  if (!path || !path.length) return { best: 0, maxStreak: 0, total: path.length };
+  let best = 0, maxStreak = 0, cur = 0;
+  path.forEach(p => {
+    // Handle both {tag:'best'} objects and "T1:BEST" strings
+    const tag = typeof p === 'string' ? (p.split(':')[1]||'').toLowerCase() : (p.tag||'');
+    if (tag === 'best') { best++; cur++; if (cur > maxStreak) maxStreak = cur; }
+    else cur = 0;
+  });
+  return { best, maxStreak, total: path.length };
+}
+function renderStreak(stats) {
+  const el = document.getElementById('out-streak');
+  if (!el) return;
+  const { best, maxStreak, total } = stats;
+  if (!total) { el.textContent = ''; return; }
+  if (maxStreak >= 3) {
+    el.className = 'outcome-streak streak-fire';
+    el.textContent = '🔥 ' + maxStreak + '-choice streak of best answers!';
+  } else if (best === total) {
+    el.className = 'outcome-streak streak-fire';
+    el.textContent = '🔥 Perfect run — every choice was the best!';
+  } else if (best >= Math.ceil(total * 0.6)) {
+    el.className = 'outcome-streak streak-good';
+    el.textContent = '✓ Strong run — ' + best + ' of ' + total + ' choices were optimal';
+  } else if (best > 0) {
+    el.className = 'outcome-streak streak-ok';
+    el.textContent = best + ' of ' + total + ' best choices';
+  } else {
+    el.className = 'outcome-streak streak-ok';
+    el.textContent = 'Try for the optimal path — replay to explore';
+  }
+}
+
+// Highlight chosen button
+document.addEventListener('DOMContentLoaded', function() {
+  const grid = document.getElementById('choices-grid');
+  if (!grid) return;
+  grid.addEventListener('click', function(e) {
+    const btn = e.target.closest('.choice-btn');
+    if (!btn || btn.disabled) return;
+    grid.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('chosen'));
+    btn.classList.add('chosen');
+  }, true); // capture phase — fires before pick()
+});
+window.__chosenHooked = true;
+</script>
 <script src="skip-typing.js"></script>
 <script src="police-arrest.js"></script>
 </body>
