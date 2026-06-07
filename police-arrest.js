@@ -256,10 +256,10 @@
   function maybeArrest() {
     if (arrested) return;
     pickCount++;
-    if (pickCount < 3) return;
+    if (pickCount < 5) return;
 
-    // Probability grows: 8% base + 4% per pick over 3, capped at 25%
-    const chance = Math.min(0.08 + (pickCount - 3) * 0.04, 0.25);
+    // Probability grows: 5% base + 3% per pick over 5, capped at 15%
+    const chance = Math.min(0.05 + (pickCount - 5) * 0.03, 0.15);
     if (Math.random() < chance) {
       // Short delay so the conversation pick renders first
       setTimeout(triggerArrest, 800);
