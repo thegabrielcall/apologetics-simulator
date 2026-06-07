@@ -23,6 +23,8 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 #horiz-shimmer{animation:horizShimmer 3.5s ease-in-out infinite}
 @keyframes roadPulse{from{transform:translateY(0)}to{transform:translateY(6px)}}
 .road-dash{animation:roadPulse .55s linear infinite}
+@keyframes sunPulse{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+#sun-disk{transform-box:fill-box;transform-origin:center;animation:sunPulse 5s ease-in-out infinite}
 #player-you{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:5;pointer-events:none}
 #player-label{font-family:'Courier New',monospace;font-size:.5rem;letter-spacing:.18em;color:rgba(255,200,80,.65);margin-top:1px}
 @keyframes playerBreathe{0%,100%{transform:translateX(-50%) scaleY(1)}50%{transform:translateX(-50%) scaleY(1.015)}}
@@ -123,126 +125,239 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 <div id="scene">
   <svg id="road-svg" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
+      <!-- Sky: indigo night top → magenta → fiery sunset horizon -->
       <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stop-color="#0e0620"/>
-        <stop offset="28%"  stop-color="#2a0e3a"/>
-        <stop offset="50%"  stop-color="#6a1e08"/>
-        <stop offset="66%"  stop-color="#c84010"/>
-        <stop offset="76%"  stop-color="#e86420"/>
-        <stop offset="84%"  stop-color="#c04010"/>
-        <stop offset="92%"  stop-color="#4a1808"/>
-        <stop offset="100%" stop-color="#1e0c04"/>
+        <stop offset="0%"   stop-color="#0a0420"/>
+        <stop offset="18%"  stop-color="#1a0a35"/>
+        <stop offset="34%"  stop-color="#3a1248"/>
+        <stop offset="48%"  stop-color="#7a2050"/>
+        <stop offset="58%"  stop-color="#c0402e"/>
+        <stop offset="68%"  stop-color="#e87828"/>
+        <stop offset="76%"  stop-color="#ffae44"/>
+        <stop offset="82%"  stop-color="#e8821e"/>
+        <stop offset="90%"  stop-color="#7a2c0a"/>
+        <stop offset="100%" stop-color="#2a1004"/>
       </linearGradient>
-      <radialGradient id="sunGlow" cx="50%" cy="39%" r="30%" gradientUnits="objectBoundingBox">
-        <stop offset="0%"   stop-color="#ffb040" stop-opacity=".55"/>
-        <stop offset="40%"  stop-color="#ff7010" stop-opacity=".2"/>
+      <!-- Sun disk -->
+      <radialGradient id="sunDisk" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#fff4d6"/>
+        <stop offset="35%"  stop-color="#ffe08a"/>
+        <stop offset="70%"  stop-color="#ffb648"/>
+        <stop offset="100%" stop-color="#ff8c2a" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="sunGlow" cx="50%" cy="40%" r="42%" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="#ffc066" stop-opacity=".5"/>
+        <stop offset="45%"  stop-color="#ff7820" stop-opacity=".18"/>
         <stop offset="100%" stop-color="#ff4000" stop-opacity="0"/>
       </radialGradient>
+      <!-- Horizon haze band -->
+      <linearGradient id="hazeG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#ffb860" stop-opacity="0"/>
+        <stop offset="55%"  stop-color="#ffaa55" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#ff9840" stop-opacity="0"/>
+      </linearGradient>
+      <!-- Atmospheric perspective mountain layers -->
+      <linearGradient id="mtnFar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5a3a52"/><stop offset="100%" stop-color="#7a4a48"/>
+      </linearGradient>
+      <linearGradient id="mtnMid" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#3a2038"/><stop offset="100%" stop-color="#5a2a30"/>
+      </linearGradient>
+      <!-- Road asphalt with sunset sheen -->
       <linearGradient id="roadG" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%"   stop-color="#1e1810"/>
-        <stop offset="40%"  stop-color="#2a2218"/>
-        <stop offset="100%" stop-color="#3a3020"/>
+        <stop offset="0%"   stop-color="#2a2018"/>
+        <stop offset="20%"  stop-color="#241c16"/>
+        <stop offset="100%" stop-color="#39301f"/>
       </linearGradient>
-      <linearGradient id="vergeL" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%"   stop-color="#0e1e08"/>
-        <stop offset="100%" stop-color="#1e3a10"/>
+      <!-- Road sunset reflection (centre sheen) -->
+      <linearGradient id="roadSheen" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#ffae55" stop-opacity=".30"/>
+        <stop offset="40%"  stop-color="#e8741e" stop-opacity=".10"/>
+        <stop offset="100%" stop-color="#e8741e" stop-opacity="0"/>
       </linearGradient>
-      <linearGradient id="vergeR" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%"   stop-color="#1e3a10"/>
-        <stop offset="100%" stop-color="#0e1e08"/>
+      <!-- Verges: lush grass, brighter near viewer -->
+      <linearGradient id="vergeL" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%"   stop-color="#16240e"/>
+        <stop offset="60%"  stop-color="#24400f"/>
+        <stop offset="100%" stop-color="#34561a"/>
+      </linearGradient>
+      <linearGradient id="vergeR" x1="1" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#16240e"/>
+        <stop offset="60%"  stop-color="#24400f"/>
+        <stop offset="100%" stop-color="#34561a"/>
       </linearGradient>
       <radialGradient id="crossGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%"   stop-color="#ffd080" stop-opacity=".7"/>
+        <stop offset="0%"   stop-color="#fff0c0" stop-opacity=".85"/>
         <stop offset="100%" stop-color="#ffd080" stop-opacity="0"/>
       </radialGradient>
+      <radialGradient id="treeGlow" cx="50%" cy="100%" r="70%">
+        <stop offset="0%" stop-color="#1a2810"/><stop offset="100%" stop-color="#0a1206"/>
+      </radialGradient>
     </defs>
+
+    <!-- Sky -->
     <rect x="0" y="0" width="800" height="320" fill="url(#skyG)"/>
-    <rect x="0" y="0" width="800" height="320" fill="url(#sunGlow)"/>
+
+    <!-- Stars (upper sky only) -->
     <g fill="#fff">
       <circle cx="42"  cy="14" r="1"   opacity=".7"/>
       <circle cx="110" cy="6"  r="1.3" opacity=".55"/>
-      <circle cx="195" cy="20" r=".9"  opacity=".6"/>
+      <circle cx="195" cy="20" r=".9"  opacity=".55"/>
       <circle cx="290" cy="9"  r="1.1" opacity=".5"/>
-      <circle cx="370" cy="24" r=".8"  opacity=".45"/>
-      <circle cx="470" cy="11" r="1.2" opacity=".55"/>
-      <circle cx="560" cy="5"  r="1"   opacity=".6"/>
-      <circle cx="640" cy="18" r=".9"  opacity=".5"/>
-      <circle cx="718" cy="8"  r="1.2" opacity=".65"/>
-      <circle cx="778" cy="22" r=".9"  opacity=".5"/>
+      <circle cx="470" cy="11" r="1.2" opacity=".5"/>
+      <circle cx="560" cy="5"  r="1"   opacity=".55"/>
+      <circle cx="640" cy="18" r=".9"  opacity=".45"/>
+      <circle cx="718" cy="8"  r="1.2" opacity=".6"/>
+      <circle cx="778" cy="22" r=".9"  opacity=".45"/>
+      <circle cx="150" cy="30" r=".7"  opacity=".35"/>
+      <circle cx="350" cy="34" r=".7"  opacity=".3"/>
+      <circle cx="620" cy="40" r=".6"  opacity=".3"/>
     </g>
-    <g fill="#1a0808" opacity=".75">
-      <rect x="28"  y="108" width="14" height="22"/><rect x="44"  y="100" width="10" height="30"/>
-      <rect x="56"  y="112" width="18" height="18"/><rect x="78"  y="96"  width="8"  height="34"/>
-      <rect x="88"  y="108" width="16" height="22"/><rect x="106" y="102" width="12" height="28"/>
-      <rect x="586" y="108" width="14" height="22"/><rect x="602" y="98"  width="10" height="32"/>
-      <rect x="614" y="110" width="18" height="20"/><rect x="636" y="95"  width="8"  height="35"/>
-      <rect x="648" y="107" width="16" height="23"/><rect x="668" y="102" width="12" height="28"/>
-      <rect x="698" y="96"  width="14" height="34"/><rect x="716" y="108" width="10" height="22"/>
-      <rect x="730" y="100" width="16" height="30"/><rect x="750" y="110" width="12" height="20"/>
+
+    <!-- Sun glow wash across the horizon -->
+    <rect x="0" y="40" width="800" height="200" fill="url(#sunGlow)"/>
+    <!-- Sun disk sitting on the horizon -->
+    <circle id="sun-disk" cx="400" cy="118" r="34" fill="url(#sunDisk)"/>
+    <circle cx="400" cy="120" r="20" fill="#ffe6a0" opacity=".9"/>
+
+    <!-- Far mountain range (hazy, atmospheric) -->
+    <path d="M0,118 L60,96 L130,110 L200,88 L280,108 L360,92 L440,106 L520,86 L610,108 L690,94 L760,110 L800,100 L800,127 L0,127 Z"
+          fill="url(#mtnFar)" opacity=".5"/>
+    <!-- Mid hills -->
+    <path d="M0,127 L80,112 L160,122 L250,106 L340,120 L430,110 L520,123 L620,108 L710,121 L800,112 L800,127 Z"
+          fill="url(#mtnMid)" opacity=".7"/>
+
+    <!-- Horizon haze band -->
+    <rect x="0" y="112" width="800" height="26" fill="url(#hazeG)"/>
+
+    <!-- Distant city silhouette flanking the church -->
+    <g fill="#160606" opacity=".82">
+      <rect x="28"  y="111" width="14" height="16"/><rect x="44"  y="104" width="10" height="23"/>
+      <rect x="56"  y="114" width="18" height="13"/><rect x="78"  y="100" width="8"  height="27"/>
+      <rect x="88"  y="111" width="16" height="16"/><rect x="106" y="106" width="12" height="21"/>
+      <rect x="124" y="113" width="10" height="14"/>
+      <rect x="586" y="111" width="14" height="16"/><rect x="602" y="103" width="10" height="24"/>
+      <rect x="614" y="114" width="18" height="13"/><rect x="636" y="99"  width="8"  height="28"/>
+      <rect x="648" y="110" width="16" height="17"/><rect x="668" y="106" width="12" height="21"/>
+      <rect x="698" y="100" width="14" height="27"/><rect x="716" y="112" width="10" height="15"/>
+      <rect x="730" y="105" width="16" height="22"/><rect x="750" y="113" width="12" height="14"/>
     </g>
-    <g transform="translate(400,80)">
-      <rect x="-6" y="-10" width="12" height="50" fill="#180800" opacity=".85"/>
-      <polygon points="0,-28 -7,-10 7,-10" fill="#180800" opacity=".9"/>
-      <line x1="0" y1="-26" x2="0"  y2="-14" stroke="#ffd080" stroke-width="1.5" opacity=".9"/>
-      <line x1="-4" y1="-22" x2="4" y2="-22" stroke="#ffd080" stroke-width="1.5" opacity=".9"/>
-      <circle cx="0" cy="-20" r="10" fill="url(#crossGlow)" opacity=".6"/>
+
+    <!-- Church / steeple — focal point at vanishing point, silhouetted on the sun -->
+    <g transform="translate(400,82)">
+      <circle cx="0" cy="-18" r="14" fill="url(#crossGlow)" opacity=".7"/>
+      <rect x="-7" y="-8" width="14" height="53" fill="#120400" opacity=".9"/>
+      <polygon points="0,-30 -8,-8 8,-8" fill="#120400" opacity=".95"/>
+      <line x1="0" y1="-28" x2="0"  y2="-15" stroke="#ffe6a0" stroke-width="1.6" opacity=".95"/>
+      <line x1="-4.5" y1="-23" x2="4.5" y2="-23" stroke="#ffe6a0" stroke-width="1.6" opacity=".95"/>
+      <rect x="-2" y="2" width="4" height="6" rx="1" fill="#ffcf6a" opacity=".5"/>
     </g>
-    <line id="horiz-shimmer" x1="0" y1="127" x2="800" y2="127" stroke="#ff9840" stroke-width="1.5" opacity=".3"/>
+
+    <!-- Horizon shimmer line -->
+    <line id="horiz-shimmer" x1="0" y1="127" x2="800" y2="127" stroke="#ffb860" stroke-width="1.5" opacity=".4"/>
+
+    <!-- Green verges -->
     <polygon points="0,127  352,127  0,320" fill="url(#vergeL)"/>
     <polygon points="800,127  448,127  800,320" fill="url(#vergeR)"/>
-    <line x1="0" y1="127" x2="352" y2="127" stroke="#4a5a20" stroke-width="1" opacity=".5"/>
-    <line x1="800" y1="127" x2="448" y2="127" stroke="#4a5a20" stroke-width="1" opacity=".5"/>
+    <!-- Verge edge highlight -->
+    <line x1="0" y1="127" x2="352" y2="127" stroke="#4a6a24" stroke-width="1" opacity=".5"/>
+    <line x1="800" y1="127" x2="448" y2="127" stroke="#4a6a24" stroke-width="1" opacity=".5"/>
+
+    <!-- Grass blade texture hints on near verges -->
+    <g stroke="#3c5e1e" stroke-width="1.4" opacity=".4" stroke-linecap="round">
+      <line x1="30"  y1="312" x2="33"  y2="298"/><line x1="60"  y1="316" x2="64"  y2="300"/>
+      <line x1="95"  y1="310" x2="99"  y2="296"/><line x1="130" y1="318" x2="135" y2="302"/>
+      <line x1="175" y1="312" x2="180" y2="298"/><line x1="215" y1="316" x2="221" y2="300"/>
+      <line x1="770" y1="312" x2="767" y2="298"/><line x1="740" y1="316" x2="736" y2="300"/>
+      <line x1="705" y1="310" x2="701" y2="296"/><line x1="668" y1="318" x2="663" y2="302"/>
+      <line x1="625" y1="312" x2="620" y2="298"/><line x1="585" y1="316" x2="579" y2="300"/>
+    </g>
+
+    <!-- Road surface -->
     <polygon points="352,127  448,127  800,320  0,320" fill="url(#roadG)"/>
-    <line x1="355" y1="127" x2="12"  y2="318" stroke="rgba(255,255,220,.45)" stroke-width="2.5"/>
-    <line x1="445" y1="127" x2="788" y2="318" stroke="rgba(255,255,220,.45)" stroke-width="2.5"/>
-    <line x1="376" y1="127" x2="172" y2="320" stroke="rgba(255,255,180,.15)" stroke-width="1.5" stroke-dasharray="8,12"/>
-    <line x1="424" y1="127" x2="628" y2="320" stroke="rgba(255,255,180,.15)" stroke-width="1.5" stroke-dasharray="8,12"/>
-    <polygon class="road-dash" points="398.5,133 401.5,133 401,146 399,146" fill="rgba(255,245,190,.72)"/>
-    <polygon class="road-dash" points="396,155 404,155 403,172 397,172" fill="rgba(255,245,190,.66)"/>
-    <polygon class="road-dash" points="393,180 407,180 405,206 395,206" fill="rgba(255,245,190,.60)"/>
-    <polygon class="road-dash" points="388,216 412,216 409,253 391,253" fill="rgba(255,245,190,.54)"/>
-    <polygon class="road-dash" points="382,263 418,263 414,308 386,308" fill="rgba(255,245,190,.48)"/>
-    <g opacity=".88">
-      <rect x="114" y="127" width="3.5" height="40" fill="#2a1e14"/>
-      <rect x="54"  y="101" width="96" height="32" rx="3" fill="#1a0e0a"/>
-      <rect x="56"  y="103" width="92" height="28" rx="2" fill="#221208"/>
-      <rect x="56"  y="103" width="92" height="6"  rx="2" fill="#3a1808"/>
-      <text x="102" y="114" font-family="'Courier New',monospace" font-size="5.5" fill="#ff9840" text-anchor="middle" letter-spacing="1.2">ATHEISM · SCIENCE</text>
-      <text x="102" y="123" font-family="'Courier New',monospace" font-size="4.8" fill="#c06020" text-anchor="middle">A · B · C · D · E · F</text>
-      <circle cx="59"  cy="106" r="1.5" fill="#4a2a10"/><circle cx="145" cy="106" r="1.5" fill="#4a2a10"/>
-      <circle cx="59"  cy="128" r="1.5" fill="#4a2a10"/><circle cx="145" cy="128" r="1.5" fill="#4a2a10"/>
+    <!-- Sunset sheen reflected down the centre of the road -->
+    <polygon points="384,127  416,127  520,320  280,320" fill="url(#roadSheen)"/>
+    <!-- Shoulder lines -->
+    <line x1="355" y1="127" x2="12"  y2="318" stroke="rgba(255,250,225,.5)" stroke-width="2.5"/>
+    <line x1="445" y1="127" x2="788" y2="318" stroke="rgba(255,250,225,.5)" stroke-width="2.5"/>
+    <!-- Inner lane guides -->
+    <line x1="376" y1="127" x2="172" y2="320" stroke="rgba(255,255,180,.12)" stroke-width="1.5" stroke-dasharray="8,12"/>
+    <line x1="424" y1="127" x2="628" y2="320" stroke="rgba(255,255,180,.12)" stroke-width="1.5" stroke-dasharray="8,12"/>
+    <!-- Centre dashes -->
+    <polygon class="road-dash" points="398.5,133 401.5,133 401,146 399,146" fill="rgba(255,248,205,.75)"/>
+    <polygon class="road-dash" points="396,155 404,155 403,172 397,172" fill="rgba(255,248,205,.68)"/>
+    <polygon class="road-dash" points="393,180 407,180 405,206 395,206" fill="rgba(255,248,205,.62)"/>
+    <polygon class="road-dash" points="388,216 412,216 409,253 391,253" fill="rgba(255,248,205,.56)"/>
+    <polygon class="road-dash" points="382,263 418,263 414,308 386,308" fill="rgba(255,248,205,.5)"/>
+
+    <!-- ── ROADSIDE TREES (cypress silhouettes, perspective: small→large) ── -->
+    <!-- Far left tree -->
+    <g opacity=".85"><polygon points="158,127 152,150 164,150" fill="#0e1a08"/><rect x="157" y="150" width="2" height="6" fill="#1a1006"/></g>
+    <!-- Far right tree -->
+    <g opacity=".85"><polygon points="642,127 636,150 648,150" fill="#0e1a08"/><rect x="641" y="150" width="2" height="6" fill="#1a1006"/></g>
+    <!-- Mid left tree -->
+    <g opacity=".9"><polygon points="120,150 108,196 132,196" fill="#0c1606"/><rect x="118" y="196" width="4" height="10" fill="#1a1006"/></g>
+    <!-- Mid right tree -->
+    <g opacity=".9"><polygon points="680,150 668,196 692,196" fill="#0c1606"/><rect x="678" y="196" width="4" height="10" fill="#1a1006"/></g>
+    <!-- Near left tree (big) -->
+    <g opacity=".95"><polygon points="58,205 36,285 80,285" fill="#0a1305"/><polygon points="58,225 40,285 76,285" fill="#10200a"/><rect x="54" y="285" width="8" height="18" fill="#180e06"/></g>
+    <!-- Near right tree (big) -->
+    <g opacity=".95"><polygon points="742,205 720,285 764,285" fill="#0a1305"/><polygon points="742,225 724,285 760,285" fill="#10200a"/><rect x="738" y="285" width="8" height="18" fill="#180e06"/></g>
+
+    <!-- Roadside billboards -->
+    <g opacity=".9">
+      <rect x="172" y="155" width="3.5" height="42" fill="#241a10"/>
+      <rect x="112" y="128" width="96" height="32" rx="3" fill="#160c08"/>
+      <rect x="114" y="130" width="92" height="28" rx="2" fill="#241308"/>
+      <rect x="114" y="130" width="92" height="6"  rx="2" fill="#46220a"/>
+      <text x="160" y="141" font-family="'Courier New',monospace" font-size="5.5" fill="#ffaa50" text-anchor="middle" letter-spacing="1.2">ATHEISM · SCIENCE</text>
+      <text x="160" y="150" font-family="'Courier New',monospace" font-size="4.8" fill="#cc7028" text-anchor="middle">A · B · C · D · E · F</text>
+      <circle cx="117" cy="133" r="1.5" fill="#5a3414"/><circle cx="203" cy="133" r="1.5" fill="#5a3414"/>
+      <circle cx="117" cy="155" r="1.5" fill="#5a3414"/><circle cx="203" cy="155" r="1.5" fill="#5a3414"/>
     </g>
-    <g opacity=".88">
-      <rect x="683" y="127" width="3.5" height="40" fill="#2a1e14"/>
-      <rect x="650" y="101" width="96" height="32" rx="3" fill="#1a0e0a"/>
-      <rect x="652" y="103" width="92" height="28" rx="2" fill="#221208"/>
-      <rect x="652" y="103" width="92" height="6"  rx="2" fill="#3a1808"/>
-      <text x="698" y="114" font-family="'Courier New',monospace" font-size="5.5" fill="#ff9840" text-anchor="middle" letter-spacing="1.2">SUFFERING · EVIL</text>
-      <text x="698" y="123" font-family="'Courier New',monospace" font-size="4.8" fill="#c06020" text-anchor="middle">G · H · I · J · K · L · M · N · O</text>
-      <circle cx="655" cy="106" r="1.5" fill="#4a2a10"/><circle cx="741" cy="106" r="1.5" fill="#4a2a10"/>
-      <circle cx="655" cy="128" r="1.5" fill="#4a2a10"/><circle cx="741" cy="128" r="1.5" fill="#4a2a10"/>
+    <g opacity=".9">
+      <rect x="625" y="155" width="3.5" height="42" fill="#241a10"/>
+      <rect x="592" y="128" width="96" height="32" rx="3" fill="#160c08"/>
+      <rect x="594" y="130" width="92" height="28" rx="2" fill="#241308"/>
+      <rect x="594" y="130" width="92" height="6"  rx="2" fill="#46220a"/>
+      <text x="640" y="141" font-family="'Courier New',monospace" font-size="5.5" fill="#ffaa50" text-anchor="middle" letter-spacing="1.2">SUFFERING · EVIL</text>
+      <text x="640" y="150" font-family="'Courier New',monospace" font-size="4.8" fill="#cc7028" text-anchor="middle">G · H · I · J · K · L · M · N · O</text>
+      <circle cx="597" cy="133" r="1.5" fill="#5a3414"/><circle cx="683" cy="133" r="1.5" fill="#5a3414"/>
+      <circle cx="597" cy="155" r="1.5" fill="#5a3414"/><circle cx="683" cy="155" r="1.5" fill="#5a3414"/>
     </g>
+
+    <!-- Birds heading to the horizon -->
+    <g stroke="#1a0c08" stroke-width="1.2" fill="none" opacity=".55" stroke-linecap="round">
+      <path d="M250,58 Q256,54 262,58 Q268,54 274,58"/>
+      <path d="M300,46 Q305,43 310,46 Q315,43 320,46"/>
+      <path d="M520,52 Q526,48 532,52 Q538,48 544,52"/>
+      <path d="M560,62 Q564,59 568,62 Q572,59 576,62"/>
+    </g>
+
+    <!-- Perspective lamp posts -->
     <g opacity=".7">
-      <line x1="185" y1="127" x2="62"  y2="240" stroke="#2a2010" stroke-width="2"/>
-      <line x1="62"  y1="240" x2="54"  y2="240" stroke="#2a2010" stroke-width="2"/>
-      <circle cx="54" cy="238" r="3"  fill="#ffe87a" opacity=".8"/>
-      <circle cx="54" cy="238" r="7"  fill="#ffe87a" opacity=".18"/>
-      <line x1="615" y1="127" x2="738" y2="240" stroke="#2a2010" stroke-width="2"/>
-      <line x1="738" y1="240" x2="746" y2="240" stroke="#2a2010" stroke-width="2"/>
-      <circle cx="746" cy="238" r="3"  fill="#ffe87a" opacity=".8"/>
-      <circle cx="746" cy="238" r="7"  fill="#ffe87a" opacity=".18"/>
+      <line x1="185" y1="127" x2="62"  y2="240" stroke="#241a0e" stroke-width="2"/>
+      <line x1="62"  y1="240" x2="54"  y2="240" stroke="#241a0e" stroke-width="2"/>
+      <circle cx="54" cy="238" r="3"  fill="#ffe07a" opacity=".85"/>
+      <circle cx="54" cy="238" r="8"  fill="#ffe07a" opacity=".16"/>
+      <line x1="615" y1="127" x2="738" y2="240" stroke="#241a0e" stroke-width="2"/>
+      <line x1="738" y1="240" x2="746" y2="240" stroke="#241a0e" stroke-width="2"/>
+      <circle cx="746" cy="238" r="3"  fill="#ffe07a" opacity=".85"/>
+      <circle cx="746" cy="238" r="8"  fill="#ffe07a" opacity=".16"/>
     </g>
-    <g opacity=".88">
-      <line x1="248" y1="127" x2="22"  y2="300" stroke="#2a2010" stroke-width="3.5"/>
-      <line x1="22"  y1="300" x2="4"   y2="300" stroke="#2a2010" stroke-width="3"/>
-      <circle cx="4"   cy="297" r="5.5" fill="#ffe87a" opacity=".85"/>
-      <circle cx="4"   cy="297" r="13"  fill="#ffe87a" opacity=".15"/>
-      <line x1="552" y1="127" x2="778" y2="300" stroke="#2a2010" stroke-width="3.5"/>
-      <line x1="778" y1="300" x2="796" y2="300" stroke="#2a2010" stroke-width="3"/>
-      <circle cx="796" cy="297" r="5.5" fill="#ffe87a" opacity=".85"/>
-      <circle cx="796" cy="297" r="13"  fill="#ffe87a" opacity=".15"/>
+    <g opacity=".9">
+      <line x1="248" y1="127" x2="22"  y2="300" stroke="#241a0e" stroke-width="3.5"/>
+      <line x1="22"  y1="300" x2="4"   y2="300" stroke="#241a0e" stroke-width="3"/>
+      <circle cx="4"   cy="297" r="5.5" fill="#ffe07a" opacity=".9"/>
+      <circle cx="4"   cy="297" r="15"  fill="#ffe07a" opacity=".13"/>
+      <line x1="552" y1="127" x2="778" y2="300" stroke="#241a0e" stroke-width="3.5"/>
+      <line x1="778" y1="300" x2="796" y2="300" stroke="#241a0e" stroke-width="3"/>
+      <circle cx="796" cy="297" r="5.5" fill="#ffe07a" opacity=".9"/>
+      <circle cx="796" cy="297" r="15"  fill="#ffe07a" opacity=".13"/>
     </g>
-    <rect x="0" y="316" width="800" height="4" fill="#1a1408" opacity=".8"/>
+
+    <!-- Ground kerb -->
+    <rect x="0" y="316" width="800" height="4" fill="#160f06" opacity=".85"/>
   </svg>
 
   <div id="player-you">
