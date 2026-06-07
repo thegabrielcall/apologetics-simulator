@@ -40,7 +40,7 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .bubble-row.them{justify-content:flex-end}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
-.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.you .bubble{border-bottom-left-radius:3px;background:#1c1828;border:1.5px solid #4a4060;color:#c8c0d8}
 .bubble-row.them .bubble{border-bottom-right-radius:3px}
 .tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
 .tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
@@ -433,7 +433,7 @@ function addBubble(speaker,text,tier,src){
   const row=document.createElement('div');
   row.className=`bubble-row ${speaker}`;
   const b=document.createElement('div');
-  b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  b.className=`bubble ${speaker==='you'?'':TIER_COLORS[tier]||'tb-1'}`;
   b.textContent=text;
   if(src){
     const badge=document.createElement('div');

@@ -212,7 +212,7 @@ function updateTrack(tier){
 function addBubble(speaker,text,tier,src){
   const chat=document.getElementById('chat-area');
   const wrap=document.createElement('div');wrap.className=`bubble-wrap ${speaker==='you'?'you-wrap':'them-wrap'}`;
-  const bub=document.createElement('div');bub.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;
+  const bub=document.createElement('div');bub.className=`bubble ${speaker==='you'?'':TIER_COLORS[tier]||'tb-1'}`;
   const pip=document.createElement('span');pip.className=`tier-pip ${TIER_PIP[tier]||'tp1'}`;
   pip.textContent=`T${tier} · ${speaker==='you'?'You':'Them'}`;
   bub.appendChild(pip);bub.appendChild(document.createElement('br'));bub.appendChild(document.createTextNode(text));

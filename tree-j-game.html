@@ -34,7 +34,7 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .bubble-row.them{justify-content:flex-end}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .bubble{max-width:78%;padding:10px 13px;border-radius:14px;font-size:.9rem;line-height:1.5;position:relative}
-.bubble-row.you .bubble{border-bottom-left-radius:3px}
+.bubble-row.you .bubble{border-bottom-left-radius:3px;background:#1c1828;border:1.5px solid #4a4060;color:#c8c0d8}
 .bubble-row.them .bubble{border-bottom-right-radius:3px}
 .tb-1{background:#1a2e38;border:1.5px solid #6ab8d4;color:#b8dfe8}
 .tb-2{background:#2e1a1a;border:1.5px solid #d46a6a;color:#e8b8b8}
@@ -255,7 +255,7 @@ const nodes={
 let pathLog=[];
 function buildTrack(){const t=document.getElementById('tier-track');t.innerHTML='';for(let i=1;i<=MAX_TIERS;i++){const d=document.createElement('div');d.className=`pip ${TIER_PIP[i]}`;d.id=`pip-${i}`;d.textContent=i;t.appendChild(d);}}
 function updateTrack(tier){for(let i=1;i<=MAX_TIERS;i++){const p=document.getElementById(`pip-${i}`);if(!p)continue;p.classList.remove('active','done');if(i<tier)p.classList.add('done');else if(i===tier)p.classList.add('active');}}
-function addBubble(speaker,text,tier,src){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className=`bubble-row ${speaker}`;const b=document.createElement('div');b.className=`bubble ${TIER_COLORS[tier]||'tb-1'}`;b.textContent=text;if(src){const badge=document.createElement('div');badge.className='src-badge';badge.textContent='📎 '+src;b.appendChild(badge);}row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
+function addBubble(speaker,text,tier,src){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className=`bubble-row ${speaker}`;const b=document.createElement('div');b.className=`bubble ${speaker==='you'?'':TIER_COLORS[tier]||'tb-1'}`;b.textContent=text;if(src){const badge=document.createElement('div');badge.className='src-badge';badge.textContent='📎 '+src;b.appendChild(badge);}row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
 function showTyping(){const area=document.getElementById('chat-area');const row=document.createElement('div');row.className='bubble-row them';row.id='typing-row';const b=document.createElement('div');b.className='bubble tb-1 typing-indicator';b.innerHTML='<span></span><span></span><span></span>';row.appendChild(b);area.appendChild(row);area.scrollTop=area.scrollHeight;}
 function removeTyping(){const r=document.getElementById('typing-row');if(r)r.remove();}
 function showChoices(node){const panel=document.getElementById('choices-panel');const prompt=document.getElementById('choices-prompt');const grid=document.getElementById('choices-grid');panel.classList.remove('hidden');prompt.textContent=node.prompt||'Choose your response...';grid.innerHTML='';node.choices.forEach((c,i)=>{const btn=document.createElement('button');btn.className='choice-btn';btn.innerHTML=`<span class="choice-label">${c.label}</span><span class="choice-sub">${c.sub||''}</span>`;btn.onclick=()=>pick(node,c,i);grid.appendChild(btn);});}
