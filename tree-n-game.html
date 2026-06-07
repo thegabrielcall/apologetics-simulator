@@ -207,17 +207,17 @@ const nodes={
   t8_soft:{type:'say',speaker:'them',tier:8,text:"I respect that you're not pretending. Most people give me talking points. So what keeps you believing when you're in the hard part?",next:'t9_anchor_pick'},
 
   t9_pick:{type:'pick',tier:9,prompt:'They\'re genuinely interested. Choose your closing.',choices:[
-    {label:'Point them to Lewis and the historical case',sub:'"Start with the evidence — then the experience will follow or it won\'t."',tag:'best',next:'outcome_open'},
-    {label:'Invite them to keep the conversation going',sub:'"This deserves more than a sidewalk. Let\'s talk again."',tag:'good',next:'outcome_away'},
-    {label:'Share what the faith has done in your own suffering',sub:'"I can only speak to what it\'s done for me."',tag:'good',next:'outcome_seed'},
-    {label:'Invite them to church this Sunday',sub:'"Come and see — don\'t just take my word for it."',tag:'risky',next:'outcome_away_soft'},
+    {label:'Point them to Lewis and the historical case',sub:'"Start with the evidence — then the experience will follow or it won\'t."',tag:'best',youText:"Start with Lewis — Mere Christianity, or Surprised by Joy. Then the historical case for the resurrection. Start with the evidence. If the experience follows, it follows. If it doesn't, you'll know why.",next:'outcome_open'},
+    {label:'Invite them to keep the conversation going',sub:'"This deserves more than a sidewalk. Let\'s talk again."',tag:'good',youText:"This is too big for a sidewalk conversation. I'd like to keep talking if you're open to it.",next:'outcome_away'},
+    {label:'Share what the faith has done in your own suffering',sub:'"I can only speak to what it\'s done for me."',tag:'good',youText:"I can only speak to what it's done in my own hardest moments. Not that it made things easy — it didn't. But I wasn't alone in them. That's the only testimony I can give.",next:'outcome_seed'},
+    {label:'Invite them to church this Sunday',sub:'"Come and see — don\'t just take my word for it."',tag:'risky',youText:"Come and see. Don't take my word for it — come and see what the community is actually like and form your own view.",next:'outcome_away_soft'},
   ]},
 
   t9_anchor_pick:{type:'pick',tier:9,prompt:'They want to know your anchor. Be real.',choices:[
-    {label:'The resurrection — a specific historical claim',sub:'"If it happened, suffering is not the final word. If it didn\'t, I\'m wrong."',tag:'best',next:'outcome_open'},
-    {label:'The character of Jesus in the Gospels',sub:'"I keep coming back to Him — not to the institution."',tag:'good',next:'outcome_away'},
-    {label:'What I\'ve seen suffering do in people of faith',sub:'"I\'ve watched people go through things that should destroy a person — and it didn\'t."',tag:'good',next:'outcome_seed'},
-    {label:'It\'s been in my family for generations',sub:'"I can\'t imagine walking away from it."',tag:'wrong',next:'outcome_away_cold'},
+    {label:'The resurrection — a specific historical claim',sub:'"If it happened, suffering is not the final word. If it didn\'t, I\'m wrong."',tag:'best',youText:"The resurrection is a specific historical claim. If it happened, suffering is not the final word. If it didn't, I'm wrong — and you should walk away. That's the question worth sitting with.",next:'outcome_open'},
+    {label:'The character of Jesus in the Gospels',sub:'"I keep coming back to Him — not to the institution."',tag:'good',youText:"I keep coming back to the person in the Gospels. Not the institution — Him. There's no one like him in all of literature. That's not nothing.",next:'outcome_away'},
+    {label:'What I\'ve seen suffering do in people of faith',sub:'"I\'ve watched people go through things that should destroy a person — and it didn\'t."',tag:'good',youText:"I've watched people go through things that should destroy a person — and it didn't. Not because they had easy faith. Because something held them. That's not proof. But it's the closest thing I can point to.",next:'outcome_seed'},
+    {label:'It\'s been in my family for generations',sub:'"I can\'t imagine walking away from it."',tag:'wrong',youText:"I grew up in it. My family has believed this for generations. I can't imagine walking away from it.",next:'outcome_away_cold'},
   ]},
 
   outcome_open:{type:'outcome',outcome:'open',icon:'🙏',title:'They Open',

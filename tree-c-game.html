@@ -151,10 +151,10 @@ const nodes={
   t6_risky:{type:'say',speaker:'them',tier:6,text:"I never actually looked for the primary source. I just took it at face value because it fit what I already thought.",next:'t7_pick'},
 
   t7_pick:{type:'pick',tier:7,prompt:'They\'ve moved from myth to real person. Choose your final response.',choices:[
-    {label:'The real man made specific claims',sub:'"Most documented person in ancient history — and his claims are specific."',tag:'best',next:'outcome_pray'},
-    {label:'Name how significant that shift is',sub:'"From myth to real person with claims — that\'s not a small move."',tag:'good',next:'outcome_away'},
-    {label:'Give them space to sit with it',sub:'"That distinction alone is worth thinking through."',tag:'good',next:'outcome_away_soft'},
-    {label:'Press them to accept the next step',sub:'"Since he existed, you should also accept what he said."',tag:'wrong',next:'outcome_pushed'},
+    {label:'The real man made specific claims',sub:'"Most documented person in ancient history — and his claims are specific."',tag:'best',youText:"The most documented person in all of ancient history — and his claims are specific. Not symbolic. He said 'I am the resurrection and the life.' That's worth taking seriously.",next:'outcome_pray'},
+    {label:'Name how significant that shift is',sub:'"From myth to real person with claims — that\'s not a small move."',tag:'good',youText:"Moving from mythology to a real historical person with real specific claims — that's not a small shift. That changes the whole question.",next:'outcome_away'},
+    {label:'Give them space to sit with it',sub:'"That distinction alone is worth thinking through."',tag:'good',youText:"Just that distinction — myth versus actual man with actual claims — is worth sitting with. I'll let you think.",next:'outcome_away_soft'},
+    {label:'Press them to accept the next step',sub:'"Since he existed, you should also accept what he said."',tag:'wrong',youText:"If he existed — and he did — then you also have to take what he actually said seriously.",next:'outcome_pushed'},
   ]},
 
   outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'They Open',

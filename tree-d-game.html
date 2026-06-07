@@ -149,10 +149,10 @@ const nodes={
   t6_risky:{type:'say',speaker:'them',tier:6,text:"I can see that distinction. I've been judging the text by the worst uses of it, not what it actually says.",next:'t7_pick'},
 
   t7_pick:{type:'pick',tier:7,prompt:'They\'ve made a real concession. How do you close?',choices:[
-    {label:'The historical question historians actually ask',sub:'"Why did they maintain the story under torture? Historians ask that."',tag:'best',next:'outcome_pray'},
-    {label:'Point them to the scholarship',sub:'"Dying for it is one of the strongest arguments historians acknowledge."',tag:'good',next:'outcome_away'},
-    {label:'Honor their honesty and give space',sub:'"That\'s a significant thing to acknowledge. Take your time."',tag:'good',next:'outcome_away_soft'},
-    {label:'Push them to a conclusion',sub:'"So now are you ready to reconsider everything?"',tag:'wrong',next:'outcome_pushed'},
+    {label:'The historical question historians actually ask',sub:'"Why did they maintain the story under torture? Historians ask that."',tag:'best',youText:"The question historians actually ask isn't whether the resurrection happened — it's why would twelve men maintain this story under torture? That's what serious scholarship has to account for.",next:'outcome_pray'},
+    {label:'Point them to the scholarship',sub:'"Dying for it is one of the strongest arguments historians acknowledge."',tag:'good',youText:"Dying for a claim is one of the strongest historical arguments there is. Historians acknowledge it even when they don't accept the conclusion. It's worth looking into.",next:'outcome_away'},
+    {label:'Honor their honesty and give space',sub:'"That\'s a significant thing to acknowledge. Take your time."',tag:'good',youText:"The fact that you can acknowledge that is significant. Take your time with it. The question deserves more than a sidewalk conversation.",next:'outcome_away_soft'},
+    {label:'Push them to a conclusion',sub:'"So now are you ready to reconsider everything?"',tag:'wrong',youText:"So does this change how you look at all of it?",next:'outcome_pushed'},
   ]},
 
   outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'They Open',

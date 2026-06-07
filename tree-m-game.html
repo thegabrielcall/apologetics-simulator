@@ -195,17 +195,17 @@ const nodes={
   t8_soft:{type:'say',speaker:'them',tier:8,text:"I appreciate you being honest about not knowing. Most people get defensive. So what is the anchor? What makes you still believe despite not having all the answers?",next:'t9_anchor_pick'},
 
   t9_pick:{type:'pick',tier:9,prompt:'Something shifted. Choose your closing.',choices:[
-    {label:'Invite honest investigation',sub:'"Lewis started where you are. Follow the evidence all the way."',tag:'best',next:'outcome_open'},
-    {label:'Leave the door open gracefully',sub:'"The question you\'re asking is the right one — keep asking it."',tag:'good',next:'outcome_away'},
-    {label:'Personal witness',sub:'"This question was a wall for me too — until it wasn\'t."',tag:'good',next:'outcome_seed'},
-    {label:'Press for a commitment',sub:'"So does this change things for you?"',tag:'wrong',next:'outcome_pushed'},
+    {label:'Invite honest investigation',sub:'"Lewis started where you are. Follow the evidence all the way."',tag:'best',youText:"C.S. Lewis started exactly where you are — a committed atheist who thought the evidence would prove him right. Follow it all the way. I think you'll find what he found.",next:'outcome_open'},
+    {label:'Leave the door open gracefully',sub:'"The question you\'re asking is the right one — keep asking it."',tag:'good',youText:"The question you're asking is the right one. Keep asking it. Don't settle for easy answers on either side.",next:'outcome_away'},
+    {label:'Personal witness',sub:'"This question was a wall for me too — until it wasn\'t."',tag:'good',youText:"This question was a wall for me too. For a long time. I'm not going to tell you what I found — I'd rather you find it yourself. But it stopped being a wall.",next:'outcome_seed'},
+    {label:'Press for a commitment',sub:'"So does this change things for you?"',tag:'wrong',youText:"So does this actually change anything for you right now?",next:'outcome_pushed'},
   ]},
 
   t9_anchor_pick:{type:'pick',tier:9,prompt:'They want to know your anchor. Be honest.',choices:[
-    {label:'The resurrection — a verifiable claim',sub:'"If it happened, everything changes. If it didn\'t, I\'m wrong."',tag:'best',next:'outcome_open'},
-    {label:'The manuscript evidence and historical Jesus',sub:'"I started with the historical case, not the feeling."',tag:'good',next:'outcome_away'},
-    {label:'Personal transformation you\'ve witnessed',sub:'"I\'ve seen what it does to people."',tag:'risky',next:'outcome_seed'},
-    {label:'It\'s just what you were raised with',sub:'"I\'ve always believed — I can\'t imagine otherwise."',tag:'wrong',next:'outcome_pushed'},
+    {label:'The resurrection — a verifiable claim',sub:'"If it happened, everything changes. If it didn\'t, I\'m wrong."',tag:'best',youText:"The resurrection. That's the specific claim. If it happened, everything changes. If it didn't, I'm wrong and you should walk away. But that's the one worth examining.",next:'outcome_open'},
+    {label:'The manuscript evidence and historical Jesus',sub:'"I started with the historical case, not the feeling."',tag:'good',youText:"I started with the historical case, not the feeling. The manuscript evidence, the empty tomb, the transformation of the disciples. That's where I'd point you.",next:'outcome_away'},
+    {label:'Personal transformation you\'ve witnessed',sub:'"I\'ve seen what it does to people."',tag:'risky',youText:"I've watched people I know be changed by it. That's not proof — I know that. But it's not nothing either.",next:'outcome_seed'},
+    {label:'It\'s just what you were raised with',sub:'"I\'ve always believed — I can\'t imagine otherwise."',tag:'wrong',youText:"I've believed this my whole life. I can't imagine it not being true.",next:'outcome_pushed'},
   ]},
 
   outcome_open:{type:'outcome',outcome:'open',icon:'🙏',title:'They Open',

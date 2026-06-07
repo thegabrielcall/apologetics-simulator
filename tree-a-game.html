@@ -181,10 +181,10 @@ const nodes={
   t6_risky:{type:'say',speaker:'them',tier:6,text:"I don't know what would be convincing. I've just never seen anything compelling.",next:'outcome_away_soft'},
 
   t7_pick:{type:'pick',tier:7,prompt:'Something shifted. Choose your final words.',choices:[
-    {label:'Invite the investigation',sub:'"If the Bible\'s astronomy held up, what else is worth looking at?"',tag:'best',next:'outcome_pray'},
-    {label:'Give space and point to the door',sub:'"The evidence isn\'t going anywhere. Take your time."',tag:'good',next:'outcome_away'},
-    {label:'Affirm their honesty',sub:'"Most people who say \'nothing\' haven\'t actually looked."',tag:'good',next:'outcome_away_soft'},
-    {label:'Press for a decision',sub:'"So does this change your mind?"',tag:'wrong',next:'outcome_pushed'},
+    {label:'Invite the investigation',sub:'"If the Bible\'s astronomy held up, what else is worth looking at?"',tag:'best',youText:"If the Bible's astronomy held up under modern scrutiny, what else in it is worth a serious look? I'd just ask you to give it a fair read.",next:'outcome_pray'},
+    {label:'Give space and point to the door',sub:'"The evidence isn\'t going anywhere. Take your time."',tag:'good',youText:"The evidence isn't going anywhere. Take your time with it. I'm just glad you were willing to look honestly.",next:'outcome_away'},
+    {label:'Affirm their honesty',sub:'"Most people who say \'nothing\' haven\'t actually looked."',tag:'good',youText:"Most people who say there's nothing there haven't actually looked. The fact that you did — that matters.",next:'outcome_away_soft'},
+    {label:'Press for a decision',sub:'"So does this change your mind?"',tag:'wrong',youText:"So does this actually change anything for you?",next:'outcome_pushed'},
   ]},
 
   outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'They Open',

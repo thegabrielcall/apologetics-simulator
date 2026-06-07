@@ -219,24 +219,24 @@ const nodes={
   t8_grief:{type:'say',speaker:'them',tier:8,text:"Would you actually pray for him? Right now, with me?",next:'t9_prayer_pick'},
 
   t9_pick:{type:'pick',tier:9,prompt:'Something shifted. Choose your closing.',choices:[
-    {label:'Invite them to keep following the question',sub:'"The Jesus of the Gospels is worth looking at directly."',tag:'best',next:'outcome_open'},
-    {label:'Leave the door open — no pressure',sub:'"The question you\'re asking is the right one."',tag:'good',next:'outcome_away'},
-    {label:'Offer a specific next step',sub:'"Read John — just the Gospel of John."',tag:'good',next:'outcome_seed'},
-    {label:'Ask if they\'d want to come to church',sub:'"You could see for yourself what the community is actually like."',tag:'risky',next:'outcome_away_soft'},
+    {label:'Invite them to keep following the question',sub:'"The Jesus of the Gospels is worth looking at directly."',tag:'best',youText:"Keep following the question. Read the Gospel of John — just John — before anything else. Not theology, not church history. Just look at him directly and see what you think.",next:'outcome_open'},
+    {label:'Leave the door open — no pressure',sub:'"The question you\'re asking is the right one."',tag:'good',youText:"The question you're asking is the right one. I'm not going to push you. Just — don't let it go. It matters too much to file away.",next:'outcome_away'},
+    {label:'Offer a specific next step',sub:'"Read John — just the Gospel of John."',tag:'good',youText:"One specific thing: read the Gospel of John. It's short. It's written to answer exactly the questions you're asking. Just that — and see what it does.",next:'outcome_seed'},
+    {label:'Ask if they\'d want to come to church',sub:'"You could see for yourself what the community is actually like."',tag:'risky',youText:"Would you want to come and see for yourself? Not to commit to anything — just to see what the actual community looks like, not the caricature.",next:'outcome_away_soft'},
   ]},
 
   t9_hard_pick:{type:'pick',tier:9,prompt:'A hard personal question. Answer it honestly.',choices:[
-    {label:'I don\'t know — and that honesty is part of the faith',sub:'"Job asked the same thing. Jesus asked it on the cross."',tag:'best',next:'outcome_open'},
-    {label:'I believe it would — but I\'ve never been tested that way',sub:'"I won\'t claim more than I\'ve lived."',tag:'good',next:'outcome_away'},
-    {label:'I\'ve seen people\'s faith hold through that — and I\'ve seen it break',sub:'"Both are honest outcomes."',tag:'risky',next:'outcome_seed'},
-    {label:'Yes — I\'m certain my faith would hold',sub:'"God promises to sustain us in our deepest trials."',tag:'wrong',next:'outcome_away_cold'},
+    {label:'I don\'t know — and that honesty is part of the faith',sub:'"Job asked the same thing. Jesus asked it on the cross."',tag:'best',youText:"Honestly? I don't know. I hope I would hold. Job asked the same thing you're asking. Jesus asked 'My God, why have you forsaken me?' from the cross. The faith has room for that question.",next:'outcome_open'},
+    {label:'I believe it would — but I\'ve never been tested that way',sub:'"I won\'t claim more than I\'ve lived."',tag:'good',youText:"I believe it would. But I've never been tested the way you're describing. I won't claim more than I've actually lived through.",next:'outcome_away'},
+    {label:'I\'ve seen people\'s faith hold through that — and I\'ve seen it break',sub:'"Both are honest outcomes."',tag:'risky',youText:"I've watched people's faith hold through that kind of loss — and I've watched it break. Both are honest outcomes. I won't pretend otherwise.",next:'outcome_seed'},
+    {label:'Yes — I\'m certain my faith would hold',sub:'"God promises to sustain us in our deepest trials."',tag:'wrong',youText:"Yes. I'm certain. God promises to sustain us even in the deepest trials. I know my faith would hold.",next:'outcome_away_cold'},
   ]},
 
   t9_prayer_pick:{type:'pick',tier:9,prompt:'They\'re asking you to pray. This is a sacred moment.',choices:[
-    {label:'Yes. Pray simply and honestly.',sub:'"God, we don\'t understand this — but we ask."',tag:'best',next:'outcome_prayer'},
-    {label:'Yes — ask their permission to put your hand on their shoulder',sub:'"Can I? I want to pray with you, not at you."',tag:'good',next:'outcome_prayer'},
-    {label:'Yes — but acknowledge you don\'t know the outcome',sub:'"I\'ll ask. What He does with it is His."',tag:'risky',next:'outcome_prayer'},
-    {label:'Walk them through a formula prayer',sub:'"Repeat after me..."',tag:'wrong',next:'outcome_away_cold'},
+    {label:'Yes. Pray simply and honestly.',sub:'"God, we don\'t understand this — but we ask."',tag:'best',youText:"Can I pray for you right now? Just simply — God, we don't understand this. But we ask. That's all. Is that okay?",next:'outcome_prayer'},
+    {label:'Yes — ask their permission to put your hand on their shoulder',sub:'"Can I? I want to pray with you, not at you."',tag:'good',youText:"Can I put my hand on your shoulder while I pray? I want to pray with you — not at you. That okay?",next:'outcome_prayer'},
+    {label:'Yes — but acknowledge you don\'t know the outcome',sub:'"I\'ll ask. What He does with it is His."',tag:'risky',youText:"I'll pray. I want to be honest — I don't know what He'll do with it. I can only ask. What He does with the asking is His to decide.",next:'outcome_prayer'},
+    {label:'Walk them through a formula prayer',sub:'"Repeat after me..."',tag:'wrong',youText:"Let's pray together. Repeat after me — just say the words and mean them.",next:'outcome_away_cold'},
   ]},
 
   outcome_open:{type:'outcome',outcome:'open',icon:'🙏',title:'They Open',

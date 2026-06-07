@@ -170,10 +170,10 @@ const nodes={
   t6_risky:{type:'say',speaker:'them',tier:6,text:"I'm not sure I know what would satisfy me. I've never been presented with anything that felt like real evidence.",next:'outcome_away_soft'},
 
   t7_pick:{type:'pick',tier:7,prompt:'Their assumption just cracked. Choose your final words.',choices:[
-    {label:'Show it\'s the most verified text in history',sub:'"The opposite of changed — it\'s the most verified ancient text there is."',tag:'best',next:'outcome_pray'},
-    {label:'Invite the investigation on their terms',sub:'"Look into the textual scholarship — it\'s academic, not religious."',tag:'good',next:'outcome_away'},
-    {label:'Affirm their honesty and give space',sub:'"That common assumption is worth testing. The scholarship might surprise you."',tag:'good',next:'outcome_away_soft'},
-    {label:'Press them to read it now',sub:'"So will you actually read it?"',tag:'wrong',next:'outcome_pushed'},
+    {label:'Show it\'s the most verified text in history',sub:'"The opposite of changed — it\'s the most verified ancient text there is."',tag:'best',youText:"The Bible is actually the most verified ancient text in history — not changed, not corrupted. The opposite of what most people assume. The manuscript evidence is staggering.",next:'outcome_pray'},
+    {label:'Invite the investigation on their terms',sub:'"Look into the textual scholarship — it\'s academic, not religious."',tag:'good',youText:"Look into the textual scholarship — not the religious case, the academic one. Bart Ehrman is a skeptic and even he doesn't claim the text was corrupted the way people think.",next:'outcome_away'},
+    {label:'Affirm their honesty and give space',sub:'"That common assumption is worth testing. The scholarship might surprise you."',tag:'good',youText:"That assumption is worth testing. The manuscript scholarship might genuinely surprise you. It surprised me.",next:'outcome_away_soft'},
+    {label:'Press them to read it now',sub:'"So will you actually read it?"',tag:'wrong',youText:"So will you actually read it?",next:'outcome_pushed'},
   ]},
 
   outcome_pray:{type:'outcome',outcome:'pray',icon:'🙏',title:'They Open',
