@@ -122,32 +122,77 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
 .cellmate:hover{filter:drop-shadow(0 0 14px rgba(200,180,100,.5));transform:scale(1.04);}
 .cellmate-label{
   position:absolute;
-  bottom:-30px;
+  bottom:-36px;
   left:50%;
   transform:translateX(-50%);
   white-space:nowrap;
-  font-size:.65rem;
+  font-size:.72rem;
   font-family:'Courier New',monospace;
-  letter-spacing:.1em;
+  letter-spacing:.08em;
   text-transform:uppercase;
-  color:#666;
+  color:#c8b880;
   pointer-events:none;
-  transition:color .2s;
+  transition:color .2s, text-shadow .2s;
+  text-shadow:0 0 12px rgba(200,184,128,.4), 0 1px 3px rgba(0,0,0,.9);
+  background:rgba(0,0,0,.55);
+  padding:3px 10px;
+  border-radius:10px;
+  border:1px solid rgba(200,184,128,.15);
 }
-.cellmate:hover .cellmate-label{color:#c8b880;}
+.cellmate-name{
+  display:block;
+  font-size:.75rem;
+  font-weight:700;
+  color:#e8d898;
+  letter-spacing:.06em;
+}
+.cellmate-role{
+  display:block;
+  font-size:.58rem;
+  color:#8a7a50;
+  letter-spacing:.12em;
+  margin-top:1px;
+}
+.cellmate:hover .cellmate-label{
+  color:#e8d898;
+  border-color:rgba(232,216,152,.3);
+  text-shadow:0 0 18px rgba(232,216,152,.6);
+  background:rgba(0,0,0,.75);
+}
 .cellmate-hint{
   position:absolute;
-  top:-28px;
+  top:-32px;
   left:50%;
   transform:translateX(-50%);
   white-space:nowrap;
-  font-size:.6rem;
+  font-size:.62rem;
   font-family:'Courier New',monospace;
-  color:#554;
+  color:#c8b880;
+  background:rgba(0,0,0,.6);
+  padding:2px 8px;
+  border-radius:8px;
   pointer-events:none;
   animation:hintPulse 2.5s ease-in-out infinite;
+  letter-spacing:.08em;
 }
-@keyframes hintPulse{0%,100%{opacity:.4}50%{opacity:.9}}
+@keyframes hintPulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* ── THREAT SHAKE ── */
+@keyframes threatShake{
+  0%,100%{transform:translateX(0)}
+  15%{transform:translateX(-6px)}
+  30%{transform:translateX(6px)}
+  45%{transform:translateX(-5px)}
+  60%{transform:translateX(5px)}
+  75%{transform:translateX(-3px)}
+  90%{transform:translateX(3px)}
+}
+.threat-bubble{
+  border-color:#c03030!important;
+  background:#2e0a0a!important;
+  color:#ffaaaa!important;
+  animation:threatShake .5s ease both;
+}
 
 /* ── HEADER ── */
 #jail-header{
@@ -572,7 +617,7 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
       <ellipse cx="24" cy="130" rx="10" ry="4" fill="#1a1410"/>
       <ellipse cx="46" cy="130" rx="10" ry="4" fill="#1a1410"/>
     </svg>
-    <div class="cellmate-label">Marcus · hostile</div>
+    <div class="cellmate-label"><span class="cellmate-name">Marcus</span><span class="cellmate-role">hostile</span></div>
   </div>
 
   <!-- CELLMATE 2: DANNY (curious) — right, sitting on bunk edge -->
@@ -610,7 +655,7 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
       <rect x="19" y="72" width="12" height="2" rx="1" fill="#3a3028" opacity=".5"/>
       <rect x="19" y="76" width="10" height="2" rx="1" fill="#3a3028" opacity=".4"/>
     </svg>
-    <div class="cellmate-label">Danny · curious</div>
+    <div class="cellmate-label"><span class="cellmate-name">Danny</span><span class="cellmate-role">curious</span></div>
   </div>
 
 </div>
@@ -818,7 +863,7 @@ hostile: {
     h4_pick:{type:'pick',prompt:'Don\'t minimize what he lived through.',choices:[
       {label:'Your father was wrong. Full stop.',sub:'Don\'t qualify it.',tag:'best',next:'h4a',youText:"What your father did was wrong. What the pastor did by staying silent was wrong. That's not complicated. I'm not going to find a way to make that okay."},
       {label:'I\'m so sorry about your sister.',sub:'Stay with the loss.',tag:'best',next:'h4b',youText:"I'm sorry about your sister. That's not a setup for an argument. That's just — I'm sorry."},
-      {label:'Silence isn\'t the same as absence.',sub:'Theological move.',tag:'risky',next:'h4c',youText:"I don't think God's silence in those moments means He wasn't there. I think sometimes He's present in the suffering itself."},
+      {label:'Silence isn\'t the same as absence.',sub:'Theological move.',tag:'risky',next:'h4c_threat_lead',youText:"I don't think God's silence in those moments means He wasn't there. I think sometimes He's present in the suffering itself."},
       {label:'Those people failed you. God didn\'t create them to do that.',sub:'Shift blame.',tag:'wrong',next:'h4d',youText:"Those people acted on their own. God gave them free will and they used it to hurt people. That's on them, not God."},
     ]},
 
@@ -846,7 +891,7 @@ hostile: {
     h6_pick:{type:'pick',prompt:'One more step. What does he actually need to hear?',choices:[
       {label:'What was your grandmama like?',sub:'Follow the warmth.',tag:'best',next:'h6a',youText:"Tell me about your grandmama."},
       {label:'Jesus was also executed by the system.',sub:'Solidarity angle.',tag:'good',next:'h6b',youText:"You know what strikes me — Jesus was also arrested, falsely charged, executed by the state. He knows what a cage looks like from the inside."},
-      {label:'You haven\'t stopped believing. You\'re angry.',sub:'Name what you see.',tag:'risky',next:'h6c',youText:"I don't think you stopped believing. I think you're furious. Those are different things."},
+      {label:'You haven\'t stopped believing. You\'re angry.',sub:'Name what you see.',tag:'risky',next:'h6c_threat_lead',youText:"I don't think you stopped believing. I think you're furious. Those are different things."},
     ]},
 
     h6a:{type:'say',speaker:'them',text:"She was — she was something else. Didn't preach at you. Just showed up. When my daddy was at his worst she'd come get us, take us to her place. Made biscuits. Prayed over us quiet, like she was just talking to somebody in the room.",next:'h7_pick'},
@@ -862,6 +907,27 @@ hostile: {
     h7a:{type:'say',speaker:'them',text:"Yeah. Yeah she did. And I used to think if that's what God is — that thing she had — maybe. But then she died and I couldn't find it again anywhere.",next:'h_outcome_near'},
     h7b:{type:'say',speaker:'them',text:"He chose it. …My grandmama used to say something like that. That He came down. That He didn't have to. I haven't thought about her in a while.",next:'h_outcome_near'},
     h7c:{type:'say',speaker:'them',text:"…The other thing is grief. I'm grieving. And I don't know who to give it to. I stopped believing in anybody to give it to.",next:'h_outcome_soft'},
+
+    /* ── THREAT BRANCH (risky picks trigger this) ── */
+    h4c_threat_lead:{type:'say',speaker:'them',threat:true,text:"Man, I'm gonna beat you up if you don't shut your mouth. I didn't ask for a sermon. You don't know NOTHING about what I've been through.",next:'h_threat_pick'},
+    h6c_threat_lead:{type:'say',speaker:'them',threat:true,text:"Furious. You calling me furious? I'm gonna beat you up if you keep talking like you know me. You got five seconds to back off.",next:'h_threat_pick'},
+
+    h_threat_pick:{type:'pick',prompt:'He\'s on his feet. Choose carefully.',choices:[
+      {label:'I\'m not going anywhere. And I\'m not afraid of you.',sub:'Stand calm. Don\'t flinch.',tag:'best',next:'h_threat_a',youText:"I'm not going anywhere. And I'm not afraid of you. I've been hit before. It didn't change anything."},
+      {label:'I hear you. I pushed too hard. I\'m sorry.',sub:'Defuse. Genuine apology.',tag:'good',next:'h_threat_b',youText:"You're right. I pushed too hard. I'm sorry. I'm not here to analyze you — I was out of line."},
+      {label:'Go ahead then. Hit me.',sub:'Dangerous. But sometimes it disarms.',tag:'risky',next:'h_threat_c',youText:"Go ahead. If that's what you need right now — go ahead. I'm not going to fight you back."},
+      {label:'Back off — I\'ll call the guard.',sub:'Worst move.',tag:'wrong',next:'h_threat_d',youText:"Back off. I'll call the guard if you come near me."},
+    ]},
+
+    h_threat_a:{type:'say',speaker:'them',text:"…You serious right now. You actually serious. Man. …Sit down. You're either crazy or — I don't know what you are. But sit down.",next:'h6_pick'},
+    h_threat_b:{type:'say',speaker:'them',text:"…Alright. Alright. You actually said sorry. Most people don't. …What you want to talk about.",next:'h6_pick'},
+    h_threat_c:{type:'say',speaker:'them',text:"…What. …You not gonna fight back. [He stops.] Man. …You either stupid or you got something I don't. Either way, I ain't hitting nobody today.",next:'h6_pick'},
+    h_threat_d:{type:'say',speaker:'them',text:"Guard. You gonna call the guard. Get out of my face, preacher. We're done.",next:'h_outcome_threat'},
+
+    h_outcome_threat:{type:'outcome',outcome:'cold',icon:'🚫',title:'Trust Broken',
+      quote:'"A soft answer turns away wrath, but a harsh word stirs up anger." — Proverbs 15:1',
+      note:'Threatening to involve the guard destroyed any chance of connection. In a cell, that\'s the deepest betrayal of trust there is. Marcus shut down completely. The wall didn\'t just hold — it got higher.',
+      path:'Hostile · Threat · Wrong'},
 
     h_outcome_near:{type:'outcome',outcome:'near',icon:'🕯️',title:'The Door Is Open',
       quote:'"Even there your hand will guide me, your right hand will hold me fast." — Psalm 139:10',
@@ -1069,7 +1135,7 @@ function run(nodeId) {
 
   if (node.type === 'say') {
     const isYou = node.speaker === 'you';
-    addBubble(isYou ? 'You' : currentSpeaker, node.text, isYou ? 'you' : 'them');
+    addBubble(isYou ? 'You' : currentSpeaker, node.text, isYou ? 'you' : 'them', node.threat || false);
     setTimeout(() => run(node.next), 900 + node.text.length * 18);
 
   } else if (node.type === 'pick') {
@@ -1084,16 +1150,23 @@ function run(nodeId) {
   }
 }
 
-function addBubble(speaker, text, side) {
+function addBubble(speaker, text, side, isThreaten = false) {
   const chatArea = document.getElementById('chat-area');
   const row = document.createElement('div');
   row.className = `bubble-row ${side}${side === 'them' ? ' ' + currentColorClass : ''}`;
 
   const inner = document.createElement('div');
-  inner.innerHTML = `<div class="speaker-tag">${speaker}</div><div class="bubble">${text}</div>`;
+  const bubbleClass = isThreaten ? 'bubble threat-bubble' : 'bubble';
+  inner.innerHTML = `<div class="speaker-tag">${speaker}</div><div class="${bubbleClass}">${text}</div>`;
   row.appendChild(inner);
   chatArea.appendChild(row);
   chatArea.scrollTop = chatArea.scrollHeight;
+
+  // Shake the whole chat area briefly on a threat
+  if (isThreaten) {
+    chatArea.style.animation = 'threatShake .45s ease';
+    setTimeout(() => { chatArea.style.animation = ''; }, 500);
+  }
 }
 
 function showTyping() {
