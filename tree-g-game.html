@@ -84,16 +84,12 @@ html,body{height:100%;background:#0b0b14;color:#f0ede8;font-family:'Georgia',ser
 .choice-btn.selected.tag-risky{border-color:#d4a86a;background:#2e271a}
 .choice-btn.selected.tag-wrong{border-color:#d46a6a;background:#2e1a1a}
 .choice-btn.unselected{opacity:.3;pointer-events:none}
-.tag-flash{
-  display:none;position:absolute;top:8px;right:8px;
-  font-size:0.55rem;font-family:'Courier New',monospace;letter-spacing:0.1em;
-  text-transform:uppercase;padding:2px 7px;border-radius:10px;border:1px solid
-}
-.choice-btn.selected .tag-flash{display:block}
-.tag-best .tag-flash{color:#6ad490;border-color:#6ad49050;background:#6ad49015}
-.tag-good .tag-flash{color:#6ab8d4;border-color:#6ab8d450;background:#6ab8d415}
-.tag-risky .tag-flash{color:#d4a86a;border-color:#d4a86a50;background:#d4a86a15}
-.tag-wrong .tag-flash{color:#d46a6a;border-color:#d46a6a50;background:#d46a6a15}
+.tag-flash{display:none}
+.choice-btn.selected .tag-flash{display:none}
+
+
+
+
 
 /* ── Outcome screen ── */
 #outcome-screen{
@@ -1076,7 +1072,7 @@ function showChoices(node){
   node.choices.forEach((c,i)=>{
     const btn=document.createElement('button');
     btn.className='choice-btn';
-    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div><span class="tag-flash">${c.tag||''}</span>`;
+    btn.innerHTML=`<div class="choice-label">${c.label}</div><div class="choice-sub">${c.sub||''}</div>`;
     if(c.tag) btn.dataset.tag=c.tag;
     btn.onclick=()=>handleChoice(node, c, i);
     grid.appendChild(btn);

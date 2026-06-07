@@ -307,11 +307,11 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
 .tag-good{border-color:#3a5070!important;background:#0a1020!important}
 .tag-risky{border-color:#6a5020!important;background:#1a1400!important}
 .tag-wrong{border-color:#6a2a2a!important;background:#1a0808!important}
-.tag-label{font-size:.65rem;font-weight:800;letter-spacing:.04em;margin-left:5px;padding:1px 5px;border-radius:4px}
-.tag-best .tag-label{background:#1a4a28;color:#5ab870}
-.tag-good .tag-label{background:#0d2040;color:#5888c0}
-.tag-risky .tag-label{background:#3a2800;color:#c0902a}
-.tag-wrong .tag-label{background:#3a0f0e;color:#c04040}
+.tag-label{display:none}
+
+
+
+
 #choices-panel.hidden{display:none}
 
 /* ── OUTCOME ── */
@@ -617,7 +617,7 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
       <ellipse cx="24" cy="130" rx="10" ry="4" fill="#1a1410"/>
       <ellipse cx="46" cy="130" rx="10" ry="4" fill="#1a1410"/>
     </svg>
-    <div class="cellmate-label"><span class="cellmate-name">Marcus</span><span class="cellmate-role">hostile</span></div>
+    <div class="cellmate-label"><span class="cellmate-name">Marcus</span></div>
   </div>
 
   <!-- CELLMATE 2: DANNY (curious) — right, sitting on bunk edge -->
@@ -655,7 +655,7 @@ body{background:#0a0a0e;color:#d0c8b8;font-family:'Segoe UI',system-ui,sans-seri
       <rect x="19" y="72" width="12" height="2" rx="1" fill="#3a3028" opacity=".5"/>
       <rect x="19" y="76" width="10" height="2" rx="1" fill="#3a3028" opacity=".4"/>
     </svg>
-    <div class="cellmate-label"><span class="cellmate-name">Danny</span><span class="cellmate-role">curious</span></div>
+    <div class="cellmate-label"><span class="cellmate-name">Danny</span></div>
   </div>
 
 </div>
@@ -1195,7 +1195,7 @@ function showChoices(node) {
   node.choices.forEach(choice => {
     const btn = document.createElement('button');
     btn.className = `choice-btn tag-${choice.tag}`;
-    btn.innerHTML = `<span class="choice-label">${choice.label} <span class="tag-label">${choice.tag.toUpperCase()}</span></span><span class="choice-sub">${choice.sub}</span>`;
+    btn.innerHTML = `<span class="choice-label">${choice.label} </span><span class="choice-sub">${choice.sub}</span>`;
     btn.onclick = () => {
       grid.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
       panel.classList.add('hidden');
