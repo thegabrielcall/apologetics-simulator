@@ -927,5 +927,43 @@ refreshCompletions();
   });
 });
 </script>
+
+<script>
+// ── FIX 10: One-time hover hint ────────────────────────────────────────────
+(function() {
+  const KEY = 'apol_hover_hint_shown';
+  try { if (localStorage.getItem(KEY)) return; } catch(e) { return; }
+
+  // Inject hint element
+  const hint = document.createElement('div');
+  hint.id = 'hover-hint';
+  hint.innerHTML = '👆 hover a walker to hear their thoughts';
+  hint.style.cssText = [
+    'position:fixed','bottom:60px','left:50%','transform:translateX(-50%)',
+    'background:rgba(13,17,23,.88)','border:1px solid rgba(255,255,255,.14)',
+    'color:rgba(255,255,255,.65)','font-size:.72rem','letter-spacing:.06em',
+    'padding:8px 18px','border-radius:24px','pointer-events:none',
+    'opacity:0','transition:opacity .5s','z-index:6000','white-space:nowrap',
+    'backdrop-filter:blur(6px)'
+  ].join(';');
+  document.body.appendChild(hint);
+
+  // Fade in after 2.5 seconds, fade out after 6 seconds
+  setTimeout(() => { hint.style.opacity = '1'; }, 2500);
+  setTimeout(() => {
+    hint.style.opacity = '0';
+    setTimeout(() => hint.remove(), 600);
+    try { localStorage.setItem(KEY, '1'); } catch(e) {}
+  }, 8000);
+
+  // Also dismiss immediately on first hover
+  document.getElementById('walkers').addEventListener('mouseenter', () => {
+    hint.style.opacity = '0';
+    try { localStorage.setItem(KEY, '1'); } catch(e) {}
+  }, { once: true, capture: true });
+})();
+</script>
+
+<script src="ambient-city.js"></script>
 </body>
 </html>

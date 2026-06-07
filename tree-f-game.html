@@ -109,7 +109,8 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
   <div class="outcome-btns">
     <button class="outcome-btn btn-primary" onclick="restartGame()">↺ Try again</button>
     <button class="outcome-btn btn-secondary" onclick="readConversation()">📖 Read conversation</button>
-    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ Approach Next Person</button>
+    <button class="outcome-btn btn-secondary" onclick="location.href='index.html'">⊞ Back to street</button>
+    <button class="outcome-btn btn-primary" onclick="goNextTree()">→ Next conversation</button>
   </div>
 </div>
 
@@ -435,6 +436,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 window.__chosenHooked = true;
 </script>
+<script>
+// ── NEXT CONVERSATION ─────────────────────────────────────────────────────
+const _ALL_TREES = ['tree-a-game.html', 'tree-b-game.html', 'tree-c-game.html', 'tree-d-game.html', 'tree-e-game.html', 'tree-f-game.html', 'tree-g-game.html', 'tree-h-game.html', 'tree-i-game.html', 'tree-j-game.html', 'tree-k-game.html', 'tree-l-game.html', 'tree-m-game.html', 'tree-n-game.html', 'tree-o-game.html'];
+function goNextTree() {
+  const cur = location.pathname.split('/').pop();
+  const others = _ALL_TREES.filter(t => t !== cur);
+  const pick = others[Math.floor(Math.random() * others.length)];
+  location.href = pick;
+}
+</script>
+<script src="ambient-city.js"></script>
 <script src="skip-typing.js"></script>
 <script src="police-arrest.js"></script>
 </body>
