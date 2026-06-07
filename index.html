@@ -16,109 +16,27 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .hint{font-size:.78rem;color:#3fb950;animation:pulse 2.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
 
-/* ══ SCENE ══════════════════════════════════════════════════════════════════ */
-#scene{
-  position:relative;width:100%;height:290px;overflow:hidden;cursor:default;
-  animation:skyDayNight 90s linear infinite;
-}
-
-@keyframes skyDayNight{
-  0%,100%{background:linear-gradient(180deg,#010509 0%,#060d1e 35%,#0d1838 60%,#0a0e1c 82%,#060508 100%)}
-  20%    {background:linear-gradient(180deg,#010509 0%,#060d1e 35%,#0d1838 60%,#0a0e1c 82%,#060508 100%)}
-  30%    {background:linear-gradient(180deg,#14062a 0%,#2e1040 35%,#5a2418 60%,#4a2c18 82%,#1c0c08 100%)}
-  40%    {background:linear-gradient(180deg,#0a4a90 0%,#1868b8 35%,#44a0d8 60%,#68b8e0 82%,#8acce8 100%)}
-  62%    {background:linear-gradient(180deg,#0a4a90 0%,#1868b8 35%,#44a0d8 60%,#68b8e0 82%,#8acce8 100%)}
-  72%    {background:linear-gradient(180deg,#280e04 0%,#601808 35%,#b84018 60%,#c85020 82%,#8a3818 100%)}
-  82%    {background:linear-gradient(180deg,#050410 0%,#090b1c 35%,#0e1430 60%,#0c0e1e 82%,#060608 100%)}
-}
-
-/* Stars */
-#star-canvas{position:absolute;inset:0;pointer-events:none;animation:starsFade 90s linear infinite}
-@keyframes starsFade{0%,20%{opacity:1}30%,70%{opacity:0}80%,100%{opacity:1}}
-
-/* Sun */
-#sun{
-  position:absolute;width:56px;height:56px;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,#fffde8 0%,#ffd740 35%,rgba(255,200,60,0) 100%);
-  box-shadow:0 0 50px 18px rgba(255,220,80,.35),0 0 100px 40px rgba(255,200,50,.12);
-  animation:sunArc 90s linear infinite;
-}
-@keyframes sunArc{
-  0%,25%    {left:-70px;top:320px;opacity:0}
-  28%       {left:4%;top:180px;opacity:0}
-  33%       {left:8%;top:55px;opacity:1}
-  47%       {left:44%;top:18px;opacity:1}
-  63%       {left:82%;top:55px;opacity:1}
-  68%       {left:93%;top:180px;opacity:0}
-  68.1%,100%{left:-70px;top:320px;opacity:0}
-}
-
-/* Moon */
-.moon{
-  position:absolute;width:40px;height:40px;border-radius:50%;
-  background:radial-gradient(circle at 36% 36%,#fffde7,#fdd835 60%,#f9a825);
-  box-shadow:0 0 40px 10px rgba(253,216,53,.2),0 0 80px 22px rgba(253,216,53,.08);
-  animation:moonArc 90s linear infinite;
-}
-@keyframes moonArc{
-  0%     {right:80px;top:20px;opacity:1}
-  18%    {right:220px;top:40px;opacity:.8}
-  25%    {right:340px;top:120px;opacity:0}
-  25.1%  {right:-60px;top:320px;opacity:0}
-  72%    {right:-60px;top:320px;opacity:0}
-  74%    {right:30px;top:120px;opacity:0}
-  80%    {right:80px;top:20px;opacity:1}
-  100%   {right:80px;top:20px;opacity:1}
-}
-
-/* Skyline */
-#skyline{position:absolute;bottom:52px;left:0;width:100%;height:220px;pointer-events:none}
-
-/* Window glow layer (night only) */
-#win-layer{position:absolute;bottom:52px;left:0;width:100%;height:220px;pointer-events:none;animation:winFade 90s linear infinite}
-@keyframes winFade{0%,20%{opacity:.75}30%,68%{opacity:0}78%,100%{opacity:.75}}
-
-/* Taxi */
-.taxi{position:absolute;bottom:56px;pointer-events:auto;cursor:pointer;animation:taxiRoll 22s linear infinite}
-.taxi:hover .taxi-bubble{opacity:1;transform:translateX(-50%) translateY(-4px)}
-.taxi-bubble{position:absolute;top:-30px;left:50%;transform:translateX(-50%) translateY(0);background:#fff;color:#222;font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s,transform .18s;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.taxi-bubble::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#fff;border-bottom:none}
-@keyframes taxiRoll{from{right:-80px}to{right:110%}}
-.taxi2{animation-duration:35s;animation-delay:-12s}
-.taxi3{animation-duration:28s;animation-delay:-6s}
-
-/* Street lamps */
-.lamp{position:absolute;bottom:52px}
-.lamp-pole{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:62px;background:linear-gradient(180deg,#1e1e34,#141428)}
-.lamp-arm{position:absolute;top:0;left:50%;width:20px;height:3px;background:#1e1e34;border-radius:2px;transform:translateX(-2px)}
-.lamp-bulb{position:absolute;top:-7px;left:calc(50% + 11px);transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:#ffe87a;box-shadow:0 0 14px 5px rgba(255,220,80,.55),0 0 32px 14px rgba(255,220,80,.2);animation:flicker 4s ease-in-out infinite}
-@keyframes flicker{0%,100%{opacity:.85}47%{opacity:1}48%{opacity:.7}49%{opacity:1}50%{opacity:.95}}
-
-/* Ground */
-.ground{position:absolute;bottom:0;width:100%;height:52px;background:linear-gradient(180deg,#111124,#08080f)}
-.sidewalk{position:absolute;bottom:50px;width:100%;height:3px;background:rgba(255,255,255,.07)}
-.sidewalk2{position:absolute;bottom:52px;width:100%;height:1px;background:rgba(255,255,255,.1)}
-/* Crosswalk stripes */
-.crosswalk{position:absolute;bottom:52px;display:flex;gap:5px}
-.cw-stripe{width:12px;height:50px;background:rgba(255,255,255,.08);border-radius:1px}
-
-/* ── WALKER ── */
-.walker{
-  position:absolute;bottom:52px;display:flex;flex-direction:column;align-items:center;
-  cursor:pointer;--sz:14px;
-  animation:walkAcross var(--dur,18s) var(--dly,0s) linear infinite;
-}
-@keyframes walkAcross{from{left:calc(-70px * var(--scale,1))}to{left:calc(100% + 70px * var(--scale,1))}}
+/* ══ POLE POSITION SCENE ══════════════════════════════════════════════════ */
+#scene{position:relative;width:100%;height:320px;overflow:hidden;cursor:default}
+#road-svg{position:absolute;inset:0;width:100%;height:100%}
+@keyframes horizShimmer{0%,100%{opacity:.25}50%{opacity:.55}}
+#horiz-shimmer{animation:horizShimmer 3.5s ease-in-out infinite}
+@keyframes roadPulse{from{transform:translateY(0)}to{transform:translateY(6px)}}
+.road-dash{animation:roadPulse .55s linear infinite}
+#player-you{position:absolute;bottom:0;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:5;pointer-events:none}
+#player-label{font-family:'Courier New',monospace;font-size:.5rem;letter-spacing:.18em;color:rgba(255,200,80,.65);margin-top:1px}
+@keyframes playerBreathe{0%,100%{transform:translateX(-50%) scaleY(1)}50%{transform:translateX(-50%) scaleY(1.015)}}
+#player-you{animation:playerBreathe 3s ease-in-out infinite}
+#walkers{position:absolute;inset:0;pointer-events:none}
+.walker{position:absolute;display:flex;flex-direction:column;align-items:center;cursor:pointer;pointer-events:auto;--sz:18px;animation:var(--anim,approachLeft) var(--dur,9s) var(--dly,0s) linear infinite}
+@keyframes approachLeft{0%{top:118px;left:calc(50% - 6px);transform:translateX(-50%) scale(.12);opacity:0}6%{opacity:1}88%{opacity:1}100%{top:330px;left:-2%;transform:translateX(-50%) scale(1.2);opacity:0}}
+@keyframes approachLeft2{0%{top:120px;left:calc(50% - 14px);transform:translateX(-50%) scale(.10);opacity:0}6%{opacity:1}88%{opacity:1}100%{top:330px;left:8%;transform:translateX(-50%) scale(1.15);opacity:0}}
+@keyframes approachRight{0%{top:118px;left:calc(50% + 6px);transform:translateX(-50%) scale(.12);opacity:0}6%{opacity:1}88%{opacity:1}100%{top:330px;left:102%;transform:translateX(-50%) scale(1.2);opacity:0}}
+@keyframes approachRight2{0%{top:120px;left:calc(50% + 14px);transform:translateX(-50%) scale(.10);opacity:0}6%{opacity:1}88%{opacity:1}100%{top:330px;left:92%;transform:translateX(-50%) scale(1.15);opacity:0}}
 .walker:hover .paper-note{transform:translateX(-50%) scale(1.25) translateY(-6px);box-shadow:0 0 18px 4px var(--col,#aaa);filter:brightness(1.1)}
 .walker:hover .figure{filter:drop-shadow(0 0 10px var(--col,#aaa)) brightness(1.4)!important}
 .walker.paused,.walker.paused .figure,.walker.paused .figure *{animation-play-state:paused!important}
-
-/* SVG figure */
-.figure{
-  width:calc(var(--sz)*2.2);height:calc(var(--sz)*4.2);display:block;overflow:visible;
-  filter:drop-shadow(0 0 5px color-mix(in srgb,var(--col,#aaa) 40%,transparent));
-  animation:figBob .52s ease-in-out infinite alternate;
-}
+.figure{width:calc(var(--sz)*2.2);height:calc(var(--sz)*4.2);display:block;overflow:visible;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--col,#aaa) 40%,transparent));animation:figBob .52s ease-in-out infinite alternate}
 @keyframes figBob{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-3px) rotate(1deg)}}
 .figure .leg-l{transform-origin:10px 27px;animation:legFwd .52s ease-in-out infinite alternate}
 .figure .leg-r{transform-origin:14px 27px;animation:legBwd .52s ease-in-out infinite alternate}
@@ -126,77 +44,17 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .figure .arm-r{transform-origin:16.5px 14px;animation:legFwd .52s ease-in-out infinite alternate}
 @keyframes legFwd{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}
 @keyframes legBwd{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}
-
-/* Floating paper */
-.paper-note{
-  position:absolute;top:calc(var(--sz)*-3.4);left:50%;transform:translateX(-50%);
-  width:calc(var(--sz)*1.7);height:calc(var(--sz)*2.1);
-  background:linear-gradient(160deg,#fefcf6,#f0ebe0);border-radius:2px 4px 2px 2px;
-  box-shadow:1px 2px 6px rgba(0,0,0,.55),0 0 8px color-mix(in srgb,var(--col,#aaa) 50%,transparent);
-  display:flex;align-items:center;justify-content:center;font-size:calc(var(--sz)*1.0);
-  line-height:1;transition:all .2s;animation:paperFloat 2.2s ease-in-out infinite;
-  animation-delay:var(--pdly,0s);pointer-events:none;
-}
+.paper-note{position:absolute;top:calc(var(--sz)*-3.4);left:50%;transform:translateX(-50%);width:calc(var(--sz)*1.7);height:calc(var(--sz)*2.1);background:linear-gradient(160deg,#fefcf6,#f0ebe0);border-radius:2px 4px 2px 2px;box-shadow:1px 2px 6px rgba(0,0,0,.55),0 0 8px color-mix(in srgb,var(--col,#aaa) 50%,transparent);display:flex;align-items:center;justify-content:center;font-size:calc(var(--sz)*1.0);line-height:1;transition:all .2s;animation:paperFloat 2.2s ease-in-out infinite;animation-delay:var(--pdly,0s);pointer-events:none}
 .paper-note::before{content:'';position:absolute;top:0;right:0;width:calc(var(--sz)*.5);height:calc(var(--sz)*.5);background:linear-gradient(225deg,#d8d0c0 50%,transparent 50%);border-radius:0 4px 0 0}
 .paper-note::after{content:'';position:absolute;inset:calc(var(--sz)*.6) calc(var(--sz)*.15) calc(var(--sz)*.2);background:repeating-linear-gradient(180deg,transparent,transparent calc(var(--sz)*.45),rgba(0,0,0,.12) calc(var(--sz)*.45),rgba(0,0,0,.12) calc(var(--sz)*.5));pointer-events:none}
 .paper-thread{position:absolute;left:50%;transform:translateX(-50%);width:1px;background:linear-gradient(180deg,rgba(255,255,255,.25) 0%,transparent 100%);top:calc(var(--sz)*-1.1);height:calc(var(--sz)*2.1);pointer-events:none}
 @keyframes paperFloat{0%,100%{transform:translateX(-50%) rotate(-3deg) translateY(0px)}50%{transform:translateX(-50%) rotate(3deg) translateY(-5px)}}
-
-/* ── THOUGHT BUBBLES ── */
-.thought{
-  position:absolute;
-  bottom:calc(100% + 4px);
-  left:50%;transform:translateX(-50%);
-  background:rgba(10,8,22,.88);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:12px 12px 12px 3px;
-  padding:5px 9px;
-  font-size:9.5px;
-  font-family:'Georgia',serif;
-  font-style:italic;
-  color:rgba(230,220,255,.82);
-  white-space:nowrap;
-  pointer-events:none;
-  opacity:0;
-  transform:translateX(-50%) translateY(6px);
-  transition:opacity .4s ease, transform .4s ease;
-  backdrop-filter:blur(4px);
-  box-shadow:0 4px 18px rgba(0,0,0,.5);
-  z-index:20;
-  max-width:160px;
-  white-space:normal;
-  text-align:center;
-  line-height:1.35;
-}
-.thought::after{
-  content:'';
-  position:absolute;
-  bottom:-6px;left:12px;
-  border:6px solid transparent;
-  border-top-color:rgba(255,255,255,.12);
-}
-.thought::before{
-  content:'';
-  position:absolute;
-  bottom:-4px;left:13px;
-  border:5px solid transparent;
-  border-top-color:rgba(10,8,22,.88);
-  z-index:1;
-}
-.thought.show{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
-}
-/* dim non-hovered walkers when one is focused */
-#walkers.focused .walker:not(.hovered){
-  filter:opacity(.35);
-  transition:filter .3s;
-}
-#walkers.focused .walker.hovered{
-  transition:filter .3s;
-}
-
-/* ── FLYING PAPER OVERLAY ── */
+.thought{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%) translateY(6px);background:rgba(10,8,22,.88);border:1px solid rgba(255,255,255,.12);border-radius:12px 12px 12px 3px;padding:5px 9px;font-size:9.5px;font-family:'Georgia',serif;font-style:italic;color:rgba(230,220,255,.82);pointer-events:none;opacity:0;transition:opacity .4s ease,transform .4s ease;backdrop-filter:blur(4px);box-shadow:0 4px 18px rgba(0,0,0,.5);z-index:20;max-width:160px;white-space:normal;text-align:center;line-height:1.35}
+.thought::after{content:'';position:absolute;bottom:-6px;left:12px;border:6px solid transparent;border-top-color:rgba(255,255,255,.12)}
+.thought::before{content:'';position:absolute;bottom:-4px;left:13px;border:5px solid transparent;border-top-color:rgba(10,8,22,.88);z-index:1}
+.thought.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#walkers.focused .walker:not(.hovered){filter:opacity(.35);transition:filter .3s}
+#walkers.focused .walker.hovered{transition:filter .3s}
 #backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998;backdrop-filter:blur(3px)}
 #paper-fly{display:none;position:fixed;z-index:999;transform-origin:center center;pointer-events:none;transition:left .55s cubic-bezier(.34,1.56,.64,1),top .55s cubic-bezier(.34,1.56,.64,1),transform .55s cubic-bezier(.34,1.56,.64,1),opacity .3s ease}
 #paper-fly.landed{pointer-events:auto}
@@ -210,45 +68,6 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
 .fly-go:hover{filter:brightness(1.12);transform:translateY(-1px)}
 .fly-close{position:absolute;top:8px;right:36px;background:none;border:none;font-size:1.1rem;color:#999;cursor:pointer;padding:2px 5px;border-radius:4px;z-index:2}
 .fly-close:hover{color:#333;background:rgba(0,0,0,.1)}
-
-/* ── REST OF PAGE ── */
-.content{padding:0 16px}
-.divider{display:flex;align-items:center;gap:12px;max-width:960px;margin:20px auto 14px;color:#30363d}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:#30363d}
-.divider span{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:#8b949e;white-space:nowrap}
-.legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
-.leg-item{display:flex;align-items:center;gap:5px;font-size:.74rem;color:#8b949e}
-.leg-dot{width:8px;height:8px;border-radius:50%}
-.leg-best{background:#3fb950}.leg-good{background:#58a6ff}.leg-risky{background:#e3b341}.leg-wrong{background:#f85149}
-.section-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:#8b949e;margin-bottom:10px;padding-left:2px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;max-width:960px;margin:0 auto}
-.card{background:#161b22;border:1.5px solid #30363d;border-radius:12px;padding:16px;cursor:pointer;text-decoration:none;color:inherit;display:block;transition:all .2s;position:relative;overflow:hidden}
-.card:hover{border-color:#58a6ff;background:#1c2230;transform:translateY(-2px);box-shadow:0 6px 20px rgba(88,166,255,.12)}
-.card-letter{font-size:2rem;font-weight:900;line-height:1;margin-bottom:8px}
-.card-title{font-size:.98rem;font-weight:700;margin-bottom:4px}
-.card-objection{font-size:.8rem;color:#8b949e;margin-bottom:10px;line-height:1.4;font-style:italic}
-.card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.badge{font-size:.68rem;padding:3px 8px;border-radius:10px;font-weight:600}
-.badge-tiers{background:#21262d;border:1px solid #30363d;color:#8b949e}
-.badge-opening{background:#0d2040;border:1px solid #1e4080;color:#58a6ff}
-.difficulty{display:flex;gap:3px;align-items:center}
-.diff-pip{width:6px;height:6px;border-radius:50%;background:#30363d}
-.diff-pip.on{background:#e3b341}
-.tier-bar{position:absolute;bottom:0;left:0;height:3px}
-.depth-7 .tier-bar{background:linear-gradient(90deg,#6ab8d4,#6ad490);width:64%}
-.depth-9 .tier-bar{background:linear-gradient(90deg,#b06ad4,#d4d06a);width:82%}
-.depth-11 .tier-bar{background:linear-gradient(90deg,#d46a6a,#d46aaa);width:100%}
-.card-letter.a{color:#6ab8d4}.card-letter.b{color:#6ad490}.card-letter.c{color:#d4a86a}
-.card-letter.d{color:#6a90d4}.card-letter.e{color:#b06ad4}.card-letter.f{color:#d4d06a}
-.card-letter.g{color:#d46aaa}.card-letter.h{color:#6ad4d4}.card-letter.i{color:#d4906a}
-.card-letter.j{color:#9a8fd4}.card-letter.k{color:#d46a6a}.card-letter.l{color:#88e060}
-.card-letter.m{color:#e8a050}.card-letter.n{color:#50b8e8}.card-letter.o{color:#e86888}
-.card.completed{border-color:#196c2e!important}.card.completed::after{content:'✓';position:absolute;top:10px;right:12px;font-size:.8rem;font-weight:700;color:#3fb950;background:#0d2a14;border:1px solid #196c2e;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;line-height:1}
-.tip{max-width:960px;margin:28px auto 0;background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 20px}
-.tip-title{font-size:.75rem;font-weight:700;color:#58a6ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
-.tip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.tip-item{font-size:.78rem;color:#8b949e;line-height:1.5}
-.tip-item strong{color:#cdd9e5}
 </style>
 </head>
 <body>
@@ -258,291 +77,157 @@ body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',system-ui,sans-seri
   <div class="subtitle">Apologetics Simulator</div>
   <h1>Practice the Hard Conversations</h1>
   <p>Real objections. Real responses. Each person carries a question — click anyone to receive it and start their conversation.</p>
-  <div class="hint">↓ Click a person walking by to receive their paper ↓</div>
+  <div class="hint">↓ Tap someone approaching to receive their paper ↓</div>
 </div>
 
-<!-- ═══ SCENE ═══ -->
+<!-- ═══ SCENE — POLE POSITION PERSPECTIVE ROAD ═══ -->
 <div id="scene">
-  <canvas id="star-canvas"></canvas>
-  <div id="sun"></div>
-  <div class="moon"></div>
-
-  <!-- ── NYC SKYLINE ── -->
-  <svg id="skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+  <svg id="road-svg" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <pattern id="winPat" x="0" y="0" width="9" height="6" patternUnits="userSpaceOnUse">
-        <rect x="1" y="1" width="4" height="3.5" fill="#ffe490" rx="0.5"/>
-      </pattern>
-      <pattern id="winPatSm" x="0" y="0" width="7" height="5" patternUnits="userSpaceOnUse">
-        <rect x="0.5" y="0.5" width="3.5" height="3" fill="#ffe490" rx="0.5"/>
-      </pattern>
+      <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#0e0620"/>
+        <stop offset="28%"  stop-color="#2a0e3a"/>
+        <stop offset="50%"  stop-color="#6a1e08"/>
+        <stop offset="66%"  stop-color="#c84010"/>
+        <stop offset="76%"  stop-color="#e86420"/>
+        <stop offset="84%"  stop-color="#c04010"/>
+        <stop offset="92%"  stop-color="#4a1808"/>
+        <stop offset="100%" stop-color="#1e0c04"/>
+      </linearGradient>
+      <radialGradient id="sunGlow" cx="50%" cy="39%" r="30%" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="#ffb040" stop-opacity=".55"/>
+        <stop offset="40%"  stop-color="#ff7010" stop-opacity=".2"/>
+        <stop offset="100%" stop-color="#ff4000" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="roadG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#1e1810"/>
+        <stop offset="40%"  stop-color="#2a2218"/>
+        <stop offset="100%" stop-color="#3a3020"/>
+      </linearGradient>
+      <linearGradient id="vergeL" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"   stop-color="#0e1e08"/>
+        <stop offset="100%" stop-color="#1e3a10"/>
+      </linearGradient>
+      <linearGradient id="vergeR" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%"   stop-color="#1e3a10"/>
+        <stop offset="100%" stop-color="#0e1e08"/>
+      </linearGradient>
+      <radialGradient id="crossGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#ffd080" stop-opacity=".7"/>
+        <stop offset="100%" stop-color="#ffd080" stop-opacity="0"/>
+      </radialGradient>
     </defs>
-
-    <!-- ════ FAR BACKGROUND (dark, recessed) ════ -->
-    <g fill="#070715" opacity="0.9">
-      <rect x="0"    y="165" width="28"  height="55"/>
-      <rect x="24"   y="148" width="16"  height="72"/>
-      <rect x="36"   y="158" width="22"  height="62"/>
-      <rect x="54"   y="140" width="18"  height="80"/>
-      <rect x="68"   y="155" width="26"  height="65"/>
-      <!-- between Flatiron and Chrysler -->
-      <rect x="215"  y="155" width="20"  height="65"/>
-      <rect x="232"  y="143" width="18"  height="77"/>
-      <rect x="246"  y="160" width="24"  height="60"/>
-      <rect x="264"  y="150" width="18"  height="70"/>
-      <!-- between Chrysler and ESB -->
-      <rect x="448"  y="150" width="22"  height="70"/>
-      <rect x="466"  y="138" width="20"  height="82"/>
-      <rect x="482"  y="155" width="18"  height="65"/>
-      <!-- between ESB and 30 Rock -->
-      <rect x="672"  y="158" width="16"  height="62"/>
-      <!-- right side -->
-      <rect x="852"  y="155" width="28"  height="65"/>
-      <rect x="876"  y="140" width="22"  height="80"/>
-      <rect x="894"  y="160" width="30"  height="60"/>
-      <rect x="920"  y="145" width="18"  height="75"/>
-      <rect x="936"  y="158" width="26"  height="62"/>
-      <rect x="958"  y="138" width="20"  height="82"/>
-      <rect x="975"  y="152" width="30"  height="68"/>
-      <rect x="1002" y="142" width="22"  height="78"/>
-      <rect x="1020" y="158" width="28"  height="62"/>
-      <rect x="1044" y="135" width="18"  height="85"/>
-      <rect x="1058" y="150" width="32"  height="70"/>
-      <rect x="1086" y="138" width="24"  height="82"/>
-      <rect x="1106" y="155" width="20"  height="65"/>
-      <rect x="1122" y="142" width="36"  height="78"/>
-      <rect x="1154" y="158" width="26"  height="62"/>
-      <rect x="1176" y="135" width="24"  height="85"/>
+    <rect x="0" y="0" width="800" height="320" fill="url(#skyG)"/>
+    <rect x="0" y="0" width="800" height="320" fill="url(#sunGlow)"/>
+    <g fill="#fff">
+      <circle cx="42"  cy="14" r="1"   opacity=".7"/>
+      <circle cx="110" cy="6"  r="1.3" opacity=".55"/>
+      <circle cx="195" cy="20" r=".9"  opacity=".6"/>
+      <circle cx="290" cy="9"  r="1.1" opacity=".5"/>
+      <circle cx="370" cy="24" r=".8"  opacity=".45"/>
+      <circle cx="470" cy="11" r="1.2" opacity=".55"/>
+      <circle cx="560" cy="5"  r="1"   opacity=".6"/>
+      <circle cx="640" cy="18" r=".9"  opacity=".5"/>
+      <circle cx="718" cy="8"  r="1.2" opacity=".65"/>
+      <circle cx="778" cy="22" r=".9"  opacity=".5"/>
     </g>
-
-    <!-- ════ MID BUILDINGS ════ -->
-    <g fill="#0a0a1e">
-      <!-- Left cluster -->
-      <rect x="90"  y="148" width="22" height="72"/>
-      <rect x="108" y="130" width="28" height="90"/>
-      <!-- Water tower on left building -->
-      <rect x="111" y="122" width="3"  height="10"/>
-      <rect x="118" y="122" width="3"  height="10"/>
-      <ellipse cx="117" cy="120" rx="8" ry="3.5"/>
-      <rect x="110" y="108" width="14" height="14" rx="2"/>
-      <polygon points="110,108 124,108 117,103"/>
-
-      <!-- Between Flatiron and Chrysler -->
-      <rect x="192" y="140" width="24" height="80"/>
-      <rect x="260" y="145" width="28" height="75"/>
-      <rect x="280" y="130" width="18" height="90"/>
-
-      <!-- Between Chrysler and ESB -->
-      <rect x="430" y="140" width="20" height="80"/>
-      <rect x="446" y="125" width="28" height="95"/>
-      <!-- Water tower -->
-      <rect x="449" y="117" width="3"  height="10"/>
-      <rect x="456" y="117" width="3"  height="10"/>
-      <ellipse cx="454" cy="115" rx="7" ry="3"/>
-      <rect x="448" y="104" width="12" height="13" rx="1.5"/>
-      <polygon points="448,104 460,104 454,99"/>
-
-      <!-- Right of 30 Rock -->
-      <rect x="840" y="135" width="26" height="85"/>
-      <rect x="862" y="148" width="20" height="72"/>
+    <g fill="#1a0808" opacity=".75">
+      <rect x="28"  y="108" width="14" height="22"/><rect x="44"  y="100" width="10" height="30"/>
+      <rect x="56"  y="112" width="18" height="18"/><rect x="78"  y="96"  width="8"  height="34"/>
+      <rect x="88"  y="108" width="16" height="22"/><rect x="106" y="102" width="12" height="28"/>
+      <rect x="586" y="108" width="14" height="22"/><rect x="602" y="98"  width="10" height="32"/>
+      <rect x="614" y="110" width="18" height="20"/><rect x="636" y="95"  width="8"  height="35"/>
+      <rect x="648" y="107" width="16" height="23"/><rect x="668" y="102" width="12" height="28"/>
+      <rect x="698" y="96"  width="14" height="34"/><rect x="716" y="108" width="10" height="22"/>
+      <rect x="730" y="100" width="16" height="30"/><rect x="750" y="110" width="12" height="20"/>
     </g>
-
-    <!-- ════ FLATIRON BUILDING ════ -->
-    <!-- Centered around x=162. Famous triangular "prow" building, 22 floors, ~87m -->
-    <g fill="#0e0e28">
-      <!-- Main rectangular body -->
-      <rect x="148" y="84" width="50" height="136"/>
-      <!-- Prow (the triangular sharp end facing left) -->
-      <polygon points="148,220 148,84 112,180"/>
-      <!-- Broad cornice band at top -->
-      <rect x="108" y="79"  width="92" height="7"/>
-      <!-- Secondary trim -->
-      <rect x="112" y="73"  width="85" height="8"/>
-      <!-- Roof detail / small penthouse -->
-      <rect x="148" y="66"  width="48" height="9"/>
+    <g transform="translate(400,80)">
+      <rect x="-6" y="-10" width="12" height="50" fill="#180800" opacity=".85"/>
+      <polygon points="0,-28 -7,-10 7,-10" fill="#180800" opacity=".9"/>
+      <line x1="0" y1="-26" x2="0"  y2="-14" stroke="#ffd080" stroke-width="1.5" opacity=".9"/>
+      <line x1="-4" y1="-22" x2="4" y2="-22" stroke="#ffd080" stroke-width="1.5" opacity=".9"/>
+      <circle cx="0" cy="-20" r="10" fill="url(#crossGlow)" opacity=".6"/>
     </g>
-
-    <!-- ════ CHRYSLER BUILDING ════ -->
-    <!-- Centered around x=360. Art Deco crown with sunburst, ~319m -->
-    <g fill="#0e0e28">
-      <!-- Needle spire tip -->
-      <polygon points="358,14 362,14 360,6" />
-      <!-- Crown tier 1 -->
-      <polygon points="350,14 370,14 368,25 352,25"/>
-      <!-- Crown tier 2 -->
-      <polygon points="341,25 379,25 377,37 343,37"/>
-      <!-- Crown tier 3 -->
-      <polygon points="332,37 388,37 386,50 334,50"/>
-      <!-- Eagle gargoyle tier (slight side notch effect) -->
-      <polygon points="321,50 399,50 397,58 323,58"/>
-      <!-- Eagle notches (barely hinted) -->
-      <rect x="321" y="56" width="8"   height="6"/>
-      <rect x="391" y="56" width="8"   height="6"/>
-      <!-- Upper shaft (tapers slightly) -->
-      <polygon points="329,58 391,58 388,80 332,80"/>
-      <!-- Setback 1 -->
-      <rect x="314" y="80"  width="92"  height="24"/>
-      <!-- Setback 2 -->
-      <rect x="300" y="104" width="120" height="22"/>
-      <!-- Main base -->
-      <rect x="286" y="126" width="148" height="94"/>
+    <line id="horiz-shimmer" x1="0" y1="127" x2="800" y2="127" stroke="#ff9840" stroke-width="1.5" opacity=".3"/>
+    <polygon points="0,127  352,127  0,320" fill="url(#vergeL)"/>
+    <polygon points="800,127  448,127  800,320" fill="url(#vergeR)"/>
+    <line x1="0" y1="127" x2="352" y2="127" stroke="#4a5a20" stroke-width="1" opacity=".5"/>
+    <line x1="800" y1="127" x2="448" y2="127" stroke="#4a5a20" stroke-width="1" opacity=".5"/>
+    <polygon points="352,127  448,127  800,320  0,320" fill="url(#roadG)"/>
+    <line x1="355" y1="127" x2="12"  y2="318" stroke="rgba(255,255,220,.45)" stroke-width="2.5"/>
+    <line x1="445" y1="127" x2="788" y2="318" stroke="rgba(255,255,220,.45)" stroke-width="2.5"/>
+    <line x1="376" y1="127" x2="172" y2="320" stroke="rgba(255,255,180,.15)" stroke-width="1.5" stroke-dasharray="8,12"/>
+    <line x1="424" y1="127" x2="628" y2="320" stroke="rgba(255,255,180,.15)" stroke-width="1.5" stroke-dasharray="8,12"/>
+    <polygon class="road-dash" points="398.5,133 401.5,133 401,146 399,146" fill="rgba(255,245,190,.72)"/>
+    <polygon class="road-dash" points="396,155 404,155 403,172 397,172" fill="rgba(255,245,190,.66)"/>
+    <polygon class="road-dash" points="393,180 407,180 405,206 395,206" fill="rgba(255,245,190,.60)"/>
+    <polygon class="road-dash" points="388,216 412,216 409,253 391,253" fill="rgba(255,245,190,.54)"/>
+    <polygon class="road-dash" points="382,263 418,263 414,308 386,308" fill="rgba(255,245,190,.48)"/>
+    <g opacity=".88">
+      <rect x="114" y="127" width="3.5" height="40" fill="#2a1e14"/>
+      <rect x="54"  y="101" width="96" height="32" rx="3" fill="#1a0e0a"/>
+      <rect x="56"  y="103" width="92" height="28" rx="2" fill="#221208"/>
+      <rect x="56"  y="103" width="92" height="6"  rx="2" fill="#3a1808"/>
+      <text x="102" y="114" font-family="'Courier New',monospace" font-size="5.5" fill="#ff9840" text-anchor="middle" letter-spacing="1.2">ATHEISM · SCIENCE</text>
+      <text x="102" y="123" font-family="'Courier New',monospace" font-size="4.8" fill="#c06020" text-anchor="middle">A · B · C · D · E · F</text>
+      <circle cx="59"  cy="106" r="1.5" fill="#4a2a10"/><circle cx="145" cy="106" r="1.5" fill="#4a2a10"/>
+      <circle cx="59"  cy="128" r="1.5" fill="#4a2a10"/><circle cx="145" cy="128" r="1.5" fill="#4a2a10"/>
     </g>
-
-    <!-- ════ EMPIRE STATE BUILDING ════ -->
-    <!-- Centered at x=580. Tallest, 443m with antenna, iconic stepped profile -->
-    <g fill="#0e0e28">
-      <!-- Lightning rod / TV antenna -->
-      <rect x="578" y="1"  width="4"   height="26"/>
-      <!-- Mooring mast -->
-      <polygon points="566,27 594,27 592,36 568,36"/>
-      <!-- Observatory crown -->
-      <rect x="563" y="36" width="34"  height="17"/>
-      <!-- Step 1 -->
-      <rect x="552" y="53" width="56"  height="19"/>
-      <!-- Step 2 -->
-      <rect x="538" y="72" width="84"  height="19"/>
-      <!-- Step 3 -->
-      <rect x="522" y="91" width="116" height="21"/>
-      <!-- Step 4 (broadest setback) -->
-      <rect x="504" y="112" width="152" height="19"/>
-      <!-- Base -->
-      <rect x="490" y="131" width="180" height="89"/>
+    <g opacity=".88">
+      <rect x="683" y="127" width="3.5" height="40" fill="#2a1e14"/>
+      <rect x="650" y="101" width="96" height="32" rx="3" fill="#1a0e0a"/>
+      <rect x="652" y="103" width="92" height="28" rx="2" fill="#221208"/>
+      <rect x="652" y="103" width="92" height="6"  rx="2" fill="#3a1808"/>
+      <text x="698" y="114" font-family="'Courier New',monospace" font-size="5.5" fill="#ff9840" text-anchor="middle" letter-spacing="1.2">SUFFERING · EVIL</text>
+      <text x="698" y="123" font-family="'Courier New',monospace" font-size="4.8" fill="#c06020" text-anchor="middle">G · H · I · J · K · L · M · N · O</text>
+      <circle cx="655" cy="106" r="1.5" fill="#4a2a10"/><circle cx="741" cy="106" r="1.5" fill="#4a2a10"/>
+      <circle cx="655" cy="128" r="1.5" fill="#4a2a10"/><circle cx="741" cy="128" r="1.5" fill="#4a2a10"/>
     </g>
-
-    <!-- ════ ROCKEFELLER CENTER / 30 ROCK ════ -->
-    <!-- Centered at x=750. Art Deco, clean stepped crown, ~259m -->
-    <g fill="#0e0e28">
-      <!-- Crown steps (Art Deco triangular steps) -->
-      <rect x="748" y="44" width="14" height="8"/>
-      <rect x="743" y="52" width="24" height="8"/>
-      <rect x="736" y="60" width="38" height="8"/>
-      <rect x="730" y="68" width="50" height="8"/>
-      <!-- Main tower shaft -->
-      <rect x="718" y="76" width="74" height="144"/>
-      <!-- Side buildings of the Rockefeller complex -->
-      <rect x="690" y="100" width="28" height="120"/>
-      <rect x="792" y="105" width="30" height="115"/>
-      <!-- Lower plaza buildings -->
-      <rect x="670" y="135" width="20" height="85"/>
-      <rect x="822" y="138" width="22" height="82"/>
+    <g opacity=".7">
+      <line x1="185" y1="127" x2="62"  y2="240" stroke="#2a2010" stroke-width="2"/>
+      <line x1="62"  y1="240" x2="54"  y2="240" stroke="#2a2010" stroke-width="2"/>
+      <circle cx="54" cy="238" r="3"  fill="#ffe87a" opacity=".8"/>
+      <circle cx="54" cy="238" r="7"  fill="#ffe87a" opacity=".18"/>
+      <line x1="615" y1="127" x2="738" y2="240" stroke="#2a2010" stroke-width="2"/>
+      <line x1="738" y1="240" x2="746" y2="240" stroke="#2a2010" stroke-width="2"/>
+      <circle cx="746" cy="238" r="3"  fill="#ffe87a" opacity=".8"/>
+      <circle cx="746" cy="238" r="7"  fill="#ffe87a" opacity=".18"/>
     </g>
-
-    <!-- ════ RIGHT SIDE BUILDINGS ════ -->
-    <g fill="#0d0d22">
-      <rect x="848"  y="128" width="36" height="92"/>
-      <rect x="880"  y="112" width="28" height="108"/>
-      <!-- Water tower -->
-      <rect x="883" y="104" width="3"  height="10"/>
-      <rect x="890" y="104" width="3"  height="10"/>
-      <ellipse cx="888" cy="102" rx="7" ry="3"/>
-      <rect x="882" y="91"  width="12" height="13" rx="1.5"/>
-      <polygon points="882,91 894,91 888,86"/>
-      <rect x="904"  y="120" width="32" height="100"/>
-      <rect x="932"  y="108" width="24" height="112"/>
-      <rect x="952"  y="125" width="38" height="95"/>
-      <rect x="986"  y="115" width="28" height="105"/>
-      <rect x="1010" y="130" width="34" height="90"/>
-      <rect x="1040" y="110" width="26" height="110"/>
-      <rect x="1062" y="128" width="32" height="92"/>
-      <rect x="1090" y="120" width="22" height="100"/>
-      <rect x="1108" y="112" width="38" height="108"/>
-      <rect x="1142" y="132" width="28" height="88"/>
-      <rect x="1166" y="115" width="34" height="105"/>
+    <g opacity=".88">
+      <line x1="248" y1="127" x2="22"  y2="300" stroke="#2a2010" stroke-width="3.5"/>
+      <line x1="22"  y1="300" x2="4"   y2="300" stroke="#2a2010" stroke-width="3"/>
+      <circle cx="4"   cy="297" r="5.5" fill="#ffe87a" opacity=".85"/>
+      <circle cx="4"   cy="297" r="13"  fill="#ffe87a" opacity=".15"/>
+      <line x1="552" y1="127" x2="778" y2="300" stroke="#2a2010" stroke-width="3.5"/>
+      <line x1="778" y1="300" x2="796" y2="300" stroke="#2a2010" stroke-width="3"/>
+      <circle cx="796" cy="297" r="5.5" fill="#ffe87a" opacity=".85"/>
+      <circle cx="796" cy="297" r="13"  fill="#ffe87a" opacity=".15"/>
     </g>
-
-    <!-- ════ WINDOW DETAILS (tiny yellow in windows, always drawn but parent layer fades) ════ -->
-    <!-- These are drawn inside the buildings as decorative fills -->
-    <!-- Subtle window hint rows on Chrysler -->
-    <g fill="rgba(255,220,120,0.06)">
-      <rect x="300" y="126" width="120" height="22"/>
-      <rect x="314" y="80"  width="92"  height="24"/>
-      <!-- ESB windows subtle -->
-      <rect x="490" y="131" width="180" height="89"/>
-      <rect x="504" y="112" width="152" height="19"/>
-      <!-- 30 Rock -->
-      <rect x="718" y="76"  width="74"  height="144"/>
-      <rect x="690" y="100" width="28"  height="120"/>
-      <rect x="792" y="105" width="30"  height="115"/>
-    </g>
+    <rect x="0" y="316" width="800" height="4" fill="#1a1408" opacity=".8"/>
   </svg>
 
-  <!-- ── WINDOW GLOW LAYER (night effect) ── -->
-  <svg id="win-layer" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-    <!-- Flatiron windows -->
-    <rect x="150" y="85"  width="46"  height="132" fill="url(#winPat)" opacity="0.55"/>
-    <!-- Chrysler windows -->
-    <rect x="302" y="127" width="116" height="91"  fill="url(#winPat)" opacity="0.55"/>
-    <rect x="316" y="81"  width="88"  height="23"  fill="url(#winPat)" opacity="0.45"/>
-    <!-- ESB windows -->
-    <rect x="492" y="132" width="176" height="86"  fill="url(#winPat)" opacity="0.55"/>
-    <rect x="506" y="113" width="148" height="17"  fill="url(#winPat)" opacity="0.42"/>
-    <rect x="524" y="92"  width="112" height="19"  fill="url(#winPat)" opacity="0.35"/>
-    <!-- 30 Rock windows -->
-    <rect x="720" y="77"  width="70"  height="141" fill="url(#winPat)" opacity="0.55"/>
-    <rect x="692" y="101" width="26"  height="117" fill="url(#winPat)" opacity="0.45"/>
-    <rect x="794" y="106" width="26"  height="112" fill="url(#winPat)" opacity="0.45"/>
-    <!-- Right buildings -->
-    <rect x="850" y="129" width="34"  height="89"  fill="url(#winPatSm)" opacity="0.4"/>
-    <rect x="882" y="113" width="26"  height="105" fill="url(#winPatSm)" opacity="0.4"/>
-    <rect x="934" y="109" width="22"  height="109" fill="url(#winPatSm)" opacity="0.35"/>
-    <rect x="988" y="116" width="26"  height="102" fill="url(#winPatSm)" opacity="0.35"/>
-  </svg>
-
-  <!-- Street lamps -->
-  <div class="lamp" style="left:12%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:30%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:52%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:72%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-  <div class="lamp" style="left:90%"><div class="lamp-pole"></div><div class="lamp-arm"></div><div class="lamp-bulb"></div></div>
-
-  <!-- Crosswalks -->
-  <div class="crosswalk" style="left:22%;bottom:52px">
-    <div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div>
-  </div>
-  <div class="crosswalk" style="left:64%;bottom:52px">
-    <div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div><div class="cw-stripe"></div>
-  </div>
-
-  <!-- Yellow taxis -->
-  <div class="taxi" style="bottom:56px;animation-delay:-4s" id="taxi1">
-    <div class="taxi-bubble">❓ Someone's driving</div>
-    <svg width="68" height="28" viewBox="0 0 68 28">
-      <rect x="2"  y="10" width="64" height="16" rx="3" fill="#f5c518"/>
-      <rect x="12" y="4"  width="38" height="10" rx="2" fill="#c8a010"/>
-      <rect x="16" y="2"  width="14" height="2.5" rx="1" fill="#f5c518"/>
-      <rect x="6"  y="11" width="8"  height="5" rx="1" fill="#87ceeb" opacity=".7"/>
-      <rect x="18" y="6"  width="10" height="6" rx="1" fill="#87ceeb" opacity=".7"/>
-      <rect x="32" y="6"  width="10" height="6" rx="1" fill="#87ceeb" opacity=".7"/>
-      <rect x="46" y="11" width="8"  height="5" rx="1" fill="#87ceeb" opacity=".7"/>
-      <circle cx="14" cy="26" r="4" fill="#222"/>
-      <circle cx="54" cy="26" r="4" fill="#222"/>
-      <circle cx="14" cy="26" r="2" fill="#444"/>
-      <circle cx="54" cy="26" r="2" fill="#444"/>
-      <rect x="28" y="11" width="12" height="5" rx="1" fill="#222" opacity=".5"/>
-      <!-- driver silhouette -->
-      <ellipse cx="22" cy="8.5" rx="2.6" ry="2.8" fill="#5a3a1a"/>
-      <rect x="19.5" y="10.5" width="5" height="3.5" rx="1" fill="#3a2a6a"/>
+  <div id="player-you">
+    <svg viewBox="0 0 28 58" width="32" height="66" xmlns="http://www.w3.org/2000/svg">
+      <rect x="9" y="22" width="10" height="22" rx="2" fill="#2a1e38"/>
+      <polygon points="9,22 14,27 9,34" fill="#221830"/>
+      <polygon points="19,22 14,27 19,34" fill="#221830"/>
+      <circle cx="14" cy="16" r="7" fill="#c8a070"/>
+      <ellipse cx="14" cy="10" rx="6.5" ry="3.5" fill="#180800"/>
+      <rect x="20" y="26" width="8" height="5.5" rx="1" fill="#7a3808"/>
+      <line x1="24" y1="26" x2="24" y2="31.5" stroke="#5a2a06" stroke-width=".7"/>
+      <line x1="19" y1="28" x2="20" y2="28" stroke="#2a1e38" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="9"  y1="27" x2="4"  y2="33" stroke="#2a1e38" stroke-width="3.5" stroke-linecap="round"/>
+      <rect x="9"  y="43" width="4.5" height="13" rx="1.5" fill="#181428"/>
+      <rect x="14.5" y="43" width="4.5" height="13" rx="1.5" fill="#181428"/>
+      <ellipse cx="11.5" cy="56.5" rx="4"   ry="2.2" fill="#0c0808"/>
+      <ellipse cx="17"   cy="56.5" rx="4"   ry="2.2" fill="#0c0808"/>
+      <line x1="14" y1="30" x2="14" y2="35" stroke="#e8c97a" stroke-width="1"  opacity=".65"/>
+      <line x1="12" y1="32" x2="16" y2="32" stroke="#e8c97a" stroke-width="1"  opacity=".65"/>
+      <circle cx="14" cy="14" r="10" fill="none" stroke="#ffd080" stroke-width=".6" opacity=".2"/>
     </svg>
-  </div>
-  <div class="taxi taxi2" style="bottom:56px" id="taxi2">
-    <div class="taxi-bubble">❓ Someone's driving</div>
-    <svg width="58" height="24" viewBox="0 0 58 24">
-      <rect x="2"  y="8"  width="54" height="14" rx="3" fill="#f5c518"/>
-      <rect x="10" y="3"  width="32" height="8"  rx="2" fill="#c8a010"/>
-      <rect x="14" y="1.5" width="10" height="2" rx="1" fill="#f5c518"/>
-      <circle cx="12" cy="22" r="3.5" fill="#222"/>
-      <circle cx="46" cy="22" r="3.5" fill="#222"/>
-      <!-- driver silhouette -->
-      <ellipse cx="20" cy="6" rx="2.2" ry="2.4" fill="#c8885a"/>
-      <rect x="17.8" y="8" width="4.4" height="3" rx="1" fill="#2a4a2a"/>
-    </svg>
+    <div id="player-label">YOU</div>
   </div>
 
-  <div class="sidewalk2"></div>
-  <div class="sidewalk"></div>
-  <div class="ground"></div>
-
-  <!-- 15 walkers injected by JS -->
   <div id="walkers"></div>
 </div>
 
@@ -647,42 +332,24 @@ const CHARS = [
   {coat:'#2a3c6a',pants:'#1a1e2a',shoe:'#141418',skin:'#f0c888',hair:'#3c2408',hairH:2.8},  // O blue jacket
 ];
 
-// Walker config — back lane, mid lane, front lane
+// Walker config — perspective approach (Pole Position style)
 const WALKER_CFG = [
-  {t:0,  sz:10, dur:48, dly:0,  bot:108, char:0},  // A back
-  {t:1,  sz:10, dur:44, dly:6,  bot:104, char:1},  // B back
-  {t:2,  sz:11, dur:40, dly:12, bot:102, char:2},  // C back
-  {t:3,  sz:11, dur:50, dly:18, bot:106, char:3},  // D back
-  {t:4,  sz:14, dur:34, dly:2,  bot:80,  char:4},  // E mid
-  {t:5,  sz:14, dur:32, dly:8,  bot:78,  char:5},  // F mid
-  {t:6,  sz:15, dur:36, dly:14, bot:84,  char:6},  // G mid
-  {t:7,  sz:14, dur:30, dly:4,  bot:76,  char:7},  // H mid
-  {t:8,  sz:19, dur:24, dly:1,  bot:56,  char:8},  // I front
-  {t:9,  sz:18, dur:26, dly:7,  bot:56,  char:9},  // J front
-  {t:10, sz:20, dur:22, dly:3,  bot:56,  char:10}, // K front
-  {t:11, sz:17, dur:28, dly:9,  bot:56,  char:11}, // L front
-  {t:12, sz:13, dur:38, dly:5,  bot:98,  char:12}, // M back
-  {t:13, sz:15, dur:33, dly:11, bot:80,  char:13}, // N mid
-  {t:14, sz:18, dur:25, dly:15, bot:56,  char:14}, // O front
+  {t:0,  sz:18, dur:9,  dly:0,   anim:'approachLeft',   char:0},
+  {t:1,  sz:18, dur:11, dly:3,   anim:'approachRight',  char:1},
+  {t:2,  sz:18, dur:8,  dly:6.5, anim:'approachLeft2',  char:2},
+  {t:3,  sz:18, dur:13, dly:1.5, anim:'approachRight2', char:3},
+  {t:4,  sz:18, dur:7,  dly:4,   anim:'approachLeft',   char:4},
+  {t:5,  sz:18, dur:10, dly:8,   anim:'approachRight',  char:5},
+  {t:6,  sz:18, dur:12, dly:2,   anim:'approachLeft2',  char:6},
+  {t:7,  sz:18, dur:6,  dly:5,   anim:'approachRight2', char:7},
+  {t:8,  sz:18, dur:9,  dly:7,   anim:'approachLeft',   char:8},
+  {t:9,  sz:18, dur:11, dly:0.5, anim:'approachRight',  char:9},
+  {t:10, sz:18, dur:8,  dly:9,   anim:'approachLeft2',  char:10},
+  {t:11, sz:18, dur:13, dly:3.5, anim:'approachRight2', char:11},
+  {t:12, sz:18, dur:7,  dly:6,   anim:'approachLeft',   char:12},
+  {t:13, sz:18, dur:10, dly:2.5, anim:'approachRight',  char:13},
+  {t:14, sz:18, dur:6,  dly:8.5, anim:'approachLeft2',  char:14},
 ];
-
-// ── BUILD STARS ───────────────────────────────────────────────────────────
-(function(){
-  const cvs=document.getElementById('star-canvas');
-  const scene=document.getElementById('scene');
-  cvs.width=scene.offsetWidth||window.innerWidth;
-  cvs.height=scene.offsetHeight||290;
-  const ctx=cvs.getContext('2d');
-  for(let i=0;i<100;i++){
-    const x=Math.random()*cvs.width;
-    const y=Math.random()*(cvs.height*.58);
-    const r=Math.random()*1.2+.25;
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(255,255,255,${Math.random()*.65+.2})`;
-    ctx.fill();
-  }
-})();
-
 // ── BUILD WALKERS ─────────────────────────────────────────────────────────
 const container=document.getElementById('walkers');
 WALKER_CFG.forEach(cfg=>{
@@ -697,15 +364,10 @@ WALKER_CFG.forEach(cfg=>{
     `--sz:${cfg.sz}px`,
     `--dur:${cfg.dur}s`,
     `--dly:-${cfg.dly}s`,
-    `--pdly:${cfg.dly*.3}s`,
-    `bottom:${cfg.bot}px`,
+    `--pdly:${(cfg.dly*0.3).toFixed(1)}s`,
+    `--anim:${cfg.anim}`,
   ].join(';');
-
-  // Hair layer (ellipse behind head)
-  const hairEl = ch.hairH>0
-    ? `<ellipse cx="12" cy="2.8" rx="4.5" ry="${ch.hairH}" fill="${ch.hair}"/>`
-    : '';
-
+  const hairEl=ch.hairH>0?`<ellipse cx="12" cy="2.8" rx="4.5" ry="${ch.hairH}" fill="${ch.hair}"/>`:''
   el.innerHTML=`
     <div class="paper-note">${tree.emoji}</div>
     <div class="paper-thread" style="height:calc(${cfg.sz}px * 1.6);top:calc(${cfg.sz}px * -1.2)"></div>
